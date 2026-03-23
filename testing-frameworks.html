@@ -3,507 +3,447 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>App Testing Frameworks vs MATLAB</title>
+  <title>Testing Frameworks That Let You See What's Happening</title>
   <style>
     :root {
       --bg: #0f1117;
-      --surface: #1a1d27;
-      --border: #2a2d3a;
-      --text: #e2e4ed;
-      --muted: #7b7f96;
-      --accent: #5b6af0;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
       --green: #3ecf8e;
       --red: #f2545b;
-      --yellow: #f5a623;
-      --blue: #4ca3f5;
-      --purple: #b87af7;
+      --yellow: #f0b429;
+      --tag-bg: #1a1d27;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.7;
-      padding: 0 0 60px;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
     }
 
-    /* ── Hero ── */
-    .hero {
-      background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    header {
       border-bottom: 1px solid var(--border);
-      padding: 40px 20px 32px;
-      text-align: center;
-    }
-    .hero-tag {
-      display: inline-block;
-      background: #23263a;
-      color: var(--accent);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-      border: 1px solid #2e3250;
-    }
-    .hero h1 {
-      font-size: clamp(1.5rem, 5vw, 2.2rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 10px;
-    }
-    .hero p {
-      color: var(--muted);
-      font-size: 0.95rem;
-      max-width: 480px;
+      padding: 28px 24px 24px;
+      max-width: 720px;
       margin: 0 auto;
     }
-
-    /* ── Layout ── */
-    .container { max-width: 720px; margin: 0 auto; padding: 0 16px; }
-
-    /* ── Section ── */
-    .section { margin-top: 40px; }
-    .section-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 18px;
+    }
+    .back:hover { color: var(--accent); }
+    .meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 12px;
     }
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .lede {
+      font-size: 1rem;
+      color: #9ba3bc;
+      max-width: 600px;
     }
 
-    /* ── Verdict card ── */
-    .verdict {
-      background: #1a1d27;
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Callout ── */
+    .callout {
       border: 1px solid var(--border);
-      border-left: 4px solid var(--red);
+      border-left: 3px solid var(--accent);
       border-radius: 10px;
-      padding: 20px;
-      margin-top: 24px;
+      background: var(--surface);
+      padding: 18px 20px;
+      margin: 24px 0;
+      font-size: 0.93rem;
+      color: #9ba3bc;
     }
-    .verdict h2 {
-      font-size: 1.05rem;
+    .callout.warn { border-left-color: var(--yellow); }
+    .callout strong { color: var(--text); }
+
+    /* ── Section titles ── */
+    h2 {
+      font-size: 1.2rem;
       font-weight: 700;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin: 44px 0 6px;
+      color: var(--text);
     }
-    .verdict p { color: #b0b3c6; font-size: 0.92rem; }
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 28px 0 6px;
+    }
+    p { font-size: 0.94rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
 
     /* ── Framework cards ── */
-    .framework-grid {
+    .fw-grid {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-top: 16px;
+      gap: 14px;
+      margin: 20px 0;
     }
     .fw-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 16px 18px;
+      padding: 18px 20px;
     }
     .fw-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    .fw-name {
-      font-weight: 700;
-      font-size: 1rem;
-    }
-    .fw-lang {
-      font-size: 0.7rem;
+    .fw-name { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .fw-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge {
+      font-size: 0.68rem;
       font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: #23263a;
-      color: var(--muted);
-    }
-    .fw-desc { font-size: 0.87rem; color: #9da0b3; margin-bottom: 10px; }
-    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .tag {
-      font-size: 0.72rem;
       padding: 3px 9px;
       border-radius: 20px;
-      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
-    .tag-green { background: #0d2b1f; color: var(--green); }
-    .tag-red   { background: #2b0d0f; color: var(--red); }
-    .tag-blue  { background: #0d1e2b; color: var(--blue); }
-    .tag-yellow{ background: #2b1e0d; color: var(--yellow); }
-    .tag-purple{ background: #1f0d2b; color: var(--purple); }
+    .badge-green  { background: #0d2e1e; color: var(--green); }
+    .badge-yellow { background: #2e2200; color: var(--yellow); }
+    .badge-red    { background: #2e0d0d; color: var(--red); }
+    .badge-blue   { background: #0d1a2e; color: #4ca3f5; }
+    .badge-muted  { background: #1a1d27; color: var(--muted); }
+
+    .fw-desc { font-size: 0.88rem; color: var(--muted); margin-bottom: 10px; }
+    .fw-verdict { font-size: 0.85rem; color: #9ba3bc; }
+    .fw-verdict strong { color: var(--text); }
 
     /* ── Comparison table ── */
-    .compare-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.83rem;
-      margin-top: 16px;
-    }
-    .compare-table th {
+    .table-wrap { overflow-x: auto; margin: 24px 0; border-radius: 10px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    thead tr { background: var(--surface); }
+    th {
       text-align: left;
-      padding: 10px 12px;
-      background: #23263a;
+      padding: 12px 14px;
       color: var(--muted);
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
+      font-weight: 600;
+      font-size: 0.75rem;
       text-transform: uppercase;
+      letter-spacing: 0.07em;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
-    .compare-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #1e212e;
-      vertical-align: top;
-    }
-    .compare-table tr:last-child td { border-bottom: none; }
-    .compare-table tr:hover td { background: #1e212e; }
-    .compare-table .dim { color: var(--muted); font-weight: 600; }
-    .win  { color: var(--green); font-weight: 600; }
-    .lose { color: var(--red); }
-    .mid  { color: var(--yellow); }
+    td { padding: 11px 14px; color: #9ba3bc; border-bottom: 1px solid #1d2028; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #191c27; }
+    td:first-child { color: var(--text); font-weight: 500; }
+    .yes  { color: var(--green); font-weight: 600; }
+    .no   { color: var(--red); }
+    .some { color: var(--yellow); }
 
-    /* ── Pros/cons ── */
-    .pros-cons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 16px;
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      margin-top: 56px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
     }
-    @media (max-width: 480px) { .pros-cons { grid-template-columns: 1fr; } }
-    .pc-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
+    .bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
     }
-    .pc-title {
+    .bottom-nav a:hover { color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
       font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
+      color: #3a3e50;
+      border-top: 1px solid var(--border);
+      max-width: 720px;
+      margin: 0 auto;
     }
-    .pc-title.pro { color: var(--green); }
-    .pc-title.con { color: var(--red); }
-    .pc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .pc-list li {
-      font-size: 0.85rem;
-      color: #b0b3c6;
-      padding-left: 18px;
-      position: relative;
-    }
-    .pc-list li::before {
-      position: absolute;
-      left: 0;
-      font-size: 0.85rem;
-    }
-    .pc-list.pros li::before { content: '✓'; color: var(--green); }
-    .pc-list.cons li::before { content: '✗'; color: var(--red); }
-
-    /* ── Bottom verdict ── */
-    .bottom-verdict {
-      background: linear-gradient(135deg, #1a1d27, #1e1527);
-      border: 1px solid #3a2a4a;
-      border-radius: 12px;
-      padding: 24px;
-      margin-top: 16px;
-    }
-    .bottom-verdict h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
-    .bottom-verdict p { color: #b0b3c6; font-size: 0.9rem; }
-
-    /* ── Responsive table wrapper ── */
-    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="hero-tag">Research · March 2026</div>
-  <h1>App Testing Frameworks</h1>
-  <p>A no-nonsense comparison — including an honest look at where MATLAB falls flat.</p>
-</div>
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Testing &bull; UI &bull; Mar 2026</div>
+  <h1>Testing Frameworks That Let You See What's Happening</h1>
+  <p class="lede">Passing tests don't mean a working app. Here's what to use when you actually want to watch the UI run — not just trust a terminal's green checkmark.</p>
+</header>
 
-<div class="container">
+<main>
 
-  <!-- VERDICT UP TOP -->
-  <div class="section">
-    <div class="verdict">
-      <h2>⚠️ The MATLAB Problem</h2>
-      <p>
-        MATLAB's testing framework is a <strong>walled garden</strong>. It works fine if you never leave MATLAB —
-        but it costs a fortune, runs nowhere without a license, can't mock basic functions without hacky path manipulation,
-        has zero plugin ecosystem, and ships new features twice a year while the rest of the world ships weekly.
-        The one thing it genuinely owns is MC/DC coverage for safety-critical certifications (DO-178C, ISO 26262).
-        Everything else it does, open-source tools do better and for free.
-      </p>
-    </div>
+  <div class="callout warn">
+    <strong>The real problem:</strong> A test suite can pass 100% while the app is completely broken. This happens when tests run headlessly — no real rendering, no real browser window, no visual feedback. The gap between "tests pass" and "app works" is where bugs hide.
   </div>
 
-  <!-- MODERN FRAMEWORKS -->
-  <div class="section">
-    <div class="section-label">Modern Frameworks</div>
+  <h2>Why This Matters More Than It Used To</h2>
+  <p>
+    MATLAB's App Testing Framework has an underrated design choice: when you run tests, the app actually opens. You watch every button click, every input, every state transition happen in real time in a real window. It's slower, sure — but the tradeoff is that you <strong>cannot accidentally ship a broken UI</strong> while believing everything is fine.
+  </p>
+  <p>
+    Most modern testing frameworks default to headless execution. That's good for CI pipelines and speed — but headless and headed can behave differently. CSS animations, GPU-accelerated effects, font rendering, z-index stacking, and drag interactions can all fail in a real browser while passing headlessly. The frameworks below are the ones that take the "watch it happen" model seriously.
+  </p>
 
-    <div class="framework-grid">
+  <h2>Web: The Best Options</h2>
 
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">Playwright</span>
-          <span class="fw-lang">JS / Python / Java / .NET</span>
-        </div>
-        <div class="fw-desc">Microsoft's E2E testing tool. Cross-browser (Chrome, Firefox, Safari). Auto-waits. Network mocking. Video recording. The best UI/visual testing story available right now.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">Visual snapshots</span>
-          <span class="tag tag-green">Cross-browser</span>
-          <span class="tag tag-green">Free</span>
-          <span class="tag tag-blue">Trace viewer</span>
+  <div class="fw-grid">
+
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">Cypress — <code>cypress open</code></div>
+        <div class="fw-badges">
+          <span class="badge badge-green">Visible by default</span>
+          <span class="badge badge-green">Time-travel</span>
+          <span class="badge badge-blue">Web</span>
         </div>
       </div>
-
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">pytest</span>
-          <span class="fw-lang">Python</span>
-        </div>
-        <div class="fw-desc">The gold standard for Python testing. Minimal syntax, 1,300+ plugins, powerful fixture system. Pairs with Playwright or Selenium for UI work.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">1,300+ plugins</span>
-          <span class="tag tag-green">Minimal boilerplate</span>
-          <span class="tag tag-blue">Branch coverage</span>
-        </div>
+      <div class="fw-desc">
+        Runs inside the browser itself. In interactive mode, you get a split view: your app on the right, a live command log on the left. Every action plays out in front of you. Cypress snapshots the DOM at every step, so you can scrub back in time and inspect exactly what the UI looked like at any point — even after the test finishes.
       </div>
-
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">Jest / Vitest</span>
-          <span class="fw-lang">JavaScript / TypeScript</span>
-        </div>
-        <div class="fw-desc">Jest is the dominant JS unit test framework. Vitest is faster and the default for Vite-based projects. Both have built-in mocking, coverage, and snapshot testing.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">Snapshot testing</span>
-          <span class="tag tag-green">Module mocking</span>
-          <span class="tag tag-blue">30-70% faster (Vitest)</span>
-        </div>
-      </div>
-
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">JUnit 5</span>
-          <span class="fw-lang">Java / Kotlin</span>
-        </div>
-        <div class="fw-desc">The Java standard. Annotation-based, no boilerplate base class. Pairs with Mockito for mocking and JaCoCo for coverage. 100M+ monthly Maven downloads.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">Mockito integration</span>
-          <span class="tag tag-green">JaCoCo coverage</span>
-          <span class="tag tag-blue">Parallel built-in</span>
-        </div>
-      </div>
-
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">XCTest / XCUITest</span>
-          <span class="fw-lang">Swift / Objective-C</span>
-        </div>
-        <div class="fw-desc">Apple's native framework. XCUITest drives the UI via the accessibility tree. Strong visual testing story on iOS. Locked to macOS/Xcode.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">Native iOS/macOS</span>
-          <span class="tag tag-blue">UI recording</span>
-          <span class="tag tag-yellow">macOS only</span>
-        </div>
-      </div>
-
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">Espresso</span>
-          <span class="fw-lang">Android (Java / Kotlin)</span>
-        </div>
-        <div class="fw-desc">Google's Android UI test framework. Runs in-process with the app — no flaky timing issues. Fastest Android UI testing available. Source code required.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">In-process (fast)</span>
-          <span class="tag tag-green">No timing issues</span>
-          <span class="tag tag-yellow">Android only</span>
-        </div>
-      </div>
-
-      <div class="fw-card">
-        <div class="fw-header">
-          <span class="fw-name">Appium</span>
-          <span class="fw-lang">Cross-platform mobile</span>
-        </div>
-        <div class="fw-desc">Write one test suite for iOS + Android. No source code needed. Slower than native tools (Espresso/XCUITest) but unbeatable for cross-platform coverage.</div>
-        <div class="tag-row">
-          <span class="tag tag-green">iOS + Android</span>
-          <span class="tag tag-green">No source needed</span>
-          <span class="tag tag-yellow">Slower setup</span>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- HEAD TO HEAD -->
-  <div class="section">
-    <div class="section-label">Head-to-Head: MATLAB vs. The World</div>
-    <div class="table-wrap">
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th>Feature</th>
-            <th>MATLAB</th>
-            <th>Open Source</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="dim">License cost</td>
-            <td class="lose">💰 Thousands/seat/year</td>
-            <td class="win">Free</td>
-          </tr>
-          <tr>
-            <td class="dim">CI/CD runners</td>
-            <td class="lose">Needs license on every runner</td>
-            <td class="win">Runs anywhere</td>
-          </tr>
-          <tr>
-            <td class="dim">Mocking functions</td>
-            <td class="lose">Path-hack workaround only</td>
-            <td class="win">Native in all frameworks</td>
-          </tr>
-          <tr>
-            <td class="dim">Plugin ecosystem</td>
-            <td class="lose">MathWorks-only, minimal</td>
-            <td class="win">Hundreds to thousands</td>
-          </tr>
-          <tr>
-            <td class="dim">Release cadence</td>
-            <td class="lose">2x/year</td>
-            <td class="win">Monthly or faster</td>
-          </tr>
-          <tr>
-            <td class="dim">Parallel test execution</td>
-            <td class="lose">Paid add-on required</td>
-            <td class="win">Built-in or free plugin</td>
-          </tr>
-          <tr>
-            <td class="dim">Visual / UI testing</td>
-            <td class="lose">App Designer apps only</td>
-            <td class="win">Full web, mobile, desktop</td>
-          </tr>
-          <tr>
-            <td class="dim">Property-based testing</td>
-            <td class="lose">Does not exist</td>
-            <td class="win">Hypothesis, fast-check, jqwik</td>
-          </tr>
-          <tr>
-            <td class="dim">BDD / Gherkin</td>
-            <td class="lose">Does not exist</td>
-            <td class="win">Cucumber, SpecFlow, Behave</td>
-          </tr>
-          <tr>
-            <td class="dim">MC/DC coverage</td>
-            <td class="win">✓ Native (paid add-on)</td>
-            <td class="lose">Needs expensive tooling</td>
-          </tr>
-          <tr>
-            <td class="dim">Simulink model testing</td>
-            <td class="win">✓ Only option</td>
-            <td class="lose">Not applicable</td>
-          </tr>
-          <tr>
-            <td class="dim">Safety-critical certs</td>
-            <td class="win">DO-178C, ISO 26262</td>
-            <td class="lose">Requires extra tooling</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- VISUAL TESTING FOCUS -->
-  <div class="section">
-    <div class="section-label">Visual Testing — Where MATLAB Is Weakest</div>
-    <div class="fw-card" style="border-left: 4px solid var(--accent);">
-      <p style="font-size:0.9rem; color:#b0b3c6; margin-bottom: 14px;">
-        Visual testing — pixel-level screenshot comparison, layout regression detection,
-        component snapshot testing — is one of the biggest growth areas in modern QA.
-        MATLAB has essentially nothing here. It can test that a plot <em>ran</em>, not what it looks like.
-      </p>
-      <div class="tag-row">
-        <div style="width:100%">
-          <strong style="font-size:0.85rem;">Best-in-class visual testing tools:</strong>
-        </div>
-        <span class="tag tag-green">Playwright (screenshots + diffs)</span>
-        <span class="tag tag-blue">Percy by BrowserStack</span>
-        <span class="tag tag-purple">Chromatic (Storybook)</span>
-        <span class="tag tag-blue">Applitools Eyes (AI-based)</span>
-        <span class="tag tag-green">Jest snapshots (component)</span>
+      <div class="fw-verdict">
+        <strong>Best for:</strong> Web apps where you want the most visual, interactive test-watching experience available. The time-travel debugging alone puts it ahead for this use case. Headless mode exists for CI, but <code>cypress open</code> is the default dev experience.
       </div>
     </div>
-  </div>
 
-  <!-- MATLAB PROS/CONS -->
-  <div class="section">
-    <div class="section-label">MATLAB — Honest Assessment</div>
-    <div class="pros-cons">
-      <div class="pc-box">
-        <div class="pc-title pro">Where It's Justified</div>
-        <ul class="pc-list pros">
-          <li>MC/DC coverage for DO-178C / ISO 26262</li>
-          <li>Simulink model testing (only option)</li>
-          <li>SIL/PIL equivalence testing</li>
-          <li>Requirements traceability in regulated industries</li>
-          <li>Statistical performance benchmarking</li>
-        </ul>
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">Playwright — UI Mode</div>
+        <div class="fw-badges">
+          <span class="badge badge-yellow">Headed with flag</span>
+          <span class="badge badge-green">Trace viewer</span>
+          <span class="badge badge-blue">Web</span>
+        </div>
       </div>
-      <div class="pc-box">
-        <div class="pc-title con">Where It Falls Flat</div>
-        <ul class="pc-list cons">
-          <li>Costs thousands per seat per year</li>
-          <li>Needs license on every CI runner</li>
-          <li>Can't mock plain functions cleanly</li>
-          <li>Zero visual / UI testing beyond App Designer</li>
-          <li>No BDD, no property-based testing</li>
-          <li>No plugin ecosystem whatsoever</li>
-          <li>2 releases/year while competitors ship monthly</li>
-          <li>Parallel execution costs extra</li>
-        </ul>
+      <div class="fw-desc">
+        Headless by default, which is honestly the wrong default for development. But <code>--ui</code> mode opens a proper visual runner — test list, timeline, DOM snapshots per step, network inspector. Add <code>--headed --slow-mo=500</code> and you can watch every action at human speed. The Trace Viewer is excellent for post-run replay even from CI runs.
+      </div>
+      <div class="fw-verdict">
+        <strong>Best for:</strong> Teams that need cross-browser coverage and want a visual experience that scales to CI. Slightly more setup than Cypress, and headless-by-default is a real friction point if you forget the flag.
       </div>
     </div>
-  </div>
 
-  <!-- BOTTOM LINE -->
-  <div class="section">
-    <div class="section-label">Bottom Line</div>
-    <div class="bottom-verdict">
-      <h3>🎯 Use MATLAB testing only if you're in aerospace, automotive, or medical devices and already locked in.</h3>
-      <p style="margin-top: 10px;">
-        For everything else — web apps, mobile, general software — MATLAB's testing framework is an overpriced,
-        underbuilt tool that lags years behind the open-source ecosystem.
-        Playwright + pytest or Jest covers 95% of real-world testing needs, runs anywhere,
-        costs nothing, and ships improvements every month.
-      </p>
-      <p style="margin-top: 10px;">
-        The <strong>visual testing gap</strong> is especially notable: MATLAB simply cannot do what Playwright,
-        Percy, or Applitools do — and visual regression testing is increasingly non-negotiable for modern UI work.
-      </p>
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">Selenium</div>
+        <div class="fw-badges">
+          <span class="badge badge-yellow">Headed by default</span>
+          <span class="badge badge-red">No replay</span>
+          <span class="badge badge-blue">Web</span>
+        </div>
+      </div>
+      <div class="fw-desc">
+        Opens a real browser — you can watch it. But that's about all it gives you. No structured step viewer, no time-travel, no DOM snapshots. When something fails you get a stack trace, not a visual explanation. It's showing its age.
+      </div>
+      <div class="fw-verdict">
+        <strong>Verdict:</strong> Visible, but primitive. Choose Cypress or Playwright for any new project.
+      </div>
     </div>
+
   </div>
 
-</div>
+  <h2>Mobile: Native Tools Win Here</h2>
+  <p>
+    For mobile, the closest equivalent to the MATLAB model is the native simulators. When you run Espresso (Android) or XCUITest (iOS) tests, the simulator opens and you watch the test drive the real app — every tap, swipe, and navigation plays out on screen.
+  </p>
+
+  <div class="fw-grid">
+
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">Espresso (Android)</div>
+        <div class="fw-badges">
+          <span class="badge badge-green">Simulator always open</span>
+          <span class="badge badge-green">Native sync</span>
+        </div>
+      </div>
+      <div class="fw-desc">
+        Built by Google. Tests run against the Android emulator — always visible, always rendering. Tightly synchronized with the UI thread, so you rarely get flaky timing issues. You watch every interaction happen in the emulator exactly as a user would see it.
+      </div>
+    </div>
+
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">XCUITest (iOS)</div>
+        <div class="fw-badges">
+          <span class="badge badge-green">Simulator always open</span>
+          <span class="badge badge-green">Xcode integration</span>
+        </div>
+      </div>
+      <div class="fw-desc">
+        Apple's native tool. The iOS Simulator opens when tests run and you watch the app being driven. Pass/fail updates live in Xcode's test navigator. Slower than Espresso but the visual model is the same.
+      </div>
+    </div>
+
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">Detox (React Native)</div>
+        <div class="fw-badges">
+          <span class="badge badge-green">Simulator open</span>
+          <span class="badge badge-yellow">RN only</span>
+        </div>
+      </div>
+      <div class="fw-desc">
+        React Native specific. Runs against the simulator (visible), and has access to the JavaScript bridge so it can sync with RN's async operations better than Appium can. No interactive runner — you see the simulator, not a structured step view.
+      </div>
+    </div>
+
+    <div class="fw-card">
+      <div class="fw-header">
+        <div class="fw-name">Appium</div>
+        <div class="fw-badges">
+          <span class="badge badge-green">Device always visible</span>
+          <span class="badge badge-red">Slow &amp; flaky</span>
+        </div>
+      </div>
+      <div class="fw-desc">
+        Cross-platform wrapper over Espresso and XCUITest. Always runs visually against a real device or emulator. The cost is performance — Appium adds a network layer that makes it significantly slower and historically unreliable. You can watch it, but it's often painful to wait for.
+      </div>
+    </div>
+
+  </div>
+
+  <h2>What About Visual Regression Tools?</h2>
+  <p>
+    Percy, Applitools, and Chromatic solve a related but different problem. They don't help you watch tests run — they capture screenshots and compare them pixel-by-pixel against approved baselines. The goal is catching visual changes between builds: a layout shift, a color change, a font that regressed.
+  </p>
+  <div class="callout">
+    <strong>Worth considering as a layer on top</strong> of Cypress or Playwright. You get live visual testing during development, and automated screenshot diffing in CI to catch regressions you might miss visually. They are not replacements for each other.
+  </div>
+
+  <h2>Full Comparison</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Framework</th>
+          <th>Platform</th>
+          <th>Visible by default</th>
+          <th>Watch mode</th>
+          <th>Step replay</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cypress (open)</td>
+          <td>Web</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Yes — DOM snapshots</td>
+          <td>Best interactive experience for web</td>
+        </tr>
+        <tr>
+          <td>Playwright (UI mode)</td>
+          <td>Web</td>
+          <td class="some">Flag required</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Yes — Trace Viewer</td>
+          <td>Better scalability; headless default is annoying</td>
+        </tr>
+        <tr>
+          <td>Selenium</td>
+          <td>Web</td>
+          <td class="yes">Yes</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td>Visible but no tooling around it</td>
+        </tr>
+        <tr>
+          <td>Espresso</td>
+          <td>Android</td>
+          <td class="yes">Yes</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td>Best native Android option</td>
+        </tr>
+        <tr>
+          <td>XCUITest</td>
+          <td>iOS</td>
+          <td class="yes">Yes</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td>Native iOS; always visible in Xcode</td>
+        </tr>
+        <tr>
+          <td>Detox</td>
+          <td>React Native</td>
+          <td class="yes">Yes</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td>RN only; better async sync than Appium</td>
+        </tr>
+        <tr>
+          <td>Appium</td>
+          <td>Android / iOS</td>
+          <td class="yes">Yes</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td>Cross-platform but slow and flaky</td>
+        </tr>
+        <tr>
+          <td>Percy / Applitools</td>
+          <td>Web / Mobile</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td class="some">Screenshot review</td>
+          <td>Visual regression layer, not live testing</td>
+        </tr>
+        <tr>
+          <td>MATLAB App Testing</td>
+          <td>MATLAB desktop</td>
+          <td class="yes">Yes (required)</td>
+          <td class="no">No</td>
+          <td class="no">No</td>
+          <td>Good model, limited to MATLAB ecosystem</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Bottom Line</h2>
+  <p>
+    For web, <strong>Cypress in <code>open</code> mode</strong> is the closest thing to MATLAB's "watch it happen" philosophy. You see the real browser, every step plays out in front of you, and if something fails you can scrub back in time to understand exactly what went wrong. Playwright's UI mode is a strong alternative if you need multi-browser support.
+  </p>
+  <p>
+    For mobile, <strong>Espresso and XCUITest</strong> are the natural equivalents — the simulator is always open, always rendering. They don't have Cypress's structured step viewer, but the visual model is the same: real UI, real rendering, watch it run.
+  </p>
+  <p>
+    The honest takeaway: MATLAB wasn't doing anything exotic. It just refused to hide the UI. Most modern frameworks make hiding it the default — and that's a tradeoff worth questioning every time you set up a test suite.
+  </p>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+
 </body>
 </html>

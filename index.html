@@ -1,1 +1,196 @@
-<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=testing-frameworks.html"/><title>Redirecting...</title></head><body><a href="testing-frameworks.html">Click here</a></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Open Research</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --accent-soft: #1e2340;
+      --green: #3ecf8e;
+      --tag-bg: #1a1d27;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .site-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    header h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    header p {
+      font-size: 0.97rem;
+      color: var(--muted);
+      max-width: 560px;
+    }
+
+    /* ── Main ── */
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── About block ── */
+    .about {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 48px;
+      font-size: 0.95rem;
+      color: #9ba3bc;
+    }
+    .about strong { color: var(--text); }
+
+    /* ── Section heading ── */
+    .section-heading {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    /* ── Cards ── */
+    .cards { display: flex; flex-direction: column; gap: 16px; }
+
+    .card {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      background: #191c27;
+    }
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .card-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+      margin-top: 3px;
+    }
+    .card-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Coming soon placeholder ── */
+    .card.placeholder {
+      opacity: 0.45;
+      cursor: default;
+      pointer-events: none;
+    }
+    .card.placeholder .card-title { color: var(--muted); }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.78rem;
+      color: #3a3e50;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="site-label">Open Research</div>
+  <h1>A thinking space.</h1>
+  <p>Research notes, comparisons, and explorations. Everything here is a work in progress — written to inform decisions, not to be comprehensive.</p>
+</header>
+
+<main>
+  <div class="about">
+    <strong>What this is:</strong> A personal research platform. Topics get added when a real question comes up — usually before building something. The goal is honest, opinionated takes, not vendor-friendly summaries.
+  </div>
+
+  <div class="section-heading">Research Topics</div>
+  <div class="cards">
+
+    <a class="card" href="testing-frameworks.html">
+      <div class="card-top">
+        <div class="card-title">Testing Frameworks That Let You See What's Happening</div>
+        <div class="card-date">Mar 2026</div>
+      </div>
+      <div class="card-desc">
+        Passing tests don't mean a working app. A look at frameworks that visually launch and render the app while tests run — so you can actually watch it work instead of trusting a green checkmark.
+      </div>
+      <div class="tags">
+        <span class="tag">testing</span>
+        <span class="tag">UI</span>
+        <span class="tag">web</span>
+        <span class="tag">mobile</span>
+      </div>
+    </a>
+
+    <div class="card placeholder">
+      <div class="card-top">
+        <div class="card-title">More topics coming…</div>
+      </div>
+      <div class="card-desc">New research gets added as questions come up.</div>
+    </div>
+
+  </div>
+</main>
+
+<footer>Open Research &mdash; Updated continuously</footer>
+
+</body>
+</html>
