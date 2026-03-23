@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WiFi Weak Security Warning — What It Means and How to Fix It</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --tag-bg: #1a1d27;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 18px;
+    }
+    .back:hover { color: var(--accent); }
+    .meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 600px; }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 44px 0 10px;
+      color: var(--text);
+    }
+    h3 {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 28px 0 6px;
+    }
+    p { font-size: 0.94rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { font-size: 0.93rem; color: #9ba3bc; margin-bottom: 6px; }
+    li strong { color: var(--text); }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 18px 20px;
+      margin: 24px 0;
+      font-size: 0.93rem;
+      color: #9ba3bc;
+    }
+    .callout.warn  { border-left-color: var(--yellow); }
+    .callout.good  { border-left-color: var(--green); }
+    .callout.bad   { border-left-color: var(--red); }
+    .callout strong { color: var(--text); }
+
+    /* ── Protocol cards ── */
+    .protocol-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .protocol-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .risk-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .risk-red    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .risk-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .risk-green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .protocol-name { font-size: 0.98rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .protocol-desc { font-size: 0.87rem; color: var(--muted); }
+    .protocol-desc strong { color: #9ba3bc; }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 16px; margin: 20px 0; }
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent-soft, #1e2340);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .step-desc { font-size: 0.88rem; color: var(--muted); }
+    .step-desc strong { color: #9ba3bc; }
+
+    /* ── Impact table ── */
+    .impact-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .impact-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .impact-label { font-size: 0.9rem; color: var(--text); font-weight: 500; }
+    .impact-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .impact-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .impact-high   { background: #2e0d0d; color: var(--red); }
+    .impact-medium { background: #2e2200; color: var(--yellow); }
+    .impact-low    { background: #0d2e1e; color: var(--green); }
+    .impact-skip   { background: #1a1d27; color: var(--muted); }
+
+    /* ── Brand section ── */
+    .brand-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .brand-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .brand-name { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .brand-path {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-family: monospace;
+      background: #12151e;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+    .brand-note { font-size: 0.82rem; color: var(--muted); }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      margin-top: 56px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+    }
+    .bottom-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .bottom-nav a:hover { color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.78rem;
+      color: #3a3e50;
+      border-top: 1px solid var(--border);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    code {
+      font-family: monospace;
+      background: #12151e;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 0.88em;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Security &bull; WiFi &bull; Mar 2026</div>
+  <h1>WiFi "Weak Security" Warning — What It Means and How to Fix It</h1>
+  <p class="lede">Your Motorola Razr is telling you something real. Here's what's actually broken, what the real risks are, and exactly what to change.</p>
+</header>
+
+<main>
+
+  <div class="callout warn">
+    <strong>Quick answer:</strong> Your router is almost certainly using WPA2 with TKIP, or a "mixed mode" that allows both old and new encryption. The fix takes about 5 minutes in your router settings. The phone warning is accurate — this is worth fixing.
+  </div>
+
+  <h2>What Triggers the Warning</h2>
+  <p>Android (and iOS) flag your network when the router uses outdated encryption. Here's the full spectrum:</p>
+
+  <div class="protocol-grid">
+    <div class="protocol-card">
+      <div class="risk-dot risk-red"></div>
+      <div>
+        <div class="protocol-name">WEP</div>
+        <div class="protocol-desc"><strong>Always triggers the warning.</strong> From 1997. Crackable in under 5 minutes with free tools and any laptop. Treat it as having no password at all. Nobody should be on this in 2026.</div>
+      </div>
+    </div>
+    <div class="protocol-card">
+      <div class="risk-dot risk-red"></div>
+      <div>
+        <div class="protocol-name">WPA (original) with TKIP</div>
+        <div class="protocol-desc"><strong>Always triggers the warning.</strong> A 2003 emergency patch for WEP. Has known cryptographic vulnerabilities and caps your network speed at 54 Mbps for no reason.</div>
+      </div>
+    </div>
+    <div class="protocol-card">
+      <div class="risk-dot risk-yellow"></div>
+      <div>
+        <div class="protocol-name">WPA2/WPA Mixed Mode — most likely your problem</div>
+        <div class="protocol-desc"><strong>Triggers the warning.</strong> Many routers ship in a "compatibility mode" that allows both old and new devices. Even if your phone connects with the stronger protocol, the fact that the weaker one is <em>allowed</em> is enough to flag it. This is the most common cause of the warning on modern home networks.</div>
+      </div>
+    </div>
+    <div class="protocol-card">
+      <div class="risk-dot risk-green"></div>
+      <div>
+        <div class="protocol-name">WPA2-Personal with AES only</div>
+        <div class="protocol-desc"><strong>Does not trigger the warning.</strong> The current acceptable baseline. Solid if your password is strong.</div>
+      </div>
+    </div>
+    <div class="protocol-card">
+      <div class="risk-dot risk-green"></div>
+      <div>
+        <div class="protocol-name">WPA3 / WPA2+WPA3 Transition Mode</div>
+        <div class="protocol-desc"><strong>Does not trigger the warning.</strong> The current best practice. Worth enabling if your router supports it.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>The Actual Risks — No Fluff</h2>
+
+  <h3>WPA2 with a weak password is the real threat</h3>
+  <p>
+    Here's the part most guides skip: even WPA2-AES (the "good" setting) can be cracked — if your password is weak. When any device connects to your network, it performs a handshake with the router. An attacker with a laptop within WiFi range can silently capture that handshake in seconds. They then take it home and run it through a GPU at hundreds of millions of guesses per second using free tools.
+  </p>
+  <p>
+    A common word, a pet's name, a short number string? Cracked in minutes. <strong>A random 16-character password? Not practically crackable.</strong> This is the most important thing you can do, more important than the protocol setting itself.
+  </p>
+
+  <h3>WPA3 closes this hole entirely</h3>
+  <p>
+    WPA3 uses a different handshake (SAE) that requires an active back-and-forth with the router for every password guess. You can't capture it and crack it offline. Even a weak password is significantly harder to attack under WPA3. It also adds forward secrecy — even if your password gets out later, past captured traffic can't be decrypted retroactively.
+  </p>
+
+  <div class="callout">
+    <strong>Bottom line on risk:</strong> WPA2-AES with a strong password is not realistically broken. WPA2 with TKIP or mixed mode is measurably weaker and worth fixing. WPA3 is genuinely better, not just a checkbox upgrade.
+  </div>
+
+  <h2>How to Fix It — Step by Step</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Open your router's admin page</div>
+        <div class="step-desc">Open a browser on any device connected to your WiFi and go to <code>192.168.1.1</code> or <code>192.168.0.1</code> — one of those is almost certainly your router. Not sure which? On your phone, go to Settings > WiFi > tap your network > look for "Gateway" or "Router." Log in with your admin credentials (printed on the router sticker — this is <em>not</em> your WiFi password).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Find the Wireless Security settings</div>
+        <div class="step-desc">Look for a section labeled <strong>Wireless, WiFi Settings,</strong> or <strong>Security</strong>. If you have separate 2.4GHz and 5GHz bands, you'll need to update both.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Change Security Mode</div>
+        <div class="step-desc">Set it to one of these, in order of preference:<br><br>
+          <strong>1. WPA3-Personal</strong> — best, if all your devices support it<br>
+          <strong>2. WPA2/WPA3 Transition Mode</strong> — smart middle ground; WPA3 for newer devices, WPA2-AES fallback for older ones<br>
+          <strong>3. WPA2-Personal (AES only)</strong> — labeled "WPA2-PSK [AES]" on some routers — eliminates the warning<br><br>
+          If there's a separate <strong>Encryption</strong> or <strong>Cipher</strong> dropdown, set it to <strong>AES</strong> — not TKIP, not Auto.
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Save and reconnect</div>
+        <div class="step-desc">All connected devices will be kicked off and need to reconnect. On your Razr: Settings > Network & Internet > Internet > tap the gear next to your network > Forget > reconnect. The warning should be gone.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Where to Find This by Router Brand</h2>
+
+  <div class="brand-grid">
+    <div class="brand-card">
+      <div class="brand-name">Netgear</div>
+      <div class="brand-path">routerlogin.net → Basic > Wireless</div>
+      <div class="brand-note">Or Advanced > Advanced Setup > Wireless Settings. Look for "Security Options" — select WPA2-Personal or WPA2/WPA3.</div>
+    </div>
+    <div class="brand-card">
+      <div class="brand-name">TP-Link</div>
+      <div class="brand-path">tplinkwifi.net → Advanced > Wireless</div>
+      <div class="brand-note">Change Security dropdown to WPA2-Personal. Set Encryption to AES. Repeat for 5GHz band separately. Tether app also works.</div>
+    </div>
+    <div class="brand-card">
+      <div class="brand-name">Asus</div>
+      <div class="brand-path">router.asus.com → Wireless > General</div>
+      <div class="brand-note">Authentication Method: WPA2-Personal. WPA Encryption: AES. ASUS Router app also works.</div>
+    </div>
+    <div class="brand-card">
+      <div class="brand-name">Eero (Amazon)</div>
+      <div class="brand-path">Eero app → WiFi network → Advanced → Security</div>
+      <div class="brand-note">No web interface — app only. Look for WPA3 Transition mode.</div>
+    </div>
+    <div class="brand-card">
+      <div class="brand-name">Google / Nest WiFi</div>
+      <div class="brand-path">Google Home app → WiFi → gear icon → Advanced Networking</div>
+      <div class="brand-note">App only. Nest WiFi Pro (WiFi 6E) supports WPA3. Older Google WiFi does not.</div>
+    </div>
+    <div class="brand-card">
+      <div class="brand-name">ISP-provided routers</div>
+      <div class="brand-path">192.168.0.1 (usually)</div>
+      <div class="brand-note">Varies widely. If yours only supports TKIP with no AES option, call your ISP and ask for a firmware update or equipment replacement.</div>
+    </div>
+  </div>
+
+  <h2>Everything Else Worth Considering</h2>
+  <p>Once you fix the protocol, here's the rest of the checklist — ranked honestly by real-world impact:</p>
+
+  <div class="impact-grid">
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Use a strong WiFi password</div>
+        <div class="impact-sub">16+ random characters or a 5-word passphrase. "horse-battery-table-window-seven" is uncrackable. Your dog's name is not.</div>
+      </div>
+      <div class="impact-badge impact-high">High</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Change the router admin password</div>
+        <div class="impact-sub">86% of routers still use the default. Default credentials for every major router are in public databases.</div>
+      </div>
+      <div class="impact-badge impact-high">High</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Update router firmware</div>
+        <div class="impact-sub">Routers have real vulnerabilities. Most people never update them. Check your admin panel — some modern routers do this automatically.</div>
+      </div>
+      <div class="impact-badge impact-medium">Medium</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Disable WPS</div>
+        <div class="impact-sub">The PIN method has a known vulnerability (Pixie Dust attack) that can expose your network in seconds on many older routers.</div>
+      </div>
+      <div class="impact-badge impact-medium">Medium</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Put IoT devices on a guest network</div>
+        <div class="impact-sub">Smart TVs, bulbs, cameras — these often have poor security and rarely get updates. Isolating them means a compromised device can't reach your laptop.</div>
+      </div>
+      <div class="impact-badge impact-medium">Medium</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Switch DNS to Cloudflare (1.1.1.1) or Quad9 (9.9.9.9)</div>
+        <div class="impact-sub">Fast, private, and Quad9 blocks known malicious domains. Low-effort improvement over default ISP DNS.</div>
+      </div>
+      <div class="impact-badge impact-low">Low-Medium</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">Hiding your SSID (network name)</div>
+        <div class="impact-sub">Doesn't prevent detection — tools see hidden networks trivially. Your devices broadcast the name when you're away from home. Adds friction with zero security benefit.</div>
+      </div>
+      <div class="impact-badge impact-skip">Skip it</div>
+    </div>
+
+    <div class="impact-row">
+      <div>
+        <div class="impact-label">MAC address filtering</div>
+        <div class="impact-sub">MAC addresses are spoofable in seconds. Adds management overhead for legitimate devices. Provides no meaningful protection against anyone who knows what they're doing.</div>
+      </div>
+      <div class="impact-badge impact-skip">Skip it</div>
+    </div>
+
+  </div>
+
+  <h2>WPA2-Personal vs. WPA2-Enterprise — Do You Care?</h2>
+  <p>
+    <strong>Personal (PSK):</strong> Everyone uses one shared password. This is what every home network uses and what you should set. Simple, works perfectly for households.
+  </p>
+  <p>
+    <strong>Enterprise (802.1X):</strong> Every user has individual credentials, verified by a separate server. Used in corporate environments so that revoking one employee's access doesn't require changing the password for everyone. Requires infrastructure (a RADIUS server) that no home user should bother with.
+  </p>
+  <p>
+    If you see "WPA2-Personal" in your router settings, that's the right option. The word "Personal" just means "shared password mode."
+  </p>
+
+  <div class="callout good">
+    <strong>Summary:</strong> Fix the protocol (WPA2-AES or WPA3), use a genuinely strong password, change your router admin password, and disable WPS. That's 90% of the real-world risk addressed in under 15 minutes.
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+
+</body>
+</html>

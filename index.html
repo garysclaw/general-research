@@ -25,7 +25,6 @@
       min-height: 100vh;
     }
 
-    /* ── Header ── */
     header {
       border-bottom: 1px solid var(--border);
       padding: 28px 24px 24px;
@@ -51,14 +50,12 @@
       max-width: 560px;
     }
 
-    /* ── Main ── */
     main {
       max-width: 760px;
       margin: 0 auto;
       padding: 40px 24px 80px;
     }
 
-    /* ── About block ── */
     .about {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -71,7 +68,6 @@
     }
     .about strong { color: var(--text); }
 
-    /* ── Section heading ── */
     .section-heading {
       font-size: 0.72rem;
       letter-spacing: 0.14em;
@@ -80,7 +76,6 @@
       margin-bottom: 18px;
     }
 
-    /* ── Cards ── */
     .cards { display: flex; flex-direction: column; gap: 16px; }
 
     .card {
@@ -131,7 +126,6 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── Coming soon placeholder ── */
     .card.placeholder {
       opacity: 0.45;
       cursor: default;
@@ -163,6 +157,22 @@
 
   <div class="section-heading">Research Topics</div>
   <div class="cards">
+
+    <a class="card" href="wifi-security.html">
+      <div class="card-top">
+        <div class="card-title">WiFi "Weak Security" Warning — What It Means and How to Fix It</div>
+        <div class="card-date">Mar 2026</div>
+      </div>
+      <div class="card-desc">
+        Your phone is telling you something real. A plain-language breakdown of what's actually broken, what the real-world risks are for each protocol, and exactly what to change in your router settings.
+      </div>
+      <div class="tags">
+        <span class="tag">security</span>
+        <span class="tag">networking</span>
+        <span class="tag">WiFi</span>
+        <span class="tag">home</span>
+      </div>
+    </a>
 
     <a class="card" href="testing-frameworks.html">
       <div class="card-top">
