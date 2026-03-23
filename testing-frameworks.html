@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>App Testing Frameworks vs MATLAB</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e2e4ed;
+      --muted: #7b7f96;
+      --accent: #5b6af0;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f5a623;
+      --blue: #4ca3f5;
+      --purple: #b87af7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 0 0 60px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 20px 32px;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: #23263a;
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      border: 1px solid #2e3250;
+    }
+    .hero h1 {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+
+    /* ── Section ── */
+    .section { margin-top: 40px; }
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Verdict card ── */
+    .verdict {
+      background: #1a1d27;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+    .verdict h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .verdict p { color: #b0b3c6; font-size: 0.92rem; }
+
+    /* ── Framework cards ── */
+    .framework-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .fw-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .fw-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .fw-name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .fw-lang {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: #23263a;
+      color: var(--muted);
+    }
+    .fw-desc { font-size: 0.87rem; color: #9da0b3; margin-bottom: 10px; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 0.72rem;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .tag-green { background: #0d2b1f; color: var(--green); }
+    .tag-red   { background: #2b0d0f; color: var(--red); }
+    .tag-blue  { background: #0d1e2b; color: var(--blue); }
+    .tag-yellow{ background: #2b1e0d; color: var(--yellow); }
+    .tag-purple{ background: #1f0d2b; color: var(--purple); }
+
+    /* ── Comparison table ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      margin-top: 16px;
+    }
+    .compare-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #23263a;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #1e212e;
+      vertical-align: top;
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: #1e212e; }
+    .compare-table .dim { color: var(--muted); font-weight: 600; }
+    .win  { color: var(--green); font-weight: 600; }
+    .lose { color: var(--red); }
+    .mid  { color: var(--yellow); }
+
+    /* ── Pros/cons ── */
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    @media (max-width: 480px) { .pros-cons { grid-template-columns: 1fr; } }
+    .pc-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .pc-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .pc-title.pro { color: var(--green); }
+    .pc-title.con { color: var(--red); }
+    .pc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .pc-list li {
+      font-size: 0.85rem;
+      color: #b0b3c6;
+      padding-left: 18px;
+      position: relative;
+    }
+    .pc-list li::before {
+      position: absolute;
+      left: 0;
+      font-size: 0.85rem;
+    }
+    .pc-list.pros li::before { content: '✓'; color: var(--green); }
+    .pc-list.cons li::before { content: '✗'; color: var(--red); }
+
+    /* ── Bottom verdict ── */
+    .bottom-verdict {
+      background: linear-gradient(135deg, #1a1d27, #1e1527);
+      border: 1px solid #3a2a4a;
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 16px;
+    }
+    .bottom-verdict h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+    .bottom-verdict p { color: #b0b3c6; font-size: 0.9rem; }
+
+    /* ── Responsive table wrapper ── */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-tag">Research · March 2026</div>
+  <h1>App Testing Frameworks</h1>
+  <p>A no-nonsense comparison — including an honest look at where MATLAB falls flat.</p>
+</div>
+
+<div class="container">
+
+  <!-- VERDICT UP TOP -->
+  <div class="section">
+    <div class="verdict">
+      <h2>⚠️ The MATLAB Problem</h2>
+      <p>
+        MATLAB's testing framework is a <strong>walled garden</strong>. It works fine if you never leave MATLAB —
+        but it costs a fortune, runs nowhere without a license, can't mock basic functions without hacky path manipulation,
+        has zero plugin ecosystem, and ships new features twice a year while the rest of the world ships weekly.
+        The one thing it genuinely owns is MC/DC coverage for safety-critical certifications (DO-178C, ISO 26262).
+        Everything else it does, open-source tools do better and for free.
+      </p>
+    </div>
+  </div>
+
+  <!-- MODERN FRAMEWORKS -->
+  <div class="section">
+    <div class="section-label">Modern Frameworks</div>
+
+    <div class="framework-grid">
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">Playwright</span>
+          <span class="fw-lang">JS / Python / Java / .NET</span>
+        </div>
+        <div class="fw-desc">Microsoft's E2E testing tool. Cross-browser (Chrome, Firefox, Safari). Auto-waits. Network mocking. Video recording. The best UI/visual testing story available right now.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">Visual snapshots</span>
+          <span class="tag tag-green">Cross-browser</span>
+          <span class="tag tag-green">Free</span>
+          <span class="tag tag-blue">Trace viewer</span>
+        </div>
+      </div>
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">pytest</span>
+          <span class="fw-lang">Python</span>
+        </div>
+        <div class="fw-desc">The gold standard for Python testing. Minimal syntax, 1,300+ plugins, powerful fixture system. Pairs with Playwright or Selenium for UI work.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">1,300+ plugins</span>
+          <span class="tag tag-green">Minimal boilerplate</span>
+          <span class="tag tag-blue">Branch coverage</span>
+        </div>
+      </div>
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">Jest / Vitest</span>
+          <span class="fw-lang">JavaScript / TypeScript</span>
+        </div>
+        <div class="fw-desc">Jest is the dominant JS unit test framework. Vitest is faster and the default for Vite-based projects. Both have built-in mocking, coverage, and snapshot testing.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">Snapshot testing</span>
+          <span class="tag tag-green">Module mocking</span>
+          <span class="tag tag-blue">30-70% faster (Vitest)</span>
+        </div>
+      </div>
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">JUnit 5</span>
+          <span class="fw-lang">Java / Kotlin</span>
+        </div>
+        <div class="fw-desc">The Java standard. Annotation-based, no boilerplate base class. Pairs with Mockito for mocking and JaCoCo for coverage. 100M+ monthly Maven downloads.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">Mockito integration</span>
+          <span class="tag tag-green">JaCoCo coverage</span>
+          <span class="tag tag-blue">Parallel built-in</span>
+        </div>
+      </div>
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">XCTest / XCUITest</span>
+          <span class="fw-lang">Swift / Objective-C</span>
+        </div>
+        <div class="fw-desc">Apple's native framework. XCUITest drives the UI via the accessibility tree. Strong visual testing story on iOS. Locked to macOS/Xcode.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">Native iOS/macOS</span>
+          <span class="tag tag-blue">UI recording</span>
+          <span class="tag tag-yellow">macOS only</span>
+        </div>
+      </div>
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">Espresso</span>
+          <span class="fw-lang">Android (Java / Kotlin)</span>
+        </div>
+        <div class="fw-desc">Google's Android UI test framework. Runs in-process with the app — no flaky timing issues. Fastest Android UI testing available. Source code required.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">In-process (fast)</span>
+          <span class="tag tag-green">No timing issues</span>
+          <span class="tag tag-yellow">Android only</span>
+        </div>
+      </div>
+
+      <div class="fw-card">
+        <div class="fw-header">
+          <span class="fw-name">Appium</span>
+          <span class="fw-lang">Cross-platform mobile</span>
+        </div>
+        <div class="fw-desc">Write one test suite for iOS + Android. No source code needed. Slower than native tools (Espresso/XCUITest) but unbeatable for cross-platform coverage.</div>
+        <div class="tag-row">
+          <span class="tag tag-green">iOS + Android</span>
+          <span class="tag tag-green">No source needed</span>
+          <span class="tag tag-yellow">Slower setup</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HEAD TO HEAD -->
+  <div class="section">
+    <div class="section-label">Head-to-Head: MATLAB vs. The World</div>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>MATLAB</th>
+            <th>Open Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="dim">License cost</td>
+            <td class="lose">💰 Thousands/seat/year</td>
+            <td class="win">Free</td>
+          </tr>
+          <tr>
+            <td class="dim">CI/CD runners</td>
+            <td class="lose">Needs license on every runner</td>
+            <td class="win">Runs anywhere</td>
+          </tr>
+          <tr>
+            <td class="dim">Mocking functions</td>
+            <td class="lose">Path-hack workaround only</td>
+            <td class="win">Native in all frameworks</td>
+          </tr>
+          <tr>
+            <td class="dim">Plugin ecosystem</td>
+            <td class="lose">MathWorks-only, minimal</td>
+            <td class="win">Hundreds to thousands</td>
+          </tr>
+          <tr>
+            <td class="dim">Release cadence</td>
+            <td class="lose">2x/year</td>
+            <td class="win">Monthly or faster</td>
+          </tr>
+          <tr>
+            <td class="dim">Parallel test execution</td>
+            <td class="lose">Paid add-on required</td>
+            <td class="win">Built-in or free plugin</td>
+          </tr>
+          <tr>
+            <td class="dim">Visual / UI testing</td>
+            <td class="lose">App Designer apps only</td>
+            <td class="win">Full web, mobile, desktop</td>
+          </tr>
+          <tr>
+            <td class="dim">Property-based testing</td>
+            <td class="lose">Does not exist</td>
+            <td class="win">Hypothesis, fast-check, jqwik</td>
+          </tr>
+          <tr>
+            <td class="dim">BDD / Gherkin</td>
+            <td class="lose">Does not exist</td>
+            <td class="win">Cucumber, SpecFlow, Behave</td>
+          </tr>
+          <tr>
+            <td class="dim">MC/DC coverage</td>
+            <td class="win">✓ Native (paid add-on)</td>
+            <td class="lose">Needs expensive tooling</td>
+          </tr>
+          <tr>
+            <td class="dim">Simulink model testing</td>
+            <td class="win">✓ Only option</td>
+            <td class="lose">Not applicable</td>
+          </tr>
+          <tr>
+            <td class="dim">Safety-critical certs</td>
+            <td class="win">DO-178C, ISO 26262</td>
+            <td class="lose">Requires extra tooling</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VISUAL TESTING FOCUS -->
+  <div class="section">
+    <div class="section-label">Visual Testing — Where MATLAB Is Weakest</div>
+    <div class="fw-card" style="border-left: 4px solid var(--accent);">
+      <p style="font-size:0.9rem; color:#b0b3c6; margin-bottom: 14px;">
+        Visual testing — pixel-level screenshot comparison, layout regression detection,
+        component snapshot testing — is one of the biggest growth areas in modern QA.
+        MATLAB has essentially nothing here. It can test that a plot <em>ran</em>, not what it looks like.
+      </p>
+      <div class="tag-row">
+        <div style="width:100%">
+          <strong style="font-size:0.85rem;">Best-in-class visual testing tools:</strong>
+        </div>
+        <span class="tag tag-green">Playwright (screenshots + diffs)</span>
+        <span class="tag tag-blue">Percy by BrowserStack</span>
+        <span class="tag tag-purple">Chromatic (Storybook)</span>
+        <span class="tag tag-blue">Applitools Eyes (AI-based)</span>
+        <span class="tag tag-green">Jest snapshots (component)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATLAB PROS/CONS -->
+  <div class="section">
+    <div class="section-label">MATLAB — Honest Assessment</div>
+    <div class="pros-cons">
+      <div class="pc-box">
+        <div class="pc-title pro">Where It's Justified</div>
+        <ul class="pc-list pros">
+          <li>MC/DC coverage for DO-178C / ISO 26262</li>
+          <li>Simulink model testing (only option)</li>
+          <li>SIL/PIL equivalence testing</li>
+          <li>Requirements traceability in regulated industries</li>
+          <li>Statistical performance benchmarking</li>
+        </ul>
+      </div>
+      <div class="pc-box">
+        <div class="pc-title con">Where It Falls Flat</div>
+        <ul class="pc-list cons">
+          <li>Costs thousands per seat per year</li>
+          <li>Needs license on every CI runner</li>
+          <li>Can't mock plain functions cleanly</li>
+          <li>Zero visual / UI testing beyond App Designer</li>
+          <li>No BDD, no property-based testing</li>
+          <li>No plugin ecosystem whatsoever</li>
+          <li>2 releases/year while competitors ship monthly</li>
+          <li>Parallel execution costs extra</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="section">
+    <div class="section-label">Bottom Line</div>
+    <div class="bottom-verdict">
+      <h3>🎯 Use MATLAB testing only if you're in aerospace, automotive, or medical devices and already locked in.</h3>
+      <p style="margin-top: 10px;">
+        For everything else — web apps, mobile, general software — MATLAB's testing framework is an overpriced,
+        underbuilt tool that lags years behind the open-source ecosystem.
+        Playwright + pytest or Jest covers 95% of real-world testing needs, runs anywhere,
+        costs nothing, and ships improvements every month.
+      </p>
+      <p style="margin-top: 10px;">
+        The <strong>visual testing gap</strong> is especially notable: MATLAB simply cannot do what Playwright,
+        Percy, or Applitools do — and visual regression testing is increasingly non-negotiable for modern UI work.
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
