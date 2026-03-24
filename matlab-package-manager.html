@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MATLAB Package Management — What Actually Exists and How It Works</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --tag-bg: #1a1d27;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 18px; }
+    .back:hover { color: var(--accent); }
+    .meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    header h1 { font-size: 1.55rem; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 620px; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    h2 { font-size: 1.15rem; font-weight: 700; margin: 44px 0 10px; color: var(--text); }
+    h3 { font-size: 0.97rem; font-weight: 600; color: var(--accent); margin: 26px 0 6px; }
+    p { font-size: 0.93rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { font-size: 0.92rem; color: #9ba3bc; margin-bottom: 6px; }
+    li strong { color: var(--text); }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 16px 20px;
+      margin: 22px 0;
+      font-size: 0.92rem;
+      color: #9ba3bc;
+    }
+    .callout.warn  { border-left-color: var(--yellow); }
+    .callout.good  { border-left-color: var(--green); }
+    .callout.bad   { border-left-color: var(--red); }
+    .callout strong { color: var(--text); }
+
+    pre {
+      background: #0a0c12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    code { font-family: 'Cascadia Code', 'Fira Code', monospace; color: #a8b4d8; }
+    pre code { color: #a8b4d8; }
+    .comment { color: #4a5568; }
+    .kw { color: #6c8ef5; }
+    .str { color: #3ecf8e; }
+    .fn { color: #bc8cff; }
+
+    .tool-cards { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .tool-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .tool-name { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .tool-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .badge-official { background: #1e2340; color: var(--accent); }
+    .badge-community { background: #1e2e1e; color: var(--green); }
+    .badge-new { background: #2e2200; color: var(--yellow); }
+    .tool-desc { font-size: 0.88rem; color: var(--muted); }
+
+    .compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+    .compare-table th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .compare-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      color: #9ba3bc;
+      vertical-align: top;
+    }
+    .compare-table tr:hover td { background: #121520; }
+    .yes { color: var(--green); font-weight: 600; }
+    .no  { color: var(--red); font-weight: 600; }
+    .partial { color: var(--yellow); font-weight: 600; }
+
+    .steps { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+    .step { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: #1e2340;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .step-title { font-size: 0.94rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .step-desc { font-size: 0.87rem; color: var(--muted); }
+
+    .bottom-nav { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .bottom-nav a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .bottom-nav a:hover { color: var(--accent); }
+
+    footer { text-align: center; padding: 32px 24px; font-size: 0.78rem; color: #3a3e50; border-top: 1px solid var(--border); max-width: 760px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Tooling &bull; MATLAB &bull; Mar 2026</div>
+  <h1>MATLAB Package Management — What Actually Exists and How It Works</h1>
+  <p class="lede">There are at least four separate "package managers" for MATLAB. They don't all do the same thing, they don't talk to each other, and MathWorks is only now catching up to what pip did in 2011.</p>
+</header>
+
+<main>
+
+  <div class="callout warn">
+    <strong>The short version:</strong> MATLAB's package management story is fragmented and historically neglected. The OS-level <code>mpm</code> tool installs MATLAB itself in headless environments. A separate in-MATLAB <code>mpm</code> system (R2024b+) manages community packages. The community built <code>tbxmanager</code> years ago because nothing official existed. And <code>.mltbx</code> files are the distribution format. None of these fully connect.
+  </div>
+
+  <h2>The Four Tools — What Each One Actually Does</h2>
+
+  <div class="tool-cards">
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">OS-level mpm — the installer tool</div>
+        <div class="tool-badge badge-official">Official</div>
+      </div>
+      <div class="tool-desc">A standalone binary from MathWorks. Downloads and installs <strong>MATLAB itself</strong> and official MathWorks toolboxes from the command line. This is for Docker, CI/CD, and enterprise provisioning — not for managing third-party packages. You run it outside MATLAB, not inside it.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">In-MATLAB mpm — the new package system (R2024b+)</div>
+        <div class="tool-badge badge-new">New in R2024b</div>
+      </div>
+      <div class="tool-desc">A completely separate system from the above. Runs inside MATLAB. Uses <code>mpminstall</code>, <code>mpmsearch</code>, <code>mpmcreate</code>, and a <code>mpackage.json</code> manifest. This is MathWorks' attempt at something like pip or npm — but the ecosystem is nearly empty and it's missing a lockfile. Does <strong>not</strong> talk to the Add-On Explorer or <code>.mltbx</code> system.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">Add-On Explorer — the GUI</div>
+        <div class="tool-badge badge-official">Official</div>
+      </div>
+      <div class="tool-desc">The point-and-click interface in the MATLAB desktop. Browses MathWorks licensed toolboxes and the File Exchange. Installs <code>.mltbx</code> files. Fine for interactive use, useless for scripted or headless workflows without workarounds.</div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">tbxmanager — community-built package manager</div>
+        <div class="tool-badge badge-community">Community</div>
+      </div>
+      <div class="tool-desc">A single <code>.m</code> file with its own package registry. Built years ago because nothing official existed. Popular in control systems and optimization (YALMIP, MPT3, SeDuMi). Doesn't support versioned pinning. Still actively used in academic circles because it hosts the specific toolboxes those communities need.</div>
+    </div>
+
+  </div>
+
+  <h2>OS-Level mpm: Installing MATLAB in Headless Environments</h2>
+  <p>This is the tool you use when setting up MATLAB in Docker, CI/CD, or on a fresh server. Download the binary and run it outside MATLAB.</p>
+
+  <pre><code><span class="comment"># Download mpm (Linux)</span>
+wget -q https://www.mathworks.com/mpm/glnxa64/mpm
+chmod +x mpm
+
+<span class="comment"># Install MATLAB R2025b with toolboxes</span>
+./mpm install \
+  --release=R2025b \
+  --destination=/opt/matlab/R2025b \
+  --products=MATLAB \
+              Signal_Processing_Toolbox \
+              Statistics_and_Machine_Learning_Toolbox \
+              Deep_Learning_Toolbox
+
+<span class="comment"># Pin to a specific update level</span>
+./mpm install --release=R2024bU3 \
+  --destination=/opt/matlab --products=MATLAB
+
+<span class="comment"># Download for offline use first, install later</span>
+./mpm download --release=R2025b \
+  --destination=/path/to/cache --products=MATLAB
+
+./mpm install --source=/path/to/cache \
+  --destination=/opt/matlab --products=MATLAB</code></pre>
+
+  <p>Product names use underscores. Common ones: <code>MATLAB</code>, <code>Simulink</code>, <code>Deep_Learning_Toolbox</code>, <code>Statistics_and_Machine_Learning_Toolbox</code>, <code>Parallel_Computing_Toolbox</code>, <code>Signal_Processing_Toolbox</code>, <code>Control_System_Toolbox</code>, <code>Optimization_Toolbox</code>.</p>
+
+  <h3>Docker workflow</h3>
+  <pre><code>FROM ubuntu:22.04
+
+RUN wget -q https://www.mathworks.com/mpm/glnxa64/mpm && \
+    chmod +x mpm && \
+    ./mpm install \
+      --release=R2025b \
+      --destination=/opt/matlab \
+      --products=MATLAB Signal_Processing_Toolbox && \
+    rm -f mpm
+
+ENV MLM_LICENSE_TOKEN=&lt;your-batch-token&gt;
+ENTRYPOINT ["matlab", "-batch"]</code></pre>
+
+  <h3>GitHub Actions</h3>
+  <pre><code>- <span class="kw">name</span>: Set up MATLAB
+  <span class="kw">uses</span>: matlab-actions/setup-matlab@v2
+  <span class="kw">with</span>:
+    <span class="kw">release</span>: R2025b
+    <span class="kw">products</span>: Simulink Deep_Learning_Toolbox
+
+- <span class="kw">name</span>: Run tests
+  <span class="kw">uses</span>: matlab-actions/run-tests@v2</code></pre>
+
+  <div class="callout warn">
+    <strong>The licensing problem:</strong> Unlike pip or npm, you can't run headless MATLAB in CI without a paid license token (Batch Licensing Token). There's no free tier for automated use. This is the single biggest blocker for CI/CD adoption — it's an institutional procurement problem before it's a technical one.
+  </div>
+
+  <h2>In-MATLAB mpm (R2024b+): Managing Community Packages</h2>
+  <p>This is MathWorks' attempt at a real package manager that runs inside MATLAB. It uses a <code>mpackage.json</code> manifest and semantic versioning. The tooling exists; the ecosystem doesn't yet.</p>
+
+  <pre><code><span class="comment">% Search for packages</span>
+<span class="fn">mpmsearch</span>(<span class="str">"signal processing"</span>)
+
+<span class="comment">% Install a package</span>
+<span class="fn">mpminstall</span>(<span class="str">"some-package-name"</span>)
+
+<span class="comment">% Install a specific version</span>
+spec = matlab.mpm.PackageSpecifier(<span class="str">"mypackage"</span>, Version=<span class="str">"1.2.3"</span>);
+<span class="fn">mpminstall</span>(spec)
+
+<span class="comment">% Install from local folder (must have mpackage.json)</span>
+<span class="fn">mpminstall</span>(<span class="str">"/path/to/my/package"</span>)
+
+<span class="comment">% Install in editable mode (live changes reflected immediately)</span>
+<span class="fn">mpminstall</span>(<span class="str">"/path/to/my/package"</span>, Editable=<span class="kw">true</span>)
+
+<span class="comment">% List installed packages</span>
+<span class="fn">mpmlist</span>
+
+<span class="comment">% Uninstall</span>
+<span class="fn">mpmuninstall</span>(<span class="str">"mypackage"</span>)
+
+<span class="comment">% Add a private registry (e.g. Artifactory)</span>
+<span class="fn">mpmAddRepository</span>(<span class="str">"https://registry.example.com/matlab"</span>)</code></pre>
+
+  <h3>The mpackage.json manifest</h3>
+  <pre><code>{
+  <span class="str">"schemaVersion"</span>: <span class="str">"1.1.0"</span>,
+  <span class="str">"name"</span>: <span class="str">"my-package"</span>,
+  <span class="str">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="str">"description"</span>: <span class="str">"Signal analysis utilities"</span>,
+  <span class="str">"matlabVersion"</span>: <span class="str">"&gt;=24.2.0"</span>
+}</code></pre>
+
+  <p>MATLAB release versions map to semver: R2024b = <code>24.2.0</code>, R2025a = <code>25.1.0</code>. Run <code>mpmcreate</code> to scaffold a new package — it generates the manifest automatically.</p>
+
+  <div class="callout bad">
+    <strong>Known gap:</strong> Namespace folders (those starting with <code>+</code>) are not supported as package roots in the new mpm system. This means MATLAB's only real code isolation mechanism and the new package manager are mutually incompatible. That's a significant design problem.
+  </div>
+
+  <h2>Installing .mltbx Files Programmatically</h2>
+  <p>The <code>.mltbx</code> format is the older, more widely-used distribution format. Under the hood it's just a ZIP archive. You can install these without touching the GUI.</p>
+
+  <pre><code><span class="comment">% Install a local .mltbx file</span>
+matlab.addons.install(<span class="str">'/path/to/mytoolbox.mltbx'</span>)
+
+<span class="comment">% Install without license prompt</span>
+matlab.addons.toolbox.installToolbox(<span class="str">'/path/to/mytoolbox.mltbx'</span>, <span class="kw">true</span>)
+
+<span class="comment">% Download from File Exchange and install</span>
+<span class="fn">websave</span>(<span class="str">'/tmp/tb.mltbx'</span>, <span class="str">'https://www.mathworks.com/matlabcentral/mlc-downloads/...'</span>);
+matlab.addons.install(<span class="str">'/tmp/tb.mltbx'</span>)
+
+<span class="comment">% List all installed add-ons</span>
+matlab.addons.installedAddons()
+
+<span class="comment">% Uninstall by name</span>
+matlab.addons.uninstall(<span class="str">'My Toolbox Name'</span>)</code></pre>
+
+  <h2>tbxmanager: The Community Alternative</h2>
+  <p>Bootstrap it once, then use it to install toolboxes from its own curated registry. Popular in control systems and optimization research — YALMIP, MPT3, SeDuMi, Casadi interfaces all live here.</p>
+
+  <pre><code><span class="comment">% Bootstrap (run once)</span>
+<span class="fn">urlwrite</span>(<span class="str">'http://www.tbxmanager.com/tbxmanager.m'</span>, <span class="str">'tbxmanager.m'</span>);
+<span class="fn">tbxmanager</span> savepath
+
+<span class="comment">% Add to startup.m for persistence</span>
+<span class="fn">tbxmanager</span> restorepath
+
+<span class="comment">% Install packages</span>
+<span class="fn">tbxmanager</span> install yalmip
+<span class="fn">tbxmanager</span> install mpt sedumi       <span class="comment">% multiple at once</span>
+
+<span class="comment">% Update</span>
+<span class="fn">tbxmanager</span> update
+<span class="fn">tbxmanager</span> update yalmip
+
+<span class="comment">% Browse</span>
+<span class="fn">tbxmanager</span> show available
+<span class="fn">tbxmanager</span> show installed</code></pre>
+
+  <h2>The Honest Comparison</h2>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>pip</th>
+        <th>npm</th>
+        <th>MATLAB mpm (R2024b+)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Central public registry</td>
+        <td class="yes">PyPI</td>
+        <td class="yes">npmjs.com</td>
+        <td class="no">None (File Exchange ≠ registry)</td>
+      </tr>
+      <tr>
+        <td>Lockfile for reproducibility</td>
+        <td class="partial">Poetry/uv: yes</td>
+        <td class="yes">package-lock.json</td>
+        <td class="no">No</td>
+      </tr>
+      <tr>
+        <td>Semantic versioning</td>
+        <td class="yes">Yes</td>
+        <td class="yes">Yes</td>
+        <td class="partial">R2024b+ only</td>
+      </tr>
+      <tr>
+        <td>Dependency resolution</td>
+        <td class="yes">Yes</td>
+        <td class="yes">Yes</td>
+        <td class="partial">Partial</td>
+      </tr>
+      <tr>
+        <td>Namespace / env isolation</td>
+        <td class="yes">venv</td>
+        <td class="yes">node_modules</td>
+        <td class="no">Global path only</td>
+      </tr>
+      <tr>
+        <td>Free headless/CI use</td>
+        <td class="yes">Yes</td>
+        <td class="yes">Yes</td>
+        <td class="no">Requires paid license token</td>
+      </tr>
+      <tr>
+        <td>Community package count</td>
+        <td class="yes">Millions</td>
+        <td class="yes">Millions</td>
+        <td class="no">Nascent</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Real-World Workaround: Vendor Dependencies in Git</h2>
+  <p>Because package management is unreliable for reproducibility, most serious MATLAB projects still do this:</p>
+
+  <pre><code>project/
+├── src/
+│   └── my_analysis.m
+├── vendor/               <span class="comment">← dependencies committed directly to the repo</span>
+│   ├── jsonlab/
+│   └── export_fig/
+└── setup.m               <span class="comment">← adds vendor paths on startup</span></code></pre>
+
+  <pre><code><span class="comment">% setup.m</span>
+<span class="fn">addpath</span>(<span class="fn">genpath</span>(<span class="fn">fullfile</span>(<span class="fn">fileparts</span>(<span class="fn">mfilename</span>(<span class="str">'fullpath'</span>)), <span class="str">'vendor'</span>)));</code></pre>
+
+  <p>Verbose and unsophisticated compared to a <code>requirements.txt</code>, but it works and requires nothing beyond Git. It's what the community lands on when the official tools fall short.</p>
+
+  <h2>Creating and Packaging Your Own Toolbox</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Structure your code</div>
+        <div class="step-desc">Keep source in a <code>toolbox/</code> folder, examples in <code>examples/</code>, docs in <code>doc/</code>. Use <code>+namespace</code> folders for scoping if needed (but note the new mpm system can't handle namespace-rooted packages).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Package via GUI or programmatically</div>
+        <div class="step-desc">GUI: Home > Add-Ons > Package Toolbox. Programmatic: use <code>matlab.addons.toolbox.ToolboxOptions</code> and <code>matlab.addons.toolbox.packageToolbox</code> — better for CI pipelines.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">The GUID matters</div>
+        <div class="step-desc">Every toolbox has a GUID in its <code>.prj</code> file. MATLAB uses this to track installed versions and upgrade in place. If the GUID changes, it becomes a different toolbox to the installer.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Distribute via File Exchange for discoverability</div>
+        <div class="step-desc">Publishing your <code>.mltbx</code> on MATLAB File Exchange and linking your GitHub repo makes it appear in the Add-On Explorer automatically. That's the closest MATLAB has to a public registry right now.</div>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="comment">% Programmatic packaging</span>
+opts = matlab.addons.toolbox.ToolboxOptions(<span class="str">"/path/to/root"</span>, <span class="str">"your-guid-here"</span>);
+opts.ToolboxName = <span class="str">"My Analysis Toolbox"</span>;
+opts.ToolboxVersion = <span class="str">"2.1.0"</span>;
+opts.OutputFile = <span class="str">"/path/to/release/MyToolbox.mltbx"</span>;
+matlab.addons.toolbox.packageToolbox(opts)</code></pre>
+
+  <div class="callout">
+    <strong>Bottom line:</strong> Use the OS-level mpm for provisioning MATLAB installations. Use <code>matlab.addons.install</code> for scripted .mltbx installs. Use tbxmanager if you're in control/optimization and need YALMIP or MPT. Use the new in-MATLAB mpm only if you're building new packages and want to follow the modern standard — but expect the ecosystem to be thin for a few more years.
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+</body>
+</html>
