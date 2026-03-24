@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MPPT in Solar Arrays — Algorithms, Geography, and Real Numbers</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --orange: #f97316;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 18px; }
+    .back:hover { color: var(--accent); }
+    .meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    header h1 { font-size: 1.6rem; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 640px; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    h2 { font-size: 1.2rem; font-weight: 700; margin: 48px 0 12px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    h3 { font-size: 0.98rem; font-weight: 600; color: var(--accent); margin: 28px 0 8px; }
+    p { font-size: 0.93rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { font-size: 0.91rem; color: #9ba3bc; margin-bottom: 6px; }
+    li strong { color: var(--text); }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 16px 20px;
+      margin: 22px 0;
+      font-size: 0.91rem;
+      color: #9ba3bc;
+    }
+    .callout.warn { border-left-color: var(--yellow); }
+    .callout.good { border-left-color: var(--green); }
+    .callout.bad  { border-left-color: var(--red); }
+    .callout strong { color: var(--text); }
+
+    /* Algorithm cards */
+    .algo-grid { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+    .algo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .algo-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+    .algo-name { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .algo-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .badge-green  { background: #0d2e1e; color: var(--green); }
+    .badge-yellow { background: #2e2200; color: var(--yellow); }
+    .badge-red    { background: #2e0d0d; color: var(--red); }
+    .badge-blue   { background: #0d1a2e; color: var(--accent); }
+    .badge-gray   { background: #1a1d27; color: var(--muted); }
+
+    .algo-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .algo-stat {
+      background: #0f1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .algo-stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+    .algo-stat-value { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+    .algo-desc { font-size: 0.87rem; color: var(--muted); margin-top: 10px; }
+    .algo-desc strong { color: #9ba3bc; }
+
+    /* Data table */
+    .data-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+    .data-table th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+    .data-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      color: #9ba3bc;
+      vertical-align: top;
+    }
+    .data-table tr:nth-child(even) td { background: #111317; }
+    .data-table td:first-child { color: var(--text); font-weight: 600; }
+    .good-val { color: var(--green); font-weight: 600; }
+    .bad-val  { color: var(--red); font-weight: 600; }
+    .ok-val   { color: var(--yellow); font-weight: 600; }
+
+    /* Geo cards */
+    .geo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .geo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .geo-title { font-size: 0.96rem; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .geo-icon { font-size: 1.2rem; }
+    .geo-challenge { font-size: 0.78rem; color: var(--yellow); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .geo-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+    .geo-rec { font-size: 0.82rem; color: var(--accent); }
+    .geo-rec strong { color: var(--accent); }
+
+    /* Stat row */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value { font-size: 1.7rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .stat-label { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+
+    /* Hardware comparison */
+    .hw-grid { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+    .hw-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+    .hw-name { font-size: 0.96rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .hw-desc { font-size: 0.86rem; color: var(--muted); }
+    .hw-desc strong { color: #9ba3bc; }
+    .hw-eff { text-align: right; }
+    .hw-eff-value { font-size: 1.3rem; font-weight: 800; color: var(--green); }
+    .hw-eff-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; }
+
+    .bottom-nav { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .bottom-nav a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .bottom-nav a:hover { color: var(--accent); }
+
+    footer { text-align: center; padding: 32px 24px; font-size: 0.78rem; color: #3a3e50; border-top: 1px solid var(--border); max-width: 760px; margin: 0 auto; }
+    code { font-family: monospace; background: #12151e; padding: 2px 7px; border-radius: 5px; font-size: 0.88em; color: var(--accent); }
+
+    @media (max-width: 600px) {
+      .algo-stat-row { grid-template-columns: repeat(2, 1fr); }
+      .algo-top { flex-direction: column; }
+      .hw-card { grid-template-columns: 1fr; }
+      .hw-eff { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Solar &bull; Power Electronics &bull; Mar 2026</div>
+  <h1>MPPT in Solar Arrays — Algorithms, Geography, and Real Numbers</h1>
+  <p class="lede">Maximum Power Point Tracking is the difference between what a panel can produce and what you actually get. Here's what the algorithms actually do, where they fail, and how climate shapes which one you should use.</p>
+</header>
+
+<main>
+
+  <div class="callout warn">
+    <strong>The core problem in one sentence:</strong> A solar panel's maximum output voltage changes constantly with temperature and irradiance — without active tracking, your system is almost never operating at peak power. The gap ranges from 10% under ideal conditions to 45% in winter.
+  </div>
+
+  <h2>Why MPPT Exists</h2>
+
+  <p>A solar cell is neither a voltage source nor a current source — it's a nonlinear diode. Its I-V curve has one point where power (V × I) is maximized: the Maximum Power Point. That point shifts continuously.</p>
+
+  <p>The two forces that move it:</p>
+  <ul>
+    <li><strong>Irradiance</strong> — short-circuit current scales nearly linearly with irradiance. At half sun, you get roughly half the current.</li>
+    <li><strong>Temperature</strong> — open-circuit voltage drops 0.30–0.35%/°C for silicon. A panel running at 65°C (common in desert environments) loses ~13% of its V<sub>oc</sub> versus rated specs. P<sub>max</sub> temperature coefficient is -0.40% to -0.50%/°C — that same 65°C panel delivers <strong>16–20% less power than its nameplate</strong>, entirely due to heat.</li>
+  </ul>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-value">10–15%</div>
+      <div class="stat-label">Power lost without MPPT in stable summer conditions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">20–45%</div>
+      <div class="stat-label">Power lost without MPPT in winter / low irradiance</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">3–7%</div>
+      <div class="stat-label">Conversion losses in the MPPT DC-DC stage (budget hardware)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">80%</div>
+      <div class="stat-label">Power loss from shading just 10% of a panel's area (without bypass diodes)</div>
+    </div>
+  </div>
+
+  <h2>The Algorithms</h2>
+
+  <div class="algo-grid">
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Perturb &amp; Observe (P&amp;O)</div>
+        <div class="algo-badges">
+          <span class="badge badge-green">Simple</span>
+          <span class="badge badge-red">No partial shading</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">96–99%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">10–50 ms</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">Low</div></div>
+      </div>
+      <div class="algo-desc">
+        The workhorse of solar. Nudges the operating voltage up or down, checks if power improved, repeats. Simple enough to run on a $2 microcontroller. The catch: it never fully stops oscillating — it bounces around the MPP, wasting 1–3% of available power indefinitely. <strong>Critical failure mode:</strong> under rapidly rising irradiance, it reads the extra power as coming from its own perturbation and moves <em>away</em> from the MPP. Also converges to the nearest local maximum — partial shading with multiple peaks fools it every time.
+      </div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Incremental Conductance (INC)</div>
+        <div class="algo-badges">
+          <span class="badge badge-blue">Better transients</span>
+          <span class="badge badge-red">No partial shading</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">97–99.5%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">10–50 ms</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">Low-Med</div></div>
+      </div>
+      <div class="algo-desc">
+        Derived from calculus: at the MPP, dP/dV = 0, which rearranges to dI/dV = -I/V. The algorithm computes whether the incremental conductance equals the negative of the instantaneous conductance. When they match, it stops — no steady-state oscillation. <strong>Key advantage over P&amp;O:</strong> handles fast irradiance changes correctly because it can mathematically distinguish irradiance-induced power changes from perturbation-induced ones. Consistently outperforms P&amp;O below 200 W/m². Requires clean, synchronized V and I measurements — noise causes problems.
+      </div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Fractional Open Circuit Voltage (FOCV)</div>
+        <div class="algo-badges">
+          <span class="badge badge-yellow">Budget only</span>
+          <span class="badge badge-red">Lowest accuracy</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">85–95%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">Fast + gap</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">Very Low</div></div>
+      </div>
+      <div class="algo-desc">
+        Exploits: V<sub>mpp</sub> ≈ 0.70–0.80 × V<sub>oc</sub>. Periodically disconnects the load, measures V<sub>oc</sub>, multiplies by the constant. Fast, but the approximation is wrong enough to lose 5–15% of available power. The disconnect creates a power interruption every measurement cycle. A 2024 hybrid using a genetic algorithm (GA-FOCV) pushed this to 99.96% — but at that complexity, you'd just use a better algorithm.
+      </div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Fuzzy Logic Control (FLC)</div>
+        <div class="algo-badges">
+          <span class="badge badge-blue">Adaptive step</span>
+          <span class="badge badge-yellow">Partial shading — partial</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">97–99%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">50–200 ms</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">Medium</div></div>
+      </div>
+      <div class="algo-desc">
+        Uses linguistic rules ("IF error is Large Positive AND change is Small Negative THEN perturbation is Medium Positive") to adapt step size dynamically — large steps when far from the MPP, small steps when near. This eliminates the oscillation-vs-speed tradeoff that makes fixed-step P&amp;O frustrating. Studies report <strong>~20% more power generation</strong> than conventional techniques in dynamic weather. <strong>Interval Type-2 FLC</strong> handles uncertainty in the membership functions, achieving 81–98% tracking efficiency across different partial shading scenarios. Still not immune to multi-peak failures.
+      </div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Particle Swarm Optimization (PSO)</div>
+        <div class="algo-badges">
+          <span class="badge badge-green">Partial shading ✓</span>
+          <span class="badge badge-yellow">Slower convergence</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">95–99%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">0.17–10 s</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">Med-High</div></div>
+      </div>
+      <div class="algo-desc">
+        Models multiple candidate operating points ("particles") that move toward the best-known position in the swarm. Because multiple points explore the entire P-V curve simultaneously, it finds the global maximum even when partial shading creates multiple peaks. Standard PSO with 5–20 particles takes 2–10 seconds to converge (100 ms per measurement × 20–100 iterations). <strong>Hybrid PSO-P&amp;O</strong> — PSO finds the global peak region, P&amp;O refines within it — achieves 99%+ with convergence under 1 second. The practical pattern for shaded arrays.
+      </div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Neural Network / AI-Based MPPT</div>
+        <div class="algo-badges">
+          <span class="badge badge-green">No oscillation</span>
+          <span class="badge badge-blue">Predictive</span>
+          <span class="badge badge-yellow">Needs training data</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">98–99%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">&lt;100 ms*</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">High</div></div>
+      </div>
+      <div class="algo-desc">
+        Trained offline on panel I-V data across irradiance/temperature ranges. At runtime, maps (irradiance, temperature) → optimal duty cycle directly, with no iterative search and no steady-state oscillation. <strong>10–15% higher energy yield</strong> vs. traditional MPPT reported in some studies. *Edge AI hardware reduces response time from the ~1.3 s typical of cloud-dependent inference to sub-100 ms on-device. Reinforcement learning variants (Q-learning) learn the optimal policy online without training data — the cleanest approach but still mostly research-stage. Real-world gap: if the panel model changes (aging, different product), the network may need retraining.
+      </div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-top">
+        <div class="algo-name">Advanced Metaheuristics (STOA, Lévy-PSO, etc.)</div>
+        <div class="algo-badges">
+          <span class="badge badge-green">Best accuracy</span>
+          <span class="badge badge-green">Partial shading ✓</span>
+          <span class="badge badge-blue">Research-stage</span>
+        </div>
+      </div>
+      <div class="algo-stat-row">
+        <div class="algo-stat"><div class="algo-stat-label">Efficiency</div><div class="algo-stat-value">99.8–99.97%</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Converges</div><div class="algo-stat-value">0.17–0.3 s</div></div>
+        <div class="algo-stat"><div class="algo-stat-label">Complexity</div><div class="algo-stat-value">High</div></div>
+      </div>
+      <div class="algo-desc">
+        Sooty Tern Optimization (STOA), Lévy Flight PSO, Salp Swarm, Grey Wolf Optimizer — these are the cutting-edge of MPPT research. STOA achieved <strong>99.94% tracking efficiency</strong> in multi-peak partial shading tests. Lévy-PSO exceeded <strong>99.8%</strong> with minimal settling time. In the near term, these will influence hybrid commercial implementations before becoming standalone deployments.
+      </div>
+    </div>
+
+  </div>
+
+  <h2>The Partial Shading Problem</h2>
+
+  <p>Partial shading is where most MPPT discussions gloss over the hard part. Here's what actually happens:</p>
+
+  <p>Solar cells in a string must carry identical current. When cells are shaded, they become current-limited and — without protection — reverse-biased into heat dissipation. <strong>Bypass diodes</strong> (typically 3 per panel, one across every 18–24 cells) let current flow around shaded groups, preventing hot spots. But they create a side effect: <strong>multiple peaks on the P-V curve.</strong></p>
+
+  <p>A string of 10 panels with 3 bypass diodes each can theoretically produce up to 30 local maxima. P&O, INC, and FOCV will find the nearest local maximum — which may be far from the global one. The actual power gap from this depends on shading geometry, but measured data from real arrays shows:</p>
+
+  <ul>
+    <li>10% shaded area → up to <strong>80% power reduction</strong> in the affected sub-string</li>
+    <li>Real-world measurement: an array producing 191 W unshaded dropped to as low as <strong>122 W</strong> under certain shading patterns — a 36% loss from partial shading alone</li>
+  </ul>
+
+  <div class="callout warn">
+    <strong>The decision point:</strong> If your site has shading losses below ~3–5% annually (south-facing, open roof), a string inverter with P&O is fine. Above that threshold, panel-level optimization or PSO-based MPPT pays for itself within the system lifetime.
+  </div>
+
+  <h2>Algorithm Efficiency Summary</h2>
+
+  <div style="overflow-x: auto;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Algorithm</th>
+        <th>Uniform Efficiency</th>
+        <th>Partial Shading</th>
+        <th>Convergence</th>
+        <th>Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>P&amp;O</td>
+        <td class="ok-val">96–99%</td>
+        <td class="bad-val">Fails</td>
+        <td>10–50 ms</td>
+        <td>Budget / stable conditions</td>
+      </tr>
+      <tr>
+        <td>INC</td>
+        <td class="good-val">97–99.5%</td>
+        <td class="bad-val">Fails</td>
+        <td>10–50 ms</td>
+        <td>Preferred over P&O for fast irradiance changes</td>
+      </tr>
+      <tr>
+        <td>FOCV</td>
+        <td class="bad-val">85–95%</td>
+        <td class="bad-val">Fails</td>
+        <td>Fast + gap</td>
+        <td>Very low-cost embedded only</td>
+      </tr>
+      <tr>
+        <td>FLC</td>
+        <td class="good-val">97–99%</td>
+        <td class="ok-val">Partial</td>
+        <td>50–200 ms</td>
+        <td>Dynamic weather; premium controllers</td>
+      </tr>
+      <tr>
+        <td>ANN / RL</td>
+        <td class="good-val">98–99%</td>
+        <td class="good-val">Yes (if trained)</td>
+        <td>&lt;100 ms (edge)</td>
+        <td>AI-enabled hardware; emerging commercial</td>
+      </tr>
+      <tr>
+        <td>PSO (standard)</td>
+        <td class="ok-val">95–98%</td>
+        <td class="good-val">Yes</td>
+        <td>2–10 s</td>
+        <td>Shaded arrays where slow convergence is ok</td>
+      </tr>
+      <tr>
+        <td>PSO hybrid</td>
+        <td class="good-val">99%+</td>
+        <td class="good-val">Yes</td>
+        <td>0.17–1 s</td>
+        <td>Shaded arrays, practical deployment</td>
+      </tr>
+      <tr>
+        <td>STOA / Lévy-PSO</td>
+        <td class="good-val">99.8–99.97%</td>
+        <td class="good-val">Yes</td>
+        <td>0.17–0.3 s</td>
+        <td>Highest performance; research → commercial</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>How Geography Changes Everything</h2>
+
+  <div class="geo-grid">
+
+    <div class="geo-card">
+      <div class="geo-title"><span class="geo-icon">🏜️</span> Desert (Arizona, Sahara, Middle East)</div>
+      <div class="geo-challenge">Main challenge: heat + dust shading</div>
+      <div class="geo-desc">Panel temperatures of 65–80°C are routine. Pmax is 16–20% below nameplate from heat alone. Dust accumulation of just 4 g/m² can cut output by 40%. Uneven soiling creates partial shading even on unobstructed roofs — multiple P-V peaks, no trees needed.</div>
+      <div class="geo-rec">→ PSO-hybrid for partial shading from soiling. WPA3 temperature compensation critical. High irradiance means basic algorithms work fine when panels are clean.</div>
+    </div>
+
+    <div class="geo-card">
+      <div class="geo-title"><span class="geo-icon">🌥️</span> Temperate (Germany, UK, Pacific NW)</div>
+      <div class="geo-challenge">Main challenge: fast irradiance transients</div>
+      <div class="geo-desc">160+ cloudy days per year means irradiance can swing 100–800 W/m² in under one second from passing cumulus. P&O's directional confusion failure mode is not theoretical here — it's a daily occurrence. Winter brings low sun angle and sub-200 W/m² operation.</div>
+      <div class="geo-rec">→ INC over P&O (handles transients correctly). Critical: size MPPT for cold-weather V<sub>oc</sub> — at -25°C, string voltage is 12–15% above STC. This is the #1 cause of controller damage in cold climates.</div>
+    </div>
+
+    <div class="geo-card">
+      <div class="geo-title"><span class="geo-icon">🌴</span> Tropical (SE Asia, Central America)</div>
+      <div class="geo-challenge">Main challenge: heat + frequent cloud events</div>
+      <div class="geo-desc">Ambient temperatures 30–40°C mean panels run 55–70°C — consistently 12–18% below nameplate. High diffuse irradiance fraction (30–50% on cloudy days). Frequent partial cloud events mean fast MPPT is critical; the gap between P&O and INC shows up every day.</div>
+      <div class="geo-rec">→ INC or FLC. Robust low-irradiance tracking matters. Humidity helps cooling but accelerates corrosion on connectors.</div>
+    </div>
+
+    <div class="geo-card">
+      <div class="geo-title"><span class="geo-icon">⛰️</span> High Altitude (Andes, Tibet, Alps)</div>
+      <div class="geo-challenge">Main challenge: over-irradiance + wide temperature swings</div>
+      <div class="geo-desc">Thin atmosphere means measured irradiance can reach 1,100–1,200 W/m² — exceeding the 1,000 W/m² STC rating panels are designed for. Drives panels above rated current. Temperature swings of 40°C between night and noon create large V<sub>oc</sub> variation daily.</div>
+      <div class="geo-rec">→ INC with wide input voltage range. MPPT must handle above-rated irradiance. Low temperatures keep panels efficient but push string voltage high.</div>
+    </div>
+
+    <div class="geo-card">
+      <div class="geo-title"><span class="geo-icon">🧊</span> Arctic / Subarctic</div>
+      <div class="geo-challenge">Main challenge: extended low irradiance + extreme cold</div>
+      <div class="geo-desc">Months of low sun angle and short days. Below 200 W/m² is the normal operating regime for weeks at a time. Extreme cold (below -30°C) drives string voltages to dangerous levels if not accounted for in design. P&O performs particularly poorly at low irradiance.</div>
+      <div class="geo-rec">→ INC mandatory. Extra-wide voltage input range on MPPT hardware. Thermal derating of electronics is a real constraint.</div>
+    </div>
+
+    <div class="geo-card">
+      <div class="geo-title"><span class="geo-icon">🌤️</span> Mediterranean / Southern Europe</div>
+      <div class="geo-challenge">Main challenge: summer heat, mostly benign otherwise</div>
+      <div class="geo-desc">High insolation (1,700–2,200 kWh/m²/year). Moderate summer temperatures (panels at 45–65°C). Relatively stable irradiance compared to northern Europe. The sweet spot for straightforward MPPT — good sun, moderate temperature, few partial shading events.</div>
+      <div class="geo-rec">→ INC or well-tuned P&O both work well. Panel-level optimization justified only if significant shading exists.</div>
+    </div>
+
+  </div>
+
+  <h2>Modern Hardware: Distributed vs. String</h2>
+
+  <div class="hw-grid">
+
+    <div class="hw-card">
+      <div>
+        <div class="hw-name">String Inverter (Fronius, SMA, Huawei)</div>
+        <div class="hw-desc">One MPPT per string. Simple, reliable, lowest cost per watt. The right choice for unshaded roofs with uniform orientation. <strong>Weakness:</strong> one shaded panel affects the entire string. Modern half-cut cell panels have reduced this significantly — under mild shading, premium string inverters with smart global MPPT algorithms close to within 1–2% of distributed solutions.</div>
+      </div>
+      <div class="hw-eff">
+        <div class="hw-eff-value">97–99%</div>
+        <div class="hw-eff-label">Conversion eff.</div>
+      </div>
+    </div>
+
+    <div class="hw-card">
+      <div>
+        <div class="hw-name">DC Optimizers — SolarEdge</div>
+        <div class="hw-desc">Panel-level MPPT DC optimizer + central inverter. Each panel operates independently at its own V<sub>mpp</sub>. Optimizers start at <strong>8–12 V</strong> — captures early morning/late evening energy that microinverters miss. Central inverter failure takes down the array. Warranty: 25 years on optimizers, 12–25 years on inverter.</div>
+      </div>
+      <div class="hw-eff">
+        <div class="hw-eff-value">98–99.25%</div>
+        <div class="hw-eff-label">System eff.</div>
+      </div>
+    </div>
+
+    <div class="hw-card">
+      <div>
+        <div class="hw-name">Microinverters — Enphase IQ8</div>
+        <div class="hw-desc">Full DC-AC conversion at each panel. No single point of failure — one failed unit takes only that panel offline. <strong>Weakness:</strong> slightly lower conversion efficiency than SolarEdge, higher startup voltage (22–38 V vs. 8–12 V), more complex AC wiring, harder to pair with DC-coupled batteries. 25-year warranty standard on all units.</div>
+      </div>
+      <div class="hw-eff">
+        <div class="hw-eff-value">97%</div>
+        <div class="hw-eff-label">Conversion eff.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <strong>Hardware efficiency matters as much as algorithm accuracy:</strong> A 99.97% tracking algorithm through a 93% converter yields 92.97% of available panel power. Total system efficiency = tracking efficiency × conversion efficiency. Budget MPPT hardware (90–94% conversion) erases the gains from sophisticated algorithms.
+  </div>
+
+  <h2>Where Things Are Heading</h2>
+
+  <p><strong>Predictive MPPT</strong> using weather forecasts is the most practically significant emerging trend. Instead of reacting to irradiance changes after they happen, systems using CNN-LSTM + Deep Q-Learning to predict conditions before they arrive have shown <strong>55% improvement over fixed tilt</strong> and 15–20% over dual-axis mechanical tracking in field tests (2025).</p>
+
+  <p><strong>Edge AI inference</strong> is bringing neural network MPPT to embedded hardware. Sub-100 ms on-device inference eliminates the main practical objection to ANN-based control (the ~1.3 second initial tracking response). Reinforcement learning controllers that improve online without offline training are the most elegant solution — no training data management, no retraining when panels degrade.</p>
+
+  <p><strong>Hybrid PSO+P&O</strong> is the practical near-term answer for partial shading. The computational cost of pure metaheuristic MPPT is still a barrier, but hybrids (PSO for global search, P&O for local refinement) achieve 99%+ tracking with convergence under 0.3 seconds — runnable on inexpensive microcontrollers available today.</p>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+
+</body>
+</html>
