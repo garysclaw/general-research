@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Obsidian + AI Agents — Is It Worth It?</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #7c6af5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --purple: #bc8cff;
+      --tag-bg: #1a1d27;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.75; }
+
+    header { border-bottom: 1px solid var(--border); padding: 28px 24px 24px; max-width: 760px; margin: 0 auto; }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 18px; }
+    .back:hover { color: var(--accent); }
+    .meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    header h1 { font-size: 1.55rem; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 620px; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    h2 { font-size: 1.15rem; font-weight: 700; margin: 44px 0 10px; color: var(--text); }
+    h3 { font-size: 0.97rem; font-weight: 600; color: var(--accent); margin: 26px 0 6px; }
+    p { font-size: 0.93rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { font-size: 0.92rem; color: #9ba3bc; margin-bottom: 7px; }
+    li strong { color: var(--text); }
+
+    .callout { border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; background: var(--surface); padding: 16px 20px; margin: 22px 0; font-size: 0.92rem; color: #9ba3bc; }
+    .callout.warn { border-left-color: var(--yellow); }
+    .callout.good { border-left-color: var(--green); }
+    .callout.bad  { border-left-color: var(--red); }
+    .callout strong { color: var(--text); }
+
+    pre { background: #0a0c12; border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; margin: 14px 0 22px; font-size: 0.82rem; line-height: 1.65; }
+    code { font-family: 'Cascadia Code', 'Fira Code', monospace; color: #a8b4d8; }
+    pre code { color: #a8b4d8; }
+    .c  { color: #4a5568; font-style: italic; }
+    .kw { color: #7c6af5; }
+    .st { color: #3ecf8e; }
+
+    /* vs cards */
+    .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+    @media (max-width: 540px) { .vs-grid { grid-template-columns: 1fr; } }
+    .vs-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+    .vs-name { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .vs-desc { font-size: 0.85rem; color: var(--muted); }
+
+    /* arch flow */
+    .arch { background: #0a0c12; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin: 16px 0 22px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.81rem; color: #6b8aaa; line-height: 1.8; overflow-x: auto; white-space: pre; }
+
+    /* use case table */
+    .use-table { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+    .use-row { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start; }
+    .use-label { font-size: 0.92rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .use-detail { font-size: 0.82rem; color: var(--muted); }
+    .use-badge { font-size: 0.7rem; font-weight: 700; padding: 4px 11px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; margin-top: 2px; }
+    .badge-high   { background: #0d2e1e; color: var(--green); }
+    .badge-med    { background: #2e2200; color: var(--yellow); }
+    .badge-low    { background: #1a1d27; color: var(--muted); }
+    .badge-no     { background: #2e0d0d; color: var(--red); }
+
+    /* setup steps */
+    .steps { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+    .step { display: flex; gap: 14px; }
+    .step-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 26px; }
+    .step-num { width: 26px; height: 26px; border-radius: 50%; background: #1e1a40; border: 1px solid var(--accent); color: var(--accent); font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-line { width: 2px; background: var(--border); flex: 1; min-height: 20px; }
+    .step-body { padding-bottom: 22px; padding-top: 2px; flex: 1; }
+    .step-title { font-size: 0.94rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .step-desc { font-size: 0.87rem; color: var(--muted); }
+    .step-desc strong { color: #9ba3bc; }
+
+    /* plugin list */
+    .plugin-grid { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+    .plugin { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 13px 16px; display: flex; align-items: flex-start; gap: 12px; }
+    .plugin-icon { font-size: 1.1rem; margin-top: 1px; }
+    .plugin-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .plugin-desc { font-size: 0.83rem; color: var(--muted); margin-top: 2px; }
+
+    .verdict-box { background: var(--surface); border: 1px solid #3a3060; border-radius: 12px; padding: 22px 24px; margin: 32px 0; }
+    .verdict-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 12px; }
+    .verdict-list { display: flex; flex-direction: column; gap: 8px; }
+    .verdict-item { display: flex; gap: 10px; font-size: 0.9rem; color: #9ba3bc; }
+    .verdict-item strong { color: var(--text); }
+
+    .bottom-nav { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .bottom-nav a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .bottom-nav a:hover { color: var(--accent); }
+    footer { text-align: center; padding: 32px 24px; font-size: 0.78rem; color: #3a3e50; border-top: 1px solid var(--border); max-width: 760px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Knowledge Management &bull; AI Agents &bull; Mar 2026</div>
+  <h1>Obsidian + AI Agents — Is It Worth Setting Up?</h1>
+  <p class="lede">Obsidian is a local-first, Markdown-based note app with a rich plugin ecosystem. With MCP integration, AI agents can read and write to your vault. Here's what that actually means in practice.</p>
+</header>
+
+<main>
+
+  <div class="callout">
+    <strong>The short answer:</strong> If you already take notes or are willing to start, yes — it's worth it. Agents with access to your accumulated knowledge produce meaningfully better work than agents starting from scratch. If you need team collaboration or zero-configuration AI, look elsewhere.
+  </div>
+
+  <h2>What Obsidian Is</h2>
+  <p>
+    Obsidian is a note-taking app built on a simple premise: <strong>your notes are just Markdown files in a folder on your own hard drive.</strong> There's no proprietary database, no cloud sync required, no vendor lock-in. If Obsidian the company disappeared tomorrow, your notes would still open in VS Code, Vim, or Notepad.
+  </p>
+  <p>
+    On top of that plain-file foundation, Obsidian adds:
+  </p>
+  <ul>
+    <li><strong>Wikilinks + backlinks</strong> — link any note to any other with <code>[[Note Name]]</code>. Backlinks are tracked automatically so Note B knows every note that references it.</li>
+    <li><strong>Graph view</strong> — an interactive visualization of every note as a node and every link as an edge. Genuinely useful filtered to a specific project; becomes a blur at scale.</li>
+    <li><strong>Canvas</strong> — an infinite whiteboard where you drag notes, images, and web content and draw connections between them. Lives in your vault and links to your notes.</li>
+    <li><strong>2,500+ community plugins</strong> — Kanban boards, Dataview queries, scriptable templates, Git sync, AI integrations, and more.</li>
+  </ul>
+
+  <h3>How it compares</h3>
+  <div class="vs-grid">
+    <div class="vs-card">
+      <div class="vs-name">vs. Notion</div>
+      <div class="vs-desc">Notion wins on team collaboration, polish, and zero-configuration AI. Obsidian wins on data ownership, customization, speed at scale, and the ability to use any AI model. Solo technical users: Obsidian. Teams and non-technical users: Notion.</div>
+    </div>
+    <div class="vs-card">
+      <div class="vs-name">vs. Mem.ai</div>
+      <div class="vs-desc">Mem is AI-native — zero friction, smart retrieval out of the box. But your data lives on Mem's servers. Obsidian gives you control; Mem gives you convenience.</div>
+    </div>
+    <div class="vs-card">
+      <div class="vs-name">vs. Confluence</div>
+      <div class="vs-desc">Different category. Confluence is enterprise team documentation with permissions and Jira integration. Obsidian is personal/small-team thinking. Not competing.</div>
+    </div>
+    <div class="vs-card">
+      <div class="vs-name">vs. Markdown files in a repo</div>
+      <div class="vs-desc">The files are identical. Obsidian adds graph view, backlinks, plugin tooling, and the MCP ecosystem. Many developers find a well-organized repo with grep is sufficient — that's a valid choice.</div>
+    </div>
+  </div>
+
+  <h2>How AI Agents Connect to Obsidian</h2>
+  <p>
+    Because Obsidian is just files in a folder, an agent needs no special permission to read your vault. The integration ecosystem builds convenience on top of this. The typical architecture uses the <strong>Local REST API plugin</strong> and an <strong>MCP server</strong>:
+  </p>
+
+  <div class="arch">Agent (Claude / Cursor / Windsurf)
+    ↓  MCP protocol
+MCP Server (mcp-obsidian / obsidian-mcp-server)
+    ↓  HTTP REST
+Local REST API Plugin (port 27124, inside Obsidian)
+    ↓  file operations
+Your vault (.md files on disk)</div>
+
+  <h3>What agents can do with your vault</h3>
+  <ul>
+    <li><strong>Full-text search</strong> — find notes by keyword across your entire vault in a single tool call</li>
+    <li><strong>Semantic search</strong> — via the Smart Connections plugin, find notes by meaning, not just exact words. "Login problems" finds notes about "authentication failures."</li>
+    <li><strong>Read any note</strong> — pull the full content of a specific file for context</li>
+    <li><strong>Create and update notes</strong> — write agent outputs, session logs, and drafts directly into your vault</li>
+    <li><strong>Manage frontmatter and tags</strong> — more advanced servers (cyanheads) support structured property management</li>
+    <li><strong>Trigger Templater templates</strong> — create notes using your existing templates, preserving consistent structure</li>
+  </ul>
+
+  <h3>The four MCP server options</h3>
+  <ul>
+    <li><strong>mcp-obsidian</strong> by MarkusPfundstein — original, most widely used, Python, simple and stable. Best starting point.</li>
+    <li><strong>obsidian-mcp-server</strong> by cyanheads — TypeScript, more features (frontmatter management, regex search, JWT auth). More powerful for production workflows.</li>
+    <li><strong>obsidian-mcp-tools</strong> by jacksteamdev — runs as an Obsidian plugin, exposes Smart Connections semantic search and Templater templates. Best for semantic retrieval.</li>
+    <li><strong>obsidian-claude-code-mcp</strong> by iansinnott — designed specifically for Claude Code CLI. Auto-discovery via WebSocket lock file. Best if you use Claude Code.</li>
+  </ul>
+
+  <h2>Is It Actually Helpful? Honestly</h2>
+
+  <h3>What genuinely works</h3>
+  <ul>
+    <li><strong>Accumulated knowledge as agent context.</strong> An agent that can search years of your own research produces substantively better work than one starting from scratch. This is the strongest real use case.</li>
+    <li><strong>Audit trails you can read.</strong> Agent logs written to Obsidian are readable, searchable, and editable by you. Far better than hidden log files.</li>
+    <li><strong>Closing the loop.</strong> When an agent produces useful analysis, it can save it directly to your vault — becoming part of your permanent knowledge base, not just a chat history that scrolls away.</li>
+    <li><strong>Privacy.</strong> Everything stays local. You control what the agent sees.</li>
+  </ul>
+
+  <h3>What's overhyped</h3>
+  <div class="callout warn">
+    <strong>Obsidian is not a robust agent memory backend.</strong> The "AI maintains its own memory in Obsidian" pattern sounds appealing in demos but fails in practice: concurrent writes from multiple processes silently corrupt Markdown files, there's no schema enforcement, and retrieval becomes inconsistent as the vault grows. For automated agent state, use SQLite or a vector database. Use Obsidian for human-readable notes — not machine-maintained memory.
+  </div>
+  <ul>
+    <li><strong>Fully autonomous agent memory</strong> — plain files have no concurrency control</li>
+    <li><strong>Zero-effort setup</strong> — you will configure JSON files and API keys</li>
+    <li><strong>Value without vault quality</strong> — a vault of unsorted clippings doesn't give agents useful context. You get out what you put in.</li>
+  </ul>
+
+  <h2>Does It Depend on the Type of Work You're Doing?</h2>
+
+  <div class="use-table">
+    <div class="use-row">
+      <div>
+        <div class="use-label">Research-heavy work</div>
+        <div class="use-detail">Synthesizing sources over weeks/months, competitive intelligence, technical due diligence. Accumulated notes + semantic search = genuinely transformative. The strongest case for the whole setup.</div>
+      </div>
+      <div class="use-badge badge-high">High value</div>
+    </div>
+    <div class="use-row">
+      <div>
+        <div class="use-label">Software development</div>
+        <div class="use-detail">Useful for ADRs, library notes, debugging journals, and project context across long efforts. Less useful when the relevant context already lives in the codebase itself.</div>
+      </div>
+      <div class="use-badge badge-med">Moderate</div>
+    </div>
+    <div class="use-row">
+      <div>
+        <div class="use-label">Writing and content creation</div>
+        <div class="use-detail">Strong if you have an existing vault of research on the topic. Copilot's Vault QA mode lets you ask "what have I written about X?" — that's genuinely different from a general LLM answer. Weak if you're starting from scratch.</div>
+      </div>
+      <div class="use-badge badge-med">Moderate</div>
+    </div>
+    <div class="use-row">
+      <div>
+        <div class="use-label">Operational / execution work</div>
+        <div class="use-detail">Running code, managing infrastructure, executing well-defined tasks. Prior notes add little value here. Not worth the setup.</div>
+      </div>
+      <div class="use-badge badge-low">Low value</div>
+    </div>
+    <div class="use-row">
+      <div>
+        <div class="use-label">Autonomous agent pipelines</div>
+        <div class="use-detail">If you're building agents that maintain their own state without human involvement, use SQLite or a vector DB. Obsidian's file-based storage is wrong for this use case.</div>
+      </div>
+      <div class="use-badge badge-no">Wrong tool</div>
+    </div>
+  </div>
+
+  <h2>How to Set It Up</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-col"><div class="step-num">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Install Obsidian</div>
+        <div class="step-desc">Download from <strong>obsidian.md</strong> — free for personal use, no account required. Create a vault pointing at any folder on your machine. Your existing Markdown files are already a vault.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-col"><div class="step-num">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Install the Local REST API plugin</div>
+        <div class="step-desc">Settings → Community Plugins → Browse → search "Local REST API" → install and enable. Open plugin settings and <strong>copy your API key</strong>. The plugin runs on <code>https://localhost:27124</code> with a self-signed certificate.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-col"><div class="step-num">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Configure the MCP server</div>
+        <div class="step-desc">Edit your Claude Desktop config at <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%/Claude/claude_desktop_config.json</code> (Windows):</div>
+      </div>
+    </div>
+  </div>
+
+  <pre><code>{
+  <span class="st">"mcpServers"</span>: {
+    <span class="st">"mcp-obsidian"</span>: {
+      <span class="st">"command"</span>: <span class="st">"uvx"</span>,
+      <span class="st">"args"</span>: [<span class="st">"mcp-obsidian"</span>],
+      <span class="st">"env"</span>: {
+        <span class="st">"OBSIDIAN_API_KEY"</span>: <span class="st">"your_api_key_here"</span>,
+        <span class="st">"OBSIDIAN_HOST"</span>: <span class="st">"127.0.0.1"</span>,
+        <span class="st">"OBSIDIAN_PORT"</span>: <span class="st">"27124"</span>
+      }
+    }
+  }
+}</code></pre>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-col"><div class="step-num">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Create an AGENTS.md file at the vault root</div>
+        <div class="step-desc">This is the most important piece of infrastructure. It tells any agent how your vault is organized, which folders to avoid, your naming conventions, link style preferences, and standing instructions. Think of it as your vault's <code>README</code> for AI.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-col"><div class="step-num">5</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Restart Claude Desktop and verify</div>
+        <div class="step-desc">Look for the tools icon in the Claude interface. Ask Claude to "list files in my vault" — if it responds with your note list, the integration is working.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Recommended vault structure for agent workflows</h3>
+  <pre><code>your-vault/
+├── AGENTS.md                   <span class="c">← instructions for any agent working here</span>
+├── 00-Inbox/                   <span class="c">← unsorted captures, agent drafts</span>
+├── 10-Projects/
+│   └── project-name/
+│       └── PROJECT_CONTEXT.md  <span class="c">← agents read this first</span>
+├── 20-Areas/                   <span class="c">← ongoing responsibilities</span>
+├── 30-Resources/               <span class="c">← reference material, research</span>
+├── 40-Archive/
+├── 50-Daily/                   <span class="c">← daily notes</span>
+├── 60-Agent-Log/               <span class="c">← session summaries, agent outputs</span>
+└── templates/</code></pre>
+
+  <h3>Key plugins to install</h3>
+  <div class="plugin-grid">
+    <div class="plugin">
+      <div class="plugin-icon">🔌</div>
+      <div>
+        <div class="plugin-name">Local REST API</div>
+        <div class="plugin-desc">Required. The foundation of all MCP integrations — turns your vault into a local web service.</div>
+      </div>
+    </div>
+    <div class="plugin">
+      <div class="plugin-icon">🧠</div>
+      <div>
+        <div class="plugin-name">Smart Connections</div>
+        <div class="plugin-desc">Semantic search using on-device embeddings (no API key needed). Finds related notes by meaning, not just keywords. The most powerful retrieval upgrade.</div>
+      </div>
+    </div>
+    <div class="plugin">
+      <div class="plugin-icon">📝</div>
+      <div>
+        <div class="plugin-name">Templater</div>
+        <div class="plugin-desc">Scriptable templates for consistent note creation. Agents can trigger these via obsidian-mcp-tools to create structured notes automatically.</div>
+      </div>
+    </div>
+    <div class="plugin">
+      <div class="plugin-icon">🗄️</div>
+      <div>
+        <div class="plugin-name">Dataview</div>
+        <div class="plugin-desc">Query your vault like a database — <code>TABLE</code>, <code>LIST</code>, and <code>TASK</code> queries inline in Markdown. Makes your vault's structure queryable.</div>
+      </div>
+    </div>
+    <div class="plugin">
+      <div class="plugin-icon">🤖</div>
+      <div>
+        <div class="plugin-name">Copilot</div>
+        <div class="plugin-desc">Chat with your vault, Vault QA mode (answer questions from your notes), inline text editing. Supports Anthropic, OpenAI, and local models via Ollama.</div>
+      </div>
+    </div>
+    <div class="plugin">
+      <div class="plugin-icon">📅</div>
+      <div>
+        <div class="plugin-name">Periodic Notes</div>
+        <div class="plugin-desc">Structured daily/weekly/monthly notes with consistent naming. Essential for using the vault as an agent session log.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>The Honest Hierarchy</h2>
+
+  <div class="verdict-box">
+    <div class="verdict-title">What Actually Works vs. What Doesn't</div>
+    <div class="verdict-list">
+      <div class="verdict-item"><span>✅</span><span><strong>Best use:</strong> Human-maintained, well-organized vault as read context for agents doing research and writing. The accumulated knowledge is the value.</span></div>
+      <div class="verdict-item"><span>✅</span><span><strong>Good use:</strong> Agent-written summaries and session logs stored in Obsidian as a human-readable, editable audit trail.</span></div>
+      <div class="verdict-item"><span>⚠️</span><span><strong>Marginal:</strong> Obsidian as the primary write target for automated agent memory. It works but lacks schema enforcement and concurrent write safety.</span></div>
+      <div class="verdict-item"><span>❌</span><span><strong>Wrong tool:</strong> Obsidian as a concurrent-write memory store for autonomous agent pipelines. Use SQLite or a vector database instead.</span></div>
+    </div>
+  </div>
+
+  <div class="callout good">
+    <strong>For your workflow specifically:</strong> Given that you're doing research-driven prototyping — accumulating knowledge on topics and then building things from it — Obsidian is a natural fit. The research pages being built here could live in a vault that also stores your project context, prior experiments, and agent session logs. An agent with access to that corpus can pick up where you left off without re-explaining everything.
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+</body>
+</html>
