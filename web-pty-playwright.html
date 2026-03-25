@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web PTY + Playwright — Automating and Recording Terminal Sessions</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --purple: #bc8cff;
+      --tag-bg: #1a1d27;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.75; }
+
+    header { border-bottom: 1px solid var(--border); padding: 28px 24px 24px; max-width: 760px; margin: 0 auto; }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 18px; }
+    .back:hover { color: var(--accent); }
+    .meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    header h1 { font-size: 1.55rem; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 620px; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    h2 { font-size: 1.15rem; font-weight: 700; margin: 44px 0 10px; color: var(--text); }
+    h3 { font-size: 0.97rem; font-weight: 600; color: var(--accent); margin: 26px 0 6px; }
+    p { font-size: 0.93rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { font-size: 0.92rem; color: #9ba3bc; margin-bottom: 6px; }
+    li strong { color: var(--text); }
+
+    .callout { border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; background: var(--surface); padding: 16px 20px; margin: 22px 0; font-size: 0.92rem; color: #9ba3bc; }
+    .callout.warn { border-left-color: var(--yellow); }
+    .callout.good { border-left-color: var(--green); }
+    .callout strong { color: var(--text); }
+
+    pre { background: #0a0c12; border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; margin: 14px 0 22px; font-size: 0.82rem; line-height: 1.65; }
+    code { font-family: 'Cascadia Code', 'Fira Code', monospace; color: #a8b4d8; }
+    pre code { color: #a8b4d8; }
+    .c  { color: #4a5568; font-style: italic; }  /* comment */
+    .kw { color: #6c8ef5; }                        /* keyword */
+    .st { color: #3ecf8e; }                        /* string */
+    .fn { color: #bc8cff; }                        /* function */
+    .nm { color: #f0b429; }                        /* number/const */
+
+    .arch-diagram { background: #0a0c12; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin: 16px 0 22px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; color: #6b8aaa; line-height: 1.7; overflow-x: auto; white-space: pre; }
+
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin: 20px 0; }
+    .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+    .tool-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .tool-name { font-size: 0.97rem; font-weight: 600; color: var(--text); }
+    .tool-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .badge-c { background: #1e2340; color: var(--accent); }
+    .badge-go { background: #1e2e2e; color: #4ec9b0; }
+    .badge-js { background: #2a2510; color: var(--yellow); }
+    .badge-ms { background: #1e2340; color: #7a9ef5; }
+    .tool-desc { font-size: 0.87rem; color: var(--muted); }
+
+    .matrix { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.82rem; }
+    .matrix th { background: var(--surface); border: 1px solid var(--border); padding: 10px 14px; text-align: left; color: var(--muted); font-weight: 600; font-size: 0.73rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .matrix td { border: 1px solid var(--border); padding: 10px 14px; color: #9ba3bc; }
+    .matrix tr:hover td { background: #121520; }
+    .best { color: var(--green); font-weight: 600; }
+
+    .pipeline { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+    .pipe-step { display: flex; align-items: flex-start; gap: 14px; }
+    .pipe-connector { display: flex; flex-direction: column; align-items: center; gap: 0; flex-shrink: 0; width: 26px; }
+    .pipe-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--accent); flex-shrink: 0; margin-top: 6px; }
+    .pipe-line { width: 2px; background: var(--border); flex: 1; min-height: 28px; }
+    .pipe-content { padding-bottom: 20px; }
+    .pipe-title { font-size: 0.92rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .pipe-desc { font-size: 0.85rem; color: var(--muted); }
+
+    .bottom-nav { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .bottom-nav a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .bottom-nav a:hover { color: var(--accent); }
+    footer { text-align: center; padding: 32px 24px; font-size: 0.78rem; color: #3a3e50; border-top: 1px solid var(--border); max-width: 760px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Tooling &bull; Testing &bull; Terminal &bull; Mar 2026</div>
+  <h1>Web PTY + Playwright — Automating and Recording Terminal Sessions</h1>
+  <p class="lede">A PTY renders a real terminal in the browser. Playwright drives it like a user. Together they let you automate, test, and record CLI sessions visually — with actual colors, fonts, and timing.</p>
+</header>
+
+<main>
+
+  <div class="callout">
+    <strong>The idea in one sentence:</strong> Spin up a tool like ttyd to expose a shell in the browser via xterm.js, then use Playwright to type into that terminal — recording the session as a video, GIF, or asciinema cast.
+  </div>
+
+  <h2>Part 1 — What is a PTY?</h2>
+  <p>
+    A <strong>PTY (pseudo terminal)</strong> is a kernel-level mechanism that emulates a hardware terminal. It has two ends: a <strong>master</strong> (held by your terminal emulator) and a <strong>slave</strong> (which appears to programs like bash as a real terminal device, e.g. <code>/dev/pts/3</code>).
+  </p>
+  <p>
+    This matters because programs behave differently when they detect a terminal. Bash enables color output, readline, and job control. Git shows progress bars. Programs that call <code>isatty()</code> check whether stdout is a PTY — and change behavior accordingly. Without a PTY, piping output to a script suppresses all of that.
+  </p>
+
+  <div class="arch-diagram">Browser                      Server
+┌──────────────┐            ┌──────────────────────────────┐
+│   xterm.js   │◄──────────►│  WebSocket ↔ PTY master      │
+│  (renders    │  WS/HTTP   │                              │
+│   terminal,  │            │  PTY slave → bash / your app │
+│   sends keys)│            └──────────────────────────────┘
+└──────────────┘</div>
+
+  <p>A <strong>web PTY</strong> bridges the PTY master's I/O over a WebSocket so a browser-based terminal emulator (xterm.js) can connect to a real shell running on a server.</p>
+
+  <h2>Part 2 — The Web PTY Tools</h2>
+
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">xterm.js</div>
+        <div class="tool-badge badge-js">JS/TS</div>
+      </div>
+      <div class="tool-desc">The browser-side terminal emulator. Parses ANSI escape sequences, maintains a screen buffer, and renders via Canvas2D or WebGL. Used by VS Code, JupyterLab, GitHub Codespaces, and most web PTY tools as their frontend. The hidden <code>.xterm-helper-textarea</code> element is how keyboard input is captured.</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">ttyd</div>
+        <div class="tool-badge badge-c">C</div>
+      </div>
+      <div class="tool-desc">A single binary that wraps a command in a PTY and serves it over WebSocket + HTTP. Bundles xterm.js internally. Minimal, fast, and the most practical choice for automation. Each WebSocket connection forks a new shell process. Run <code>ttyd bash</code> and you have a browser terminal in seconds.</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">GoTTY</div>
+        <div class="tool-badge badge-go">Go</div>
+      </div>
+      <div class="tool-desc">Same idea as ttyd, written in Go. Default mode is read-only (viewers see output but can't type). Less actively maintained than ttyd but easier to cross-compile. The <code>--permit-write</code> flag enables input.</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-name">Playwright</div>
+        <div class="tool-badge badge-ms">Microsoft</div>
+      </div>
+      <div class="tool-desc">Browser automation for Node.js, Python, Java, .NET. Controls Chromium, Firefox, and WebKit via CDP. Has built-in video recording, WebSocket interception, and keyboard APIs. The piece that drives the terminal and records what it sees.</div>
+    </div>
+  </div>
+
+  <h2>Part 3 — How Playwright Types Into a Terminal</h2>
+  <p>
+    xterm.js captures keyboard input through a hidden <code>&lt;textarea&gt;</code> element. Playwright sends keyboard events to it exactly like a real user would. The key methods:
+  </p>
+
+  <pre><code><span class="c">// Focus the terminal first — required before typing</span>
+<span class="kw">await</span> page.locator(<span class="st">'.xterm-helper-textarea'</span>).click();
+
+<span class="c">// Type a command with realistic keystroke delay</span>
+<span class="kw">await</span> page.keyboard.type(<span class="st">'ls -la'</span>, { delay: <span class="nm">60</span> }); <span class="c">// 60ms between keys</span>
+<span class="kw">await</span> page.keyboard.press(<span class="st">'Enter'</span>);
+
+<span class="c">// Special keys</span>
+<span class="kw">await</span> page.keyboard.press(<span class="st">'Control+C'</span>);  <span class="c">// interrupt</span>
+<span class="kw">await</span> page.keyboard.press(<span class="st">'ArrowUp'</span>);    <span class="c">// history</span>
+<span class="kw">await</span> page.keyboard.press(<span class="st">'Tab'</span>);         <span class="c">// autocomplete</span>
+
+<span class="c">// DON'T use fill() — it bypasses keyboard events entirely</span>
+<span class="c">// xterm.js won't see it</span></code></pre>
+
+  <h3>Waiting for a command to finish</h3>
+  <p>The hard part: knowing when the shell is done. Two reliable strategies:</p>
+
+  <pre><code><span class="c">// Strategy 1: wait for the prompt to reappear</span>
+<span class="kw">async function</span> <span class="fn">waitForPrompt</span>(page) {
+  <span class="kw">await</span> page.<span class="fn">waitForFunction</span>(() => {
+    <span class="kw">const</span> rows = [...document.<span class="fn">querySelectorAll</span>(<span class="st">'.xterm-rows > div'</span>)];
+    <span class="kw">return</span> rows.slice(-<span class="nm">3</span>).<span class="fn">some</span>(r => <span class="st">/[\$❯#]\s*$/</span>.<span class="fn">test</span>(r.textContent));
+  }, { timeout: <span class="nm">30000</span> });
+}
+
+<span class="c">// Strategy 2: echo a sentinel value and wait for it</span>
+<span class="kw">async function</span> <span class="fn">run</span>(page, cmd) {
+  <span class="kw">const</span> sentinel = <span class="st">`__DONE_<span class="kw">${</span>Date.now()<span class="kw">}</span>__`</span>;
+  <span class="kw">await</span> page.keyboard.<span class="fn">type</span>(<span class="st">`<span class="kw">${</span>cmd<span class="kw">}</span>; echo "<span class="kw">${</span>sentinel<span class="kw">}</span>"`</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">press</span>(<span class="st">'Enter'</span>);
+  <span class="kw">await</span> page.<span class="fn">waitForFunction</span>(
+    s => document.<span class="fn">querySelector</span>(<span class="st">'.xterm-rows'</span>)?.textContent.<span class="fn">includes</span>(s),
+    sentinel, { timeout: <span class="nm">60000</span> }
+  );
+}</code></pre>
+
+  <h2>Part 4 — Recording the Session</h2>
+
+  <h3>Option A: Playwright video (WebM)</h3>
+  <pre><code><span class="kw">const</span> context = <span class="kw">await</span> browser.<span class="fn">newContext</span>({
+  recordVideo: { dir: <span class="st">'./recordings'</span>, size: { width: <span class="nm">900</span>, height: <span class="nm">500</span> } },
+  viewport: { width: <span class="nm">900</span>, height: <span class="nm">500</span> },
+});
+
+<span class="c">// ... run your session ...</span>
+
+<span class="kw">await</span> context.<span class="fn">close</span>(); <span class="c">// triggers video write</span>
+<span class="c">// Video saved to ./recordings/*.webm</span>
+<span class="c">// Convert to GIF: ffmpeg -i recording.webm -vf "fps=15,scale=900:-1" out.gif</span></code></pre>
+
+  <h3>Option B: asciinema cast (intercept WebSocket frames)</h3>
+  <pre><code><span class="kw">const</span> events = [];
+<span class="kw">const</span> startTime = Date.<span class="fn">now</span>();
+
+page.<span class="fn">on</span>(<span class="st">'websocket'</span>, ws => {
+  ws.<span class="fn">on</span>(<span class="st">'framereceived'</span>, frame => {
+    <span class="c">// ttyd output frames start with '0'</span>
+    <span class="kw">if</span> (<span class="kw">typeof</span> frame.payload === <span class="st">'string'</span> && frame.payload[<span class="nm">0</span>] === <span class="st">'0'</span>) {
+      <span class="kw">const</span> time = (Date.<span class="fn">now</span>() - startTime) / <span class="nm">1000</span>;
+      events.<span class="fn">push</span>([time, <span class="st">'o'</span>, frame.payload.<span class="fn">slice</span>(<span class="nm">1</span>)]);
+    }
+  });
+});
+
+<span class="c">// ... run your session ...</span>
+
+<span class="c">// Write .cast file (playable with: asciinema play session.cast)</span>
+<span class="kw">const</span> header = { version: <span class="nm">2</span>, width: <span class="nm">80</span>, height: <span class="nm">24</span>, timestamp: Math.<span class="fn">floor</span>(Date.<span class="fn">now</span>()/<span class="nm">1000</span>) };
+<span class="kw">const</span> castContent = [JSON.<span class="fn">stringify</span>(header), ...events.<span class="fn">map</span>(e => JSON.<span class="fn">stringify</span>(e))].<span class="fn">join</span>(<span class="st">'\n'</span>);
+fs.<span class="fn">writeFileSync</span>(<span class="st">'session.cast'</span>, castContent);</code></pre>
+
+  <h2>Part 5 — Full Pipeline</h2>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+      <div class="pipe-content">
+        <div class="pipe-title">Start ttyd</div>
+        <div class="pipe-desc"><code>ttyd -p 7681 bash</code> — serves a real bash shell over WebSocket with xterm.js as the frontend</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+      <div class="pipe-content">
+        <div class="pipe-title">Launch Playwright with video recording</div>
+        <div class="pipe-desc">Open a browser context with <code>recordVideo</code> enabled and navigate to the ttyd URL</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+      <div class="pipe-content">
+        <div class="pipe-title">Wait for xterm.js to initialize</div>
+        <div class="pipe-desc">Wait for <code>.xterm-helper-textarea</code> and click to focus it</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+      <div class="pipe-content">
+        <div class="pipe-title">Execute commands with realistic timing</div>
+        <div class="pipe-desc"><code>page.keyboard.type(cmd, { delay: 60 })</code> simulates a human typing. Wait for the prompt between each command.</div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-connector"><div class="pipe-dot"></div><div class="pipe-line"></div></div>
+      <div class="pipe-content">
+        <div class="pipe-title">Close context → video is written</div>
+        <div class="pipe-desc">Playwright flushes the <code>.webm</code> file. Optionally intercept WebSocket frames during the run to also produce an asciinema <code>.cast</code></div>
+      </div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-connector"><div class="pipe-dot"></div></div>
+      <div class="pipe-content">
+        <div class="pipe-title">(Optional) Convert to GIF</div>
+        <div class="pipe-desc"><code>ffmpeg -i recording.webm -vf "fps=15,scale=900:-1" output.gif</code></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Part 6 — Testing TUI Apps in CI</h2>
+  <p>This is the most practical use case: running E2E tests against terminal UI applications (ncdu, vim, lazygit, htop, your own CLI) in GitHub Actions.</p>
+
+  <pre><code><span class="c"># .github/workflows/test-tui.yml</span>
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ttyd
+        run: |
+          wget -qO /usr/local/bin/ttyd \
+            https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64
+          chmod +x /usr/local/bin/ttyd
+      - name: Install Playwright
+        run: npx playwright install chromium
+      - name: Run TUI tests
+        run: npx playwright test</code></pre>
+
+  <pre><code><span class="c">// Test that vim opens and we can quit it</span>
+test(<span class="st">'vim opens and quits'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.<span class="fn">goto</span>(<span class="st">'http://localhost:7681'</span>);
+  <span class="kw">await</span> page.<span class="fn">waitForSelector</span>(<span class="st">'.xterm-helper-textarea'</span>);
+  <span class="kw">await</span> page.locator(<span class="st">'.xterm-helper-textarea'</span>).<span class="fn">click</span>();
+
+  <span class="kw">await</span> <span class="fn">waitForPrompt</span>(page);
+  <span class="kw">await</span> page.keyboard.<span class="fn">type</span>(<span class="st">'vim test.txt\n'</span>);
+  <span class="kw">await</span> page.<span class="fn">waitForTimeout</span>(<span class="nm">500</span>);
+
+  <span class="c">// Exit vim</span>
+  <span class="kw">await</span> page.keyboard.<span class="fn">press</span>(<span class="st">'Escape'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">type</span>(<span class="st">':q!'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">press</span>(<span class="st">'Enter'</span>);
+  <span class="kw">await</span> <span class="fn">waitForPrompt</span>(page);
+});</code></pre>
+
+  <h2>Part 7 — Alternatives Compared</h2>
+
+  <table class="matrix">
+    <thead>
+      <tr>
+        <th>Goal</th>
+        <th>Best Tool</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Record terminal session to GIF</td><td class="best">vhs (by Charmbracelet)</td></tr>
+      <tr><td>Record with pixel-perfect fonts and colors</td><td class="best">vhs (uses Chromium internally)</td></tr>
+      <tr><td>Upload to asciinema.org</td><td class="best">asciinema</td></tr>
+      <tr><td>E2E test a TUI app in CI</td><td class="best">ttyd + Playwright</td></tr>
+      <tr><td>Embed live terminal in a web app</td><td class="best">ttyd or wetty</td></tr>
+      <tr><td>Automate and record as WebM video</td><td class="best">Playwright + ttyd (custom script)</td></tr>
+      <tr><td>Generate asciinema cast programmatically</td><td class="best">Playwright + ttyd (intercept WS frames)</td></tr>
+      <tr><td>Scriptable terminal automation without browser</td><td class="best">expect / pexpect / tmux send-keys</td></tr>
+    </tbody>
+  </table>
+
+  <h3>vhs — the closest off-the-shelf equivalent</h3>
+  <p>
+    <strong>vhs</strong> by Charmbracelet is the most mature tool that essentially implements this pattern natively. You write a <code>.tape</code> script, it spins up a headless Chromium with xterm.js internally, runs the commands, and produces a GIF or MP4. Worth knowing about if you don't want to wire this up yourself.
+  </p>
+
+  <pre><code><span class="c"># demo.tape</span>
+Output demo.gif
+Set FontSize 14
+Set Width 1200
+Set Height 600
+
+Type "echo 'Hello from vhs'"
+Enter
+Sleep 500ms
+Type "ls -la"
+Enter
+Sleep 1s</code></pre>
+
+  <div class="callout good">
+    <strong>When to wire it up yourself (Playwright + ttyd) vs. use vhs:</strong> Use vhs for producing polished recordings of known commands. Use the Playwright + ttyd combo when you need <em>assertions</em> on output (CI testing), dynamic command generation, or integration with an existing Playwright test suite.
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+</body>
+</html>
