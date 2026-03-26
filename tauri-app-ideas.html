@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>10 Non-Trivial Tauri App Ideas</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --purple: #bc8cff;
+      --cyan: #4ec9b0;
+      --tag-bg: #1a1d27;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.75; }
+
+    header { border-bottom: 1px solid var(--border); padding: 28px 24px 24px; max-width: 800px; margin: 0 auto; }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 18px; }
+    .back:hover { color: var(--accent); }
+    .meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    header h1 { font-size: 1.55rem; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 640px; }
+
+    main { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    .callout { border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; background: var(--surface); padding: 16px 20px; margin: 0 0 40px; font-size: 0.92rem; color: #9ba3bc; }
+    .callout strong { color: var(--text); }
+
+    /* app cards */
+    .app-list { display: flex; flex-direction: column; gap: 24px; }
+
+    .app-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.18s;
+    }
+    .app-card:hover { border-color: #383c50; }
+    .app-card.active { border-color: var(--accent); }
+
+    .app-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .app-number {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: #1a1d27;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 9px;
+      flex-shrink: 0;
+      margin-top: 3px;
+      letter-spacing: 0.04em;
+    }
+    .app-card.active .app-number { background: #1e2340; border-color: var(--accent); color: var(--accent); }
+    .app-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .app-title { font-size: 1.07rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .app-tagline { font-size: 0.87rem; color: var(--muted); }
+
+    .app-body { padding: 18px 24px 22px; }
+
+    .app-desc { font-size: 0.9rem; color: #9ba3bc; margin-bottom: 16px; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 560px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-block {
+      background: #0e1018;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .detail-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .detail-items { display: flex; flex-wrap: wrap; gap: 6px; }
+    .detail-tag {
+      font-size: 0.75rem;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .tag-rust   { background: #2e1a0d; color: #e08c4a; }
+    .tag-ui     { background: #1e2340; color: var(--accent); }
+    .tag-os     { background: #1e2e1e; color: var(--green); }
+    .tag-heavy  { background: #2e0d1a; color: var(--red); }
+    .tag-data   { background: #1a1e2e; color: var(--purple); }
+    .tag-net    { background: #0d2a2e; color: var(--cyan); }
+
+    .difficulty {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .diff-dots { display: flex; gap: 4px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .dot.filled-green  { background: var(--green); }
+    .dot.filled-yellow { background: var(--yellow); }
+    .dot.filled-red    { background: var(--red); }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: #0e1018;
+      border-top: 1px solid var(--border);
+    }
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .status-building { background: #1e2340; color: var(--accent); }
+    .status-planned  { background: #1a1d27; color: var(--muted); }
+    .status-idea     { background: #1a1d27; color: #3a3e50; }
+
+    .connections {
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .connection-link { color: var(--accent); font-weight: 500; }
+
+    p { font-size: 0.9rem; color: #9ba3bc; margin-bottom: 12px; }
+    h2 { font-size: 1.1rem; font-weight: 700; margin: 44px 0 12px; color: var(--text); }
+
+    .bottom-nav { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .bottom-nav a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .bottom-nav a:hover { color: var(--accent); }
+
+    footer { text-align: center; padding: 32px 24px; font-size: 0.78rem; color: #3a3e50; border-top: 1px solid var(--border); max-width: 800px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">← Back to research</a>
+  <div class="meta">Tauri &bull; Desktop Apps &bull; Mar 2026</div>
+  <h1>10 Non-Trivial Tauri App Ideas</h1>
+  <p class="lede">Apps that stress Tauri's native layer — OS hooks, heavy Rust processing, real-time data, things a web app simply can't do. These aren't todo lists.</p>
+</header>
+
+<main>
+
+  <div class="callout">
+    <strong>Why Tauri for these?</strong> Each app here requires something that rules out a pure web app: system-level access, native performance, offline-first operation, or OS API hooks. Tauri bridges Rust's native capabilities with a modern web frontend — that's the whole point.
+  </div>
+
+  <div class="app-list">
+
+    <!-- 1 -->
+    <div class="app-card active">
+      <div class="app-header">
+        <div class="app-number">01</div>
+        <div class="app-icon">🖥️</div>
+        <div>
+          <div class="app-title">System Performance Dashboard</div>
+          <div class="app-tagline">Real-time CPU, GPU, memory, disk I/O, and network visualization</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          A live performance monitor that polls system metrics at high frequency from Rust and streams them to an animated frontend. Think a polished htop meets Grafana, running natively on your desktop. Every chart updates in real time. Processes are listed and filterable. Network interfaces show live throughput. GPU utilization is visible alongside CPU cores.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">sysinfo crate</span>
+              <span class="detail-tag tag-rust">nvml (GPU)</span>
+              <span class="detail-tag tag-ui">high-freq IPC</span>
+              <span class="detail-tag tag-ui">real-time charts</span>
+              <span class="detail-tag tag-heavy">streaming events</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">Commands</span>
+              <span class="detail-tag tag-ui">Events</span>
+              <span class="detail-tag tag-rust">Background thread</span>
+              <span class="detail-tag tag-rust">State management</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-yellow"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          Good starting challenge — teaches core Tauri IPC patterns without OS-level permissions complexity
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-building">🔨 Building now</span>
+        <span class="connections">→ <a class="connection-link" href="https://github.com/garysclaw/tauri-system-dashboard">github.com/garysclaw/tauri-system-dashboard</a></span>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">02</div>
+        <div class="app-icon">📋</div>
+        <div>
+          <div class="app-title">Intelligent Clipboard Manager</div>
+          <div class="app-tagline">Full clipboard history, search, and content transformation</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          Captures every clipboard entry with timestamp and source app. Full-text search across history. Smart transformations: reformat JSON, decode base64, convert between cases, strip formatting. Global hotkey to summon. Pinned entries persist across reboots. Runs silently in the system tray.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-os">OS clipboard API</span>
+              <span class="detail-tag tag-os">System tray</span>
+              <span class="detail-tag tag-os">Global hotkeys</span>
+              <span class="detail-tag tag-rust">Background thread</span>
+              <span class="detail-tag tag-data">SQLite persistence</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">System tray plugin</span>
+              <span class="detail-tag tag-ui">Global shortcut plugin</span>
+              <span class="detail-tag tag-rust">Clipboard plugin</span>
+              <span class="detail-tag tag-rust">App data dir</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          Medium — OS hooks are cross-platform headaches but well-supported by Tauri plugins
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+        <span class="connections"></span>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">03</div>
+        <div class="app-icon">🔍</div>
+        <div>
+          <div class="app-title">Lightning File Search</div>
+          <div class="app-tagline">Index your entire drive, search by name, content, and metadata instantly</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          A local Spotlight/Everything alternative. Indexes the filesystem in a background Rust thread, storing metadata in SQLite. Full-text content search via ripgrep integration. Results appear as you type with no perceptible lag. File previews inline. Filters by type, date, size. Open or reveal in Finder/Explorer directly.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">walkdir crate</span>
+              <span class="detail-tag tag-rust">ripgrep (rg)</span>
+              <span class="detail-tag tag-data">SQLite FTS5</span>
+              <span class="detail-tag tag-heavy">Large dir traversal</span>
+              <span class="detail-tag tag-os">FS events</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">Shell open</span>
+              <span class="detail-tag tag-rust">Async commands</span>
+              <span class="detail-tag tag-rust">Progress events</span>
+              <span class="detail-tag tag-data">SQLite plugin</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-yellow"></div>
+            <div class="dot"></div>
+          </div>
+          Medium-high — indexing and FTS performance at scale is genuinely tricky
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">04</div>
+        <div class="app-icon">🎙️</div>
+        <div>
+          <div class="app-title">Local AI Transcription Tool</div>
+          <div class="app-tagline">Drag-drop audio → transcribe locally via Whisper, no API required</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          Drop an audio or video file, pick a Whisper model size, and get a transcript locally — no cloud, no API key, no data leaving your machine. Progress streams back to the UI in real time. Output as plain text, SRT subtitles, or timestamped JSON. Model files managed within the app.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">whisper-rs (FFI)</span>
+              <span class="detail-tag tag-heavy">Heavy compute</span>
+              <span class="detail-tag tag-ui">Streaming progress</span>
+              <span class="detail-tag tag-os">File drag-drop</span>
+              <span class="detail-tag tag-data">Model management</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">Drag-drop events</span>
+              <span class="detail-tag tag-rust">Rust FFI</span>
+              <span class="detail-tag tag-rust">Streaming events</span>
+              <span class="detail-tag tag-rust">Blocking threads</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-yellow"></div>
+            <div class="dot"></div>
+          </div>
+          Medium-high — Rust FFI to a C library is the hard part
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+        <span class="connections">Ties into: <span class="connection-link">AI agent research</span></span>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">05</div>
+        <div class="app-icon">🌐</div>
+        <div>
+          <div class="app-title">Network Traffic Inspector</div>
+          <div class="app-tagline">Capture and visualize live network packets — a Wireshark-lite</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          Capture live packet data from any network interface, decode protocols (TCP/UDP/HTTP/DNS), and display traffic in real time. Filter by host, port, or protocol. Timeline view of connection activity. Requires elevated permissions. This is the hardest app on this list.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-net">libpcap / pnet</span>
+              <span class="detail-tag tag-os">Root/admin perms</span>
+              <span class="detail-tag tag-heavy">High-freq data</span>
+              <span class="detail-tag tag-rust">Protocol parsing</span>
+              <span class="detail-tag tag-ui">Real-time render</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">Privileged commands</span>
+              <span class="detail-tag tag-rust">Async streams</span>
+              <span class="detail-tag tag-rust">Channel-based IPC</span>
+              <span class="detail-tag tag-ui">Virtualized lists</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+          </div>
+          Advanced — OS permissions, raw sockets, and high-frequency rendering all at once
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-idea">Future idea</span>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">06</div>
+        <div class="app-icon">💻</div>
+        <div>
+          <div class="app-title">Multi-Protocol Terminal</div>
+          <div class="app-tagline">SSH + local shell in one app, with multiplexed sessions</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          A polished terminal emulator supporting local shells and SSH connections in tabs or split panes. xterm.js handles rendering; a Rust PTY backend handles process management. Saved connection profiles, key-based SSH auth, session logging. This is what VS Code's integrated terminal does — built from scratch.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">portable-pty</span>
+              <span class="detail-tag tag-rust">ssh2 crate</span>
+              <span class="detail-tag tag-ui">xterm.js</span>
+              <span class="detail-tag tag-heavy">Multiplexed I/O</span>
+              <span class="detail-tag tag-os">PTY resize signals</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">Channel IPC</span>
+              <span class="detail-tag tag-rust">Async runtime</span>
+              <span class="detail-tag tag-rust">Multi-window</span>
+              <span class="detail-tag tag-data">Keychain/secrets</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot"></div>
+          </div>
+          Hard — PTY lifecycle management and SSH auth edge cases are brutal
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+        <span class="connections">Ties into: <span class="connection-link">web-pty-playwright research</span></span>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">07</div>
+        <div class="app-icon">🔀</div>
+        <div>
+          <div class="app-title">Visual File Diff + Merge Tool</div>
+          <div class="app-tagline">Side-by-side diffs, inline merge, large file support</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          A local Beyond Compare alternative. Open two files or folders, get a color-coded diff, resolve conflicts inline, save the merged result. Works on large files without choking. Directory diff mode shows which files changed. Git integration to compare working tree vs HEAD.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">similar crate</span>
+              <span class="detail-tag tag-heavy">Large file perf</span>
+              <span class="detail-tag tag-ui">Virtual scrolling</span>
+              <span class="detail-tag tag-rust">git2 crate</span>
+              <span class="detail-tag tag-data">Binary diff</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">File dialog</span>
+              <span class="detail-tag tag-rust">Streaming reads</span>
+              <span class="detail-tag tag-os">Shell integration</span>
+              <span class="detail-tag tag-ui">Monaco editor</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-yellow"></div>
+            <div class="dot"></div>
+          </div>
+          Medium-high — diff algorithms are well-solved; the challenge is rendering performance at scale
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+      </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">08</div>
+        <div class="app-icon">🗄️</div>
+        <div>
+          <div class="app-title">SQLite Explorer + Query Builder</div>
+          <div class="app-tagline">Browse, query, and visualize any SQLite database</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          Open any .db or .sqlite file, browse tables and relationships, run arbitrary SQL with a query editor, visualize schema as an ERD. Export query results to CSV/JSON. View indexes, triggers, and views. Handle large result sets with virtualized pagination.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">rusqlite crate</span>
+              <span class="detail-tag tag-data">Schema introspection</span>
+              <span class="detail-tag tag-heavy">Large result sets</span>
+              <span class="detail-tag tag-ui">Monaco SQL editor</span>
+              <span class="detail-tag tag-ui">ERD rendering</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-ui">File dialog</span>
+              <span class="detail-tag tag-rust">Dynamic SQL</span>
+              <span class="detail-tag tag-rust">Serialization</span>
+              <span class="detail-tag tag-ui">Virtualized tables</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot filled-green"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          Medium — great second project; the Rust side is straightforward, the UI is the challenge
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+        <span class="connections">Ties into: <span class="connection-link">agent memory research</span></span>
+      </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">09</div>
+        <div class="app-icon">🖱️</div>
+        <div>
+          <div class="app-title">Desktop Automation Recorder</div>
+          <div class="app-tagline">Record mouse/keyboard sequences and replay them as macros</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          Record any sequence of mouse movements, clicks, and keystrokes. Name it, save it, replay it on demand or on a schedule. Edit recorded sequences as a step list. Conditional logic: "if this window is open, do this." One of the hardest cross-platform problems in desktop development.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-os">Global input hooks</span>
+              <span class="detail-tag tag-os">Input injection</span>
+              <span class="detail-tag tag-os">Window detection</span>
+              <span class="detail-tag tag-heavy">Cross-platform</span>
+              <span class="detail-tag tag-rust">rdev / enigo crates</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-os">Accessibility perms</span>
+              <span class="detail-tag tag-rust">Global listeners</span>
+              <span class="detail-tag tag-rust">Background process</span>
+              <span class="detail-tag tag-ui">Sequence editor</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+          </div>
+          Very hard — accessibility permissions and input injection differ wildly per OS
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-idea">Future idea</span>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="app-card">
+      <div class="app-header">
+        <div class="app-number">10</div>
+        <div class="app-icon">🧠</div>
+        <div>
+          <div class="app-title">Local Vector Knowledge Base</div>
+          <div class="app-tagline">Semantic search, on-device embeddings, vector space visualization</div>
+        </div>
+      </div>
+      <div class="app-body">
+        <p class="app-desc">
+          Store notes and documents as local embeddings using SQLite-vec or a bundled ONNX model. Semantic search finds relevant content by meaning, not just keywords. 2D/3D visualization of the vector space using t-SNE or UMAP. Fully offline — no API key, no cloud. The desktop Obsidian Smart Connections, rebuilt from scratch.
+        </p>
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="detail-label">What gets stressed</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">sqlite-vec</span>
+              <span class="detail-tag tag-rust">ONNX runtime</span>
+              <span class="detail-tag tag-heavy">On-device ML</span>
+              <span class="detail-tag tag-ui">3D WebGL viz</span>
+              <span class="detail-tag tag-data">Embedding indexing</span>
+            </div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Key Tauri concepts</div>
+            <div class="detail-items">
+              <span class="detail-tag tag-rust">FFI to ONNX</span>
+              <span class="detail-tag tag-rust">Compute-heavy cmds</span>
+              <span class="detail-tag tag-ui">Three.js / WebGL</span>
+              <span class="detail-tag tag-data">Vector similarity</span>
+            </div>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dots">
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot filled-red"></div>
+            <div class="dot"></div>
+          </div>
+          Hard — on-device ML inference and 3D rendering are both specialized domains
+        </div>
+      </div>
+      <div class="status-bar">
+        <span class="status-badge status-planned">Planned</span>
+        <span class="connections">Ties into: <span class="connection-link">Obsidian + AI agents research</span></span>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>What We're Building First</h2>
+  <p>Starting with <strong>App #1 — System Performance Dashboard</strong>. It's the right first project: challenging enough to teach every core Tauri pattern (IPC, background threads, streaming events, native system calls), but scoped tightly enough to finish. No OS-level permission drama, no FFI to a C library, no cross-platform input injection. Pure Tauri fundamentals under real load.</p>
+  <p>Once that's done, we have 9 more on the list — each one teaching a different layer of what Tauri can do.</p>
+
+  <div class="bottom-nav">
+    <a href="index.html">← Back to all research</a>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Mar 2026</footer>
+</body>
+</html>
