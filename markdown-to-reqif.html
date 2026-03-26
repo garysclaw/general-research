@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markdown to ReqIF: A Practical Guide to the Tool Landscape</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f1117;
+      color: #dde1ee;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .back-link {
+      display: inline-block;
+      color: #6b7080;
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: #6c8ef5; }
+    .back-link::before { content: "← "; }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8125rem;
+      color: #6b7080;
+      margin-bottom: 0.75rem;
+    }
+    .meta-sep { color: #252830; }
+    .tag {
+      background: #16181f;
+      border: 1px solid #252830;
+      border-radius: 4px;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+      color: #6c8ef5;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .lede {
+      font-size: 1.0625rem;
+      color: #9aa0b2;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #252830;
+    }
+
+    /* ── Sections ────────────────────────────────────────────── */
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #fff;
+      margin: 2.5rem 0 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #252830;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #dde1ee;
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    p { margin-bottom: 1rem; color: #c8cdd9; }
+
+    a { color: #6c8ef5; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    ul, ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+      color: #c8cdd9;
+    }
+    li { margin-bottom: 0.35rem; }
+
+    strong { color: #dde1ee; }
+
+    /* ── Code ────────────────────────────────────────────────── */
+    code {
+      background: #0e1018;
+      border: 1px solid #252830;
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85em;
+      color: #4ec9b0;
+    }
+
+    pre {
+      background: #0e1018;
+      border: 1px solid #252830;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.8125rem;
+      color: #c8cdd9;
+      line-height: 1.6;
+    }
+    .kw  { color: #569cd6; }
+    .str { color: #ce9178; }
+    .cmt { color: #6a9955; font-style: italic; }
+    .attr { color: #9cdcfe; }
+    .val { color: #ce9178; }
+    .tag-xml { color: #4ec9b0; }
+    .punct { color: #6b7080; }
+
+    /* ── Callout boxes ───────────────────────────────────────── */
+    .callout {
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      border-left: 4px solid;
+      background: #16181f;
+    }
+    .callout-info  { border-color: #6c8ef5; }
+    .callout-warn  { border-color: #f0b429; }
+    .callout-tip   { border-color: #3ecf8e; }
+    .callout-danger{ border-color: #f2545b; }
+
+    .callout-title {
+      font-weight: 700;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+    .callout-info  .callout-title { color: #6c8ef5; }
+    .callout-warn  .callout-title { color: #f0b429; }
+    .callout-tip   .callout-title { color: #3ecf8e; }
+    .callout-danger .callout-title { color: #f2545b; }
+    .callout p { color: #c8cdd9; margin-bottom: 0; }
+
+    /* ── Tool cards ──────────────────────────────────────────── */
+    .tool-card {
+      background: #16181f;
+      border: 1px solid #252830;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .tool-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .tool-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .tool-badges {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-green  { background: rgba(62,207,142,0.15); color: #3ecf8e; border: 1px solid rgba(62,207,142,0.3); }
+    .badge-yellow { background: rgba(240,180,41,0.15); color: #f0b429; border: 1px solid rgba(240,180,41,0.3); }
+    .badge-red    { background: rgba(242,84,91,0.15);  color: #f2545b; border: 1px solid rgba(242,84,91,0.3); }
+    .badge-blue   { background: rgba(108,142,245,0.15);color: #6c8ef5; border: 1px solid rgba(108,142,245,0.3); }
+    .badge-purple { background: rgba(188,140,255,0.15);color: #bc8cff; border: 1px solid rgba(188,140,255,0.3); }
+    .badge-cyan   { background: rgba(78,201,176,0.15); color: #4ec9b0; border: 1px solid rgba(78,201,176,0.3); }
+
+    .tool-desc { color: #c8cdd9; font-size: 0.9375rem; margin-bottom: 0.75rem; }
+    .tool-meta { font-size: 0.8125rem; color: #6b7080; margin-bottom: 0.6rem; }
+    .tool-meta a { color: #6c8ef5; }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    @media (max-width: 540px) {
+      .pros-cons { grid-template-columns: 1fr; }
+    }
+    .pros, .cons {
+      background: #0e1018;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+    }
+    .pros-title { color: #3ecf8e; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .cons-title { color: #f2545b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .pros ul, .cons ul { margin: 0; padding-left: 1.1rem; }
+    .pros li, .cons li { font-size: 0.875rem; color: #c8cdd9; margin-bottom: 0.2rem; }
+
+    /* ── Comparison table ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 1rem 0 1.5rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead th {
+      background: #16181f;
+      color: #6b7080;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid #252830;
+      text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid #1c1e27; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 0.6rem 0.9rem; color: #c8cdd9; vertical-align: top; }
+    tbody tr:hover { background: #16181f; }
+
+    .check   { color: #3ecf8e; font-weight: 700; }
+    .cross   { color: #f2545b; font-weight: 700; }
+    .partial { color: #f0b429; font-weight: 700; }
+
+    /* ── Section divider ─────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid #252830;
+      margin: 2.5rem 0;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #252830;
+      font-size: 0.8125rem;
+      color: #6b7080;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <a class="back-link" href="../index.html">Back to index</a>
+
+  <div class="meta">
+    <span>March 2026</span>
+    <span class="meta-sep">|</span>
+    <span class="tag">Requirements Engineering</span>
+    <span class="meta-sep">|</span>
+    <span class="tag">Tooling</span>
+  </div>
+
+  <h1>Markdown to ReqIF: A Practical Guide to the Tool Landscape</h1>
+
+  <p class="lede">
+    ReqIF is the lingua franca for exchanging requirements between the automotive, aerospace, and defense supply chain.
+    Markdown is how engineers and developers write everything else.
+    Bridging the two is harder than it looks — here is an honest survey of every tool and approach that exists today.
+  </p>
+
+  <!-- ── 1. Introduction ──────────────────────────────────── -->
+  <h2>What is ReqIF and Why Would You Convert from Markdown?</h2>
+
+  <p>
+    The <strong>Requirements Interchange Format (ReqIF)</strong> is an XML-based open standard published by the Object Management Group (OMG) and actively promoted by the <a href="https://www.prostep.org/en/medialibrary/fact-sheets/requirements-interchange-format-reqif" target="_blank">prostep ivip association</a>.
+    Its latest formal version is <strong>ReqIF 1.2</strong> (published July 2016), though the underlying XML schema is unchanged from 1.0.1 — meaning files from any version are binary-compatible.
+    Files use the <code>.reqif</code> extension; when attachments are bundled in a ZIP, the extension becomes <code>.reqifz</code>.
+  </p>
+
+  <p>
+    ReqIF dominates wherever requirements must cross organisational boundaries: an OEM sends a system-level requirements package to a Tier-1 supplier who imports it into a different tool, adds derived requirements, and ships it back.
+    The standard is deeply embedded in <strong>ASPICE</strong> (Automotive SPICE), <strong>ISO 26262</strong> (functional safety), and <strong>DO-178C</strong> (avionics software) workflows.
+    Mainstream commercial tools — IBM DOORS (from v9.5), Siemens Polarion, PTC Codebeamer, Jama Connect, and ReqView — all speak ReqIF natively.
+  </p>
+
+  <p>
+    So why would anyone write requirements in Markdown? Several reasons are increasingly common:
+  </p>
+  <ul>
+    <li>Teams already using GitHub or GitLab prefer plain-text, diff-friendly authoring.</li>
+    <li>Open-source embedded and aerospace projects (RTEMS, ROS 2 Space) maintain requirements in version control alongside code.</li>
+    <li>Startups and SMEs want to avoid expensive RM tool licences for initial design phases, then need to deliver a ReqIF package to a customer or assessor.</li>
+    <li>AI-generated or LLM-assisted requirement drafts arrive as Markdown and must be ingested into a regulated project.</li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">Bottom line upfront</div>
+    <p>There is no mature, one-command <code>markdown → .reqif</code> converter. The closest thing is <strong>StrictDoc</strong>, which treats Markdown as experimental input and can export its internal model to ReqIF. Every other approach requires scripting, intermediate formats, or a commercial tool in the loop.</p>
+  </div>
+
+  <!-- ── 2. The Challenge ─────────────────────────────────── -->
+  <h2>The Structural Mismatch</h2>
+
+  <p>
+    To understand why conversion is non-trivial, it helps to appreciate what ReqIF actually encodes.
+    A ReqIF document is not a document in the prose sense — it is a <em>typed, attributed, hierarchically organised, cross-referenced data model</em>.
+    The root is a <code>&lt;REQ-IF&gt;</code> element containing five major sections:
+  </p>
+
+  <ul>
+    <li><strong>DATATYPES</strong> — primitive and enumerated type definitions (String, Integer, Boolean, XHTML, Enumeration, Date, Real).</li>
+    <li><strong>SPEC-TYPES</strong> — named schemas for objects and relations, each listing which attributes are legal and what data type each carries (<code>SPEC-OBJECT-TYPE</code>, <code>SPEC-RELATION-TYPE</code>, <code>SPECIFICATION-TYPE</code>).</li>
+    <li><strong>SPEC-OBJECTS</strong> — the actual requirements. Each object is an instance of a <code>SPEC-OBJECT-TYPE</code> and carries typed attribute values, most importantly <code>ReqIF.Text</code> (rich XHTML), <code>ReqIF.Name</code> (short title), and a machine-readable <code>ReqIF.ForeignID</code>.</li>
+    <li><strong>SPEC-RELATIONS</strong> — directed, typed links between objects (e.g., derives, refines, copies).</li>
+    <li><strong>SPECIFICATIONS</strong> — one or more named trees of <code>SpecHierarchy</code> nodes, each referencing a <code>SPEC-OBJECT</code>, forming the document outline.</li>
+  </ul>
+
+  <p>
+    Markdown, by contrast, has a flat or lightly nested structure: headings, paragraphs, lists, and inline formatting.
+    It carries <em>no</em> explicit notion of requirement objects, attribute types, enumerated status fields, unique identifiers, or inter-requirement links.
+    The mismatch is not cosmetic — it is a difference between a document markup language and a requirements data model.
+  </p>
+
+  <div class="callout callout-info">
+    <div class="callout-title">Key challenges in conversion</div>
+    <p>
+      <strong>Identity:</strong> Every <code>SPEC-OBJECT</code> needs a globally unique, stable identifier (GUID). Markdown has none.<br>
+      <strong>Type schema:</strong> ReqIF requires every object to reference a <code>SPEC-OBJECT-TYPE</code>. Which type do your Markdown headings map to?<br>
+      <strong>Rich text:</strong> Markdown formatted text must be serialised as a namespaced XHTML fragment inside a <code>ATTRIBUTE-VALUE-XHTML</code> element.<br>
+      <strong>Attributes:</strong> ReqIF consumers expect fields like Status, Priority, and Verification Method. Markdown has none unless you embed front-matter YAML.<br>
+      <strong>Hierarchy vs. flat:</strong> Markdown heading levels can approximate <code>SpecHierarchy</code> nesting, but section headings are not the same as requirement objects.
+    </p>
+  </div>
+
+  <!-- ── 3. ReqIF Format Primer ──────────────────────────── -->
+  <h2>A Minimal ReqIF File</h2>
+
+  <p>
+    The following abbreviated XML shows the skeleton of a valid ReqIF file containing one requirement.
+    Real files produced by DOORS or Polarion include dozens of data types and attributes; the structure below is deliberately minimal to illustrate the essential scaffolding.
+  </p>
+
+<pre><code><span class="cmt">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="tag-xml">&lt;REQ-IF</span> <span class="attr">xmlns</span><span class="punct">=</span><span class="str">"http://www.omg.org/spec/ReqIF/20110401/reqif.xsd"</span>
+        <span class="attr">xmlns:xhtml</span><span class="punct">=</span><span class="str">"http://www.w3.org/1999/xhtml"</span><span class="tag-xml">&gt;</span>
+
+  <span class="tag-xml">&lt;THE-HEADER&gt;</span>
+    <span class="tag-xml">&lt;REQ-IF-HEADER</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"_header_001"</span><span class="tag-xml">&gt;</span>
+      <span class="tag-xml">&lt;CREATION-TIME&gt;</span>2026-03-01T00:00:00.000+00:00<span class="tag-xml">&lt;/CREATION-TIME&gt;</span>
+      <span class="tag-xml">&lt;TITLE&gt;</span>Sample Specification<span class="tag-xml">&lt;/TITLE&gt;</span>
+    <span class="tag-xml">&lt;/REQ-IF-HEADER&gt;</span>
+  <span class="tag-xml">&lt;/THE-HEADER&gt;</span>
+
+  <span class="tag-xml">&lt;CORE-CONTENT&gt;&lt;REQ-IF-CONTENT&gt;</span>
+
+    <span class="tag-xml">&lt;DATATYPES&gt;</span>
+      <span class="tag-xml">&lt;DATATYPE-DEFINITION-STRING</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"DT-String"</span>
+        <span class="attr">LONG-NAME</span><span class="punct">=</span><span class="str">"String"</span> <span class="attr">MAX-LENGTH</span><span class="punct">=</span><span class="str">"1024"</span><span class="tag-xml">/&gt;</span>
+      <span class="tag-xml">&lt;DATATYPE-DEFINITION-XHTML</span>  <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"DT-XHTML"</span>
+        <span class="attr">LONG-NAME</span><span class="punct">=</span><span class="str">"XHTML"</span><span class="tag-xml">/&gt;</span>
+    <span class="tag-xml">&lt;/DATATYPES&gt;</span>
+
+    <span class="tag-xml">&lt;SPEC-TYPES&gt;</span>
+      <span class="tag-xml">&lt;SPEC-OBJECT-TYPE</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"SOT-Requirement"</span>
+                        <span class="attr">LONG-NAME</span><span class="punct">=</span><span class="str">"Requirement"</span><span class="tag-xml">&gt;</span>
+        <span class="tag-xml">&lt;SPEC-ATTRIBUTES&gt;</span>
+          <span class="tag-xml">&lt;ATTRIBUTE-DEFINITION-STRING</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"AD-ID"</span>
+            <span class="attr">LONG-NAME</span><span class="punct">=</span><span class="str">"ReqIF.ForeignID"</span><span class="tag-xml">&gt;</span>
+            <span class="tag-xml">&lt;TYPE&gt;&lt;DATATYPE-DEFINITION-STRING-REF&gt;</span>DT-String<span class="tag-xml">&lt;/DATATYPE-DEFINITION-STRING-REF&gt;&lt;/TYPE&gt;</span>
+          <span class="tag-xml">&lt;/ATTRIBUTE-DEFINITION-STRING&gt;</span>
+          <span class="tag-xml">&lt;ATTRIBUTE-DEFINITION-XHTML</span>  <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"AD-Text"</span>
+            <span class="attr">LONG-NAME</span><span class="punct">=</span><span class="str">"ReqIF.Text"</span><span class="tag-xml">&gt;</span>
+            <span class="tag-xml">&lt;TYPE&gt;&lt;DATATYPE-DEFINITION-XHTML-REF&gt;</span>DT-XHTML<span class="tag-xml">&lt;/DATATYPE-DEFINITION-XHTML-REF&gt;&lt;/TYPE&gt;</span>
+          <span class="tag-xml">&lt;/ATTRIBUTE-DEFINITION-XHTML&gt;</span>
+        <span class="tag-xml">&lt;/SPEC-ATTRIBUTES&gt;</span>
+      <span class="tag-xml">&lt;/SPEC-OBJECT-TYPE&gt;</span>
+    <span class="tag-xml">&lt;/SPEC-TYPES&gt;</span>
+
+    <span class="tag-xml">&lt;SPEC-OBJECTS&gt;</span>
+      <span class="tag-xml">&lt;SPEC-OBJECT</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"SO-001"</span> <span class="attr">LAST-CHANGE</span><span class="punct">=</span><span class="str">"2026-03-01T00:00:00.000+00:00"</span><span class="tag-xml">&gt;</span>
+        <span class="tag-xml">&lt;TYPE&gt;&lt;SPEC-OBJECT-TYPE-REF&gt;</span>SOT-Requirement<span class="tag-xml">&lt;/SPEC-OBJECT-TYPE-REF&gt;&lt;/TYPE&gt;</span>
+        <span class="tag-xml">&lt;VALUES&gt;</span>
+          <span class="tag-xml">&lt;ATTRIBUTE-VALUE-STRING</span> <span class="attr">THE-VALUE</span><span class="punct">=</span><span class="str">"SYS-001"</span><span class="tag-xml">&gt;</span>
+            <span class="tag-xml">&lt;DEFINITION&gt;&lt;ATTRIBUTE-DEFINITION-STRING-REF&gt;</span>AD-ID<span class="tag-xml">&lt;/ATTRIBUTE-DEFINITION-STRING-REF&gt;&lt;/DEFINITION&gt;</span>
+          <span class="tag-xml">&lt;/ATTRIBUTE-VALUE-STRING&gt;</span>
+          <span class="tag-xml">&lt;ATTRIBUTE-VALUE-XHTML&gt;</span>
+            <span class="tag-xml">&lt;DEFINITION&gt;&lt;ATTRIBUTE-DEFINITION-XHTML-REF&gt;</span>AD-Text<span class="tag-xml">&lt;/ATTRIBUTE-DEFINITION-XHTML-REF&gt;&lt;/DEFINITION&gt;</span>
+            <span class="tag-xml">&lt;THE-VALUE&gt;</span>
+              <span class="tag-xml">&lt;xhtml:div&gt;&lt;xhtml:p&gt;</span>The system <span class="tag-xml">&lt;xhtml:strong&gt;</span>shall<span class="tag-xml">&lt;/xhtml:strong&gt;</span>
+                operate within -40°C to +85°C ambient temperature.
+              <span class="tag-xml">&lt;/xhtml:p&gt;&lt;/xhtml:div&gt;</span>
+            <span class="tag-xml">&lt;/THE-VALUE&gt;</span>
+          <span class="tag-xml">&lt;/ATTRIBUTE-VALUE-XHTML&gt;</span>
+        <span class="tag-xml">&lt;/VALUES&gt;</span>
+      <span class="tag-xml">&lt;/SPEC-OBJECT&gt;</span>
+    <span class="tag-xml">&lt;/SPEC-OBJECTS&gt;</span>
+
+    <span class="tag-xml">&lt;SPECIFICATIONS&gt;</span>
+      <span class="tag-xml">&lt;SPECIFICATION</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"SPEC-001"</span> <span class="attr">LONG-NAME</span><span class="punct">=</span><span class="str">"System Requirements"</span><span class="tag-xml">&gt;</span>
+        <span class="tag-xml">&lt;CHILDREN&gt;</span>
+          <span class="tag-xml">&lt;SPEC-HIERARCHY</span> <span class="attr">IDENTIFIER</span><span class="punct">=</span><span class="str">"SH-001"</span><span class="tag-xml">&gt;</span>
+            <span class="tag-xml">&lt;OBJECT&gt;&lt;SPEC-OBJECT-REF&gt;</span>SO-001<span class="tag-xml">&lt;/SPEC-OBJECT-REF&gt;&lt;/OBJECT&gt;</span>
+          <span class="tag-xml">&lt;/SPEC-HIERARCHY&gt;</span>
+        <span class="tag-xml">&lt;/CHILDREN&gt;</span>
+      <span class="tag-xml">&lt;/SPECIFICATION&gt;</span>
+    <span class="tag-xml">&lt;/SPECIFICATIONS&gt;</span>
+
+  <span class="tag-xml">&lt;/REQ-IF-CONTENT&gt;&lt;/CORE-CONTENT&gt;</span>
+<span class="tag-xml">&lt;/REQ-IF&gt;</span></code></pre>
+
+  <p>
+    Notice that the requirement text itself is an XHTML fragment wrapped in a namespace-prefixed <code>xhtml:div</code>.
+    This is the part that makes simple XML generation tricky: you must parse Markdown, convert it to valid XHTML, and embed it inside the ReqIF structure without breaking the namespace declarations.
+    The <a href="https://www.ps-ent-2023.de/fileadmin/prod-download/prostep-ivip_ImplementationGuide_ReqIF_V1-8.pdf" target="_blank">prostep ivip Implementation Guide</a> (v1.8) lists which XHTML elements tools must support, and mandates that importing tools accept all elements specified in ReqIF §10.8.20.
+  </p>
+
+  <!-- ── 4. Tool Landscape ───────────────────────────────── -->
+  <h2>The Tool Landscape</h2>
+
+  <!-- StrictDoc -->
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <span class="tool-name">StrictDoc</span>
+      <div class="tool-badges">
+        <span class="badge badge-green">Open Source</span>
+        <span class="badge badge-blue">Python</span>
+        <span class="badge badge-cyan">Best Option</span>
+      </div>
+    </div>
+    <p class="tool-desc">
+      StrictDoc is the most capable open-source tool in this space. It is a requirements management system built around its own DSL format (SDoc), but it also accepts <strong>Markdown files as experimental input</strong> and can export its in-memory document model to ReqIF. The project is maintained by Stanislav Pankevich and the strictdoc-project organisation on GitHub.
+    </p>
+    <p class="tool-meta">
+      Version: <strong>0.19.0</strong> (March 2026) &nbsp;·&nbsp;
+      <a href="https://github.com/strictdoc-project/strictdoc" target="_blank">github.com/strictdoc-project/strictdoc</a> &nbsp;·&nbsp;
+      <a href="https://strictdoc.readthedocs.io" target="_blank">strictdoc.readthedocs.io</a> &nbsp;·&nbsp;
+      License: Apache-2.0
+    </p>
+
+    <h3>How it works</h3>
+    <p>
+      StrictDoc reads <code>.sdoc</code> and <code>.md</code> files into a unified in-memory document tree.
+      From that tree it can emit HTML, RST, ReqIF, PDF, JSON, or Excel.
+      The ReqIF export is invoked via:
+    </p>
+    <pre><code>pip install strictdoc
+strictdoc export ./docs --formats=reqif --output-dir ./out</code></pre>
+    <p>
+      The Markdown path is: <code>.md file → StrictDoc internal model → ReqIF XML</code>.
+      Because Markdown lacks explicit requirement blocks, StrictDoc treats each Markdown document as a document node and any <code>## Heading</code> as a section node.
+      There are no typed <code>SPEC-OBJECTS</code> with attribute schemas unless you annotate requirements using StrictDoc's own SDoc markup within the Markdown file.
+    </p>
+    <p>
+      ReqIF import is also supported: a DOORS or Polarion <code>.reqif</code> file can be imported and converted to <code>.sdoc</code>, edited in StrictDoc's web UI, then re-exported to ReqIF — a genuine round-trip workflow.
+      The <code>--reqif-multiline-is-xhtml</code> flag controls whether multi-line text fields are serialised as XHTML or plain STRING attributes.
+    </p>
+    <p>
+      StrictDoc 2025 brought several improvements to the ReqIF pipeline: better integer-field handling (converted to STRING on import since StrictDoc has no INTEGER type), migration from TOML to Python-based project configuration, and a full rename of the <code>[SECTION]</code> syntax to <code>[[SECTION]]</code>.
+    </p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Strengths</div>
+        <ul>
+          <li>Only open-source tool with a full Markdown → ReqIF path</li>
+          <li>Bidirectional ReqIF round-trip (import + export)</li>
+          <li>Active development; regular releases throughout 2025</li>
+          <li>Web UI for editing requirements in-browser</li>
+          <li>Source-code traceability links for ASPICE compliance</li>
+          <li>Companion <code>reqif</code> Python library for lower-level access</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Limitations</div>
+        <ul>
+          <li>Markdown support is explicitly "experimental"</li>
+          <li>Plain Markdown lacks typed attributes; full feature-set requires SDoc syntax</li>
+          <li>ReqIF output may need tuning per target tool (DOORS vs. Polarion differ)</li>
+          <li>No GUI installer; requires Python environment</li>
+          <li>SPEC-OBJECT-TYPE schema is auto-generated, not manually configured</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- reqif Python library -->
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <span class="tool-name">reqif (Python library)</span>
+      <div class="tool-badges">
+        <span class="badge badge-green">Open Source</span>
+        <span class="badge badge-blue">Python</span>
+        <span class="badge badge-purple">Low-level</span>
+      </div>
+    </div>
+    <p class="tool-desc">
+      The <code>reqif</code> package — also from the strictdoc-project — is a pure-Python ReqIF parser and serialiser with no opinion about how you generate the data.
+      It gives you an in-memory Python object tree that maps one-to-one onto the ReqIF XML structure.
+      You bring your own Markdown parser and write the glue code.
+    </p>
+    <p class="tool-meta">
+      Version: <strong>0.0.48</strong> (December 31, 2025) &nbsp;·&nbsp;
+      <a href="https://github.com/strictdoc-project/reqif" target="_blank">github.com/strictdoc-project/reqif</a> &nbsp;·&nbsp;
+      <a href="https://pypi.org/project/reqif/" target="_blank">pypi.org/project/reqif</a> &nbsp;·&nbsp;
+      License: Apache-2.0
+    </p>
+
+    <h3>Usage pattern for Markdown → ReqIF</h3>
+    <pre><code><span class="kw">import</span> uuid, markdown
+<span class="kw">from</span> reqif.models.reqif_spec_object <span class="kw">import</span> ReqIFSpecObject
+<span class="cmt"># Parse your Markdown with any Python library (e.g. mistune, markdown)</span>
+<span class="cmt"># Build ReqIF model objects manually, then serialise:</span>
+<span class="kw">from</span> reqif.reqif_bundle <span class="kw">import</span> ReqIFBundle
+<span class="kw">from</span> reqif.unparser <span class="kw">import</span> ReqIFUnparser
+
+bundle = ReqIFBundle.create(...)  <span class="cmt"># assemble from your data</span>
+ReqIFUnparser.unparse(bundle, <span class="str">"output.reqif"</span>)</code></pre>
+    <p>
+      The library also ships a CLI for validating, pretty-printing, and anonymising existing <code>.reqif</code> files.
+      The <code>reqif passthrough</code> command is useful for smoke-testing: it parses a file to objects then re-serialises it; the output should be identical to the input.
+    </p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Strengths</div>
+        <ul>
+          <li>Actively maintained; 14 releases through 2025</li>
+          <li>Clean Apache-2.0 licence; suitable for commercial projects</li>
+          <li>Validates against official OMG XSD schema</li>
+          <li>Supports <code>.reqifz</code> compressed bundles</li>
+          <li>Tolerant parser handles malformed inputs from legacy tools</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Limitations</div>
+        <ul>
+          <li>No Markdown parsing — you must supply this yourself</li>
+          <li>Requires non-trivial boilerplate to assemble a complete bundle</li>
+          <li>Sparse documentation beyond README and examples folder</li>
+          <li>No GUI or CLI for end-to-end Markdown conversion</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doorstop + doorstop-reqif -->
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <span class="tool-name">Doorstop + doorstop-reqif</span>
+      <div class="tool-badges">
+        <span class="badge badge-green">Open Source</span>
+        <span class="badge badge-blue">Python + Rust</span>
+        <span class="badge badge-yellow">Niche</span>
+      </div>
+    </div>
+    <p class="tool-desc">
+      Doorstop stores requirements as YAML files with Markdown text blocks in a Git repository.
+      The separate <code>doorstop-reqif</code> project (by INVAP, an Argentine aerospace company) converts a Doorstop document tree into a ReqIF file.
+      StrictDoc was originally a fork of Doorstop before being rewritten.
+    </p>
+    <p class="tool-meta">
+      Doorstop: <a href="https://github.com/doorstop-dev/doorstop" target="_blank">github.com/doorstop-dev/doorstop</a> &nbsp;·&nbsp;
+      doorstop-reqif v1.0.0 (April 2024): <a href="https://github.com/invap/doorstop-reqif" target="_blank">github.com/invap/doorstop-reqif</a> &nbsp;·&nbsp;
+      License: AGPL-3.0
+    </p>
+
+    <h3>How it works</h3>
+    <p>
+      Each Doorstop item is a YAML file; the <code>text</code> field is Markdown.
+      <code>doorstop-reqif</code> (written in Rust) walks the Doorstop document tree and serialises each item as a <code>SPEC-OBJECT</code>, rendering the Markdown text as HTML/XHTML for the <code>ReqIF.Text</code> attribute.
+      Links between requirements become <code>SPEC-RELATIONS</code>.
+    </p>
+    <p>
+      The tool was developed to feed requirements into Capella MBSE tooling.
+      Its roadmap lists "render HTML in ReqIF description from Doorstop item's Markdown" and "export links in requirements" as planned items — indicating the initial release may have only partial Markdown-to-XHTML rendering.
+    </p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Strengths</div>
+        <ul>
+          <li>Real-world aerospace use case (INVAP)</li>
+          <li>Preserves requirement links as SPEC-RELATIONS</li>
+          <li>Doorstop is a mature, git-native RM approach</li>
+          <li>Written in Rust — fast and self-contained binary</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Limitations</div>
+        <ul>
+          <li>Requires adopting the Doorstop ecosystem (YAML per requirement)</li>
+          <li>3 stars on GitHub; very limited community</li>
+          <li>AGPL-3.0 licence may restrict commercial use</li>
+          <li>Markdown → XHTML rendering noted as incomplete in roadmap</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pandoc -->
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <span class="tool-name">Pandoc (custom Lua writer)</span>
+      <div class="tool-badges">
+        <span class="badge badge-green">Open Source</span>
+        <span class="badge badge-blue">Haskell + Lua</span>
+        <span class="badge badge-yellow">DIY</span>
+      </div>
+    </div>
+    <p class="tool-desc">
+      Pandoc does <strong>not</strong> include a ReqIF writer. It is not in <code>pandoc --list-output-formats</code> and no community-maintained Lua writer for ReqIF appears to exist in the <a href="https://github.com/pandoc/lua-filters" target="_blank">pandoc/lua-filters</a> repository.
+      However, Pandoc's custom writer API is capable of generating arbitrary XML from the Pandoc AST.
+    </p>
+    <p class="tool-meta">
+      <a href="https://pandoc.org/custom-writers.html" target="_blank">pandoc.org/custom-writers.html</a> &nbsp;·&nbsp;
+      License: GPL-2.0
+    </p>
+
+    <h3>What a Lua ReqIF writer would need to do</h3>
+    <p>
+      A custom <code>reqif.lua</code> writer would intercept AST nodes (Header, Para, BulletList, etc.) and emit ReqIF XML.
+      Headings would map to section <code>SPEC-OBJECTS</code>; paragraphs inside sections would become the <code>ReqIF.Text</code> XHTML content.
+      The challenge is that the writer would need to maintain global state for: UUID generation, type registry (SPEC-OBJECT-TYPE), hierarchy stack (SPEC-HIERARCHY nesting), and cross-references.
+      None of this is Pandoc's job — it would all be custom Lua.
+    </p>
+    <p>
+      This approach is theoretically sound and gives maximum control, but requires substantial development effort for a correctly interoperable output.
+      Anyone starting this project today would be better off building on top of the <code>reqif</code> Python library and calling Pandoc only for the Markdown → XHTML step.
+    </p>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Strengths</div>
+        <ul>
+          <li>Pandoc handles all Markdown dialect nuances</li>
+          <li>GFM tables, footnotes, and fenced code blocks are parsed correctly</li>
+          <li>Lua writer can be iterated quickly</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Limitations</div>
+        <ul>
+          <li>No existing ReqIF writer exists — you build from scratch</li>
+          <li>ReqIF UUID/type management in Lua is awkward</li>
+          <li>Pandoc AST has no concept of requirement objects or UIDs</li>
+          <li>Validation against OMG XSD requires external tooling</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- pyreqif -->
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <span class="tool-name">pyreqif</span>
+      <div class="tool-badges">
+        <span class="badge badge-red">Unmaintained</span>
+        <span class="badge badge-blue">Python</span>
+      </div>
+    </div>
+    <p class="tool-desc">
+      An older Python implementation of the ReqIF object model with import and export, plus converters for <code>reqif2html</code> and <code>xlsx2reqif</code>.
+      Last released February 2021 (v0.7). The <code>reqif</code> library from the strictdoc-project has superseded it entirely.
+    </p>
+    <p class="tool-meta">
+      <a href="https://github.com/ebroecker/pyreqif" target="_blank">github.com/ebroecker/pyreqif</a> &nbsp;·&nbsp;
+      License: BSD-3-Clause
+    </p>
+    <p>
+      Not recommended for new projects. Cited here only for completeness; you will encounter references to it in older forum posts and StackOverflow answers.
+    </p>
+  </div>
+
+  <!-- Commercial tools -->
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <span class="tool-name">Commercial RM Tools (DOORS, Polarion, Codebeamer, ReqView)</span>
+      <div class="tool-badges">
+        <span class="badge badge-purple">Commercial</span>
+        <span class="badge badge-yellow">Indirect</span>
+      </div>
+    </div>
+    <p class="tool-desc">
+      The major requirements management platforms all speak ReqIF natively but none of them accept Markdown as a direct import format.
+      The typical approach is a two-hop pipeline: Markdown → Word/HTML (via Pandoc) → import into the RM tool → export to ReqIF.
+    </p>
+
+    <h3>Tool-specific notes</h3>
+    <ul>
+      <li><strong>IBM DOORS 9.5+</strong> — Full ReqIF 1.2 support with proprietary extensions. Import from Word/Excel is supported; Markdown requires a pre-conversion step. DOORS Next (the cloud version) has richer import options via REST API.</li>
+      <li><strong>Siemens Polarion</strong> — Built-in ReqIF import/export with lossless exchange. Supports a "Document Round-trip" with Word for offline editing. A known limitation: Polarion does not support ReqIF <em>references</em> (the same SPEC-OBJECT appearing in multiple Specifications).</li>
+      <li><strong>PTC Codebeamer</strong> — ReqIF is a core ALM feature; also supports REST API and MS Office round-trips. In early 2025, a third-party AI-powered tool was demonstrated that ingests unstructured requirements text and generates Codebeamer-compatible ReqIF — the closest thing to "Markdown-ish prose in, ReqIF out" in the commercial ecosystem.</li>
+      <li><strong>ReqView</strong> — Lightweight desktop/web tool focused on ReqIF round-trips. Imports from DOORS ReqIF and exports back. No Markdown input.</li>
+    </ul>
+  </div>
+
+  <!-- ── 5. DIY Approach ─────────────────────────────────── -->
+  <h2>The DIY Approach: A Practical Recipe</h2>
+
+  <p>
+    If you have Markdown files with some structure — say, YAML front-matter for metadata and <code>##</code> headings for requirement groups — the most controllable path today is to write a small Python script using the <code>reqif</code> library:
+  </p>
+
+  <ol>
+    <li>Parse Markdown with <a href="https://mistune.lepture.com/" target="_blank">mistune</a> or <a href="https://python-markdown.github.io/" target="_blank">python-markdown</a>.</li>
+    <li>Walk the AST: headings become section nodes; paragraphs matching a "shall" pattern become requirement candidates.</li>
+    <li>Assign deterministic UUIDs (e.g., <code>uuid5(namespace, requirement_id)</code>) so repeated conversions produce stable identifiers.</li>
+    <li>Render the Markdown body of each requirement to an XHTML string.</li>
+    <li>Assemble <code>ReqIFSpecObject</code> instances and wrap them in a <code>ReqIFBundle</code>.</li>
+    <li>Call <code>ReqIFUnparser.unparse(bundle, "output.reqif")</code>.</li>
+    <li>Validate with <code>reqif validate --use-reqif-schema output.reqif</code>.</li>
+  </ol>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">Tip: YAML front-matter is your attribute store</div>
+    <p>
+      Add a YAML front-matter block to each Markdown requirement file. Fields like <code>id</code>, <code>status</code>, <code>priority</code>, and <code>verification_method</code> map cleanly onto <code>ATTRIBUTE-DEFINITION</code> entries in your <code>SPEC-OBJECT-TYPE</code>.
+      This is exactly what Doorstop does, and it is the pattern StrictDoc's SDoc format evolved from.
+    </p>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">Watch out: tool-specific dialects</div>
+    <p>
+      The prostep ivip Implementation Guide exists because every tool interprets ReqIF slightly differently.
+      If your ReqIF output needs to round-trip through DOORS, you must use DOORS's expected attribute names (<code>ReqIF.ForeignID</code>, <code>ReqIF.Text</code>, <code>ReqIF.Name</code>, <code>ReqIF.ChapterName</code>) and respect its section-heading expectations.
+      If targeting Polarion, avoid using ReqIF object references across multiple Specifications.
+      Test your output by importing it into the target tool early.
+    </p>
+  </div>
+
+  <!-- ── 6. Recommendation Matrix ───────────────────────── -->
+  <h2>Recommendation Matrix</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Use Case</th>
+          <th>Recommended Tool</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>New open-source project; git-native RM; ASPICE compliance desired</td>
+          <td><strong>StrictDoc (SDoc format)</strong></td>
+          <td>Adopt SDoc from the start for full feature set. Use Markdown only if you must.</td>
+        </tr>
+        <tr>
+          <td>Existing Markdown docs; one-time ReqIF export to a customer</td>
+          <td><strong>StrictDoc (Markdown mode)</strong></td>
+          <td>Experimental but functional for flat documents. May need manual post-editing of output.</td>
+        </tr>
+        <tr>
+          <td>Doorstop-based repository; need ReqIF for MBSE tool (Capella)</td>
+          <td><strong>doorstop-reqif</strong></td>
+          <td>Purpose-built for this workflow. Verify Markdown → XHTML rendering is complete for your version.</td>
+        </tr>
+        <tr>
+          <td>Custom pipeline; need programmatic ReqIF generation in Python</td>
+          <td><strong>reqif Python library</strong></td>
+          <td>Pair with mistune or markdown-it-py for Markdown parsing. Write your own mapping logic.</td>
+        </tr>
+        <tr>
+          <td>Non-Python shop; want to prototype a converter quickly</td>
+          <td><strong>Pandoc + custom Lua writer</strong></td>
+          <td>No existing writer exists; significant build effort. Pandoc's Markdown parsing is best-in-class.</td>
+        </tr>
+        <tr>
+          <td>Enterprise; requirements already in a commercial RM tool</td>
+          <td><strong>Tool's native ReqIF export</strong></td>
+          <td>Use Pandoc or Word for Markdown → document conversion, then import into DOORS/Polarion/Codebeamer.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 7. Ecosystem Map ────────────────────────────────── -->
+  <h2>Full Ecosystem Comparison</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>MD Input</th>
+          <th>ReqIF Out</th>
+          <th>ReqIF In</th>
+          <th>Licence</th>
+          <th>Language</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>StrictDoc 0.19</strong></td>
+          <td><span class="partial">~ Experimental</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>Apache-2.0</td>
+          <td>Python</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>reqif 0.0.48</strong></td>
+          <td><span class="cross">✗ (library only)</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>Apache-2.0</td>
+          <td>Python</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>doorstop-reqif 1.0</strong></td>
+          <td><span class="partial">~ Via Doorstop</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="cross">✗</span></td>
+          <td>AGPL-3.0</td>
+          <td>Rust</td>
+          <td><span class="partial">Minimal</span></td>
+        </tr>
+        <tr>
+          <td><strong>pyreqif 0.7</strong></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>BSD-3</td>
+          <td>Python</td>
+          <td><span class="cross">Abandoned</span></td>
+        </tr>
+        <tr>
+          <td><strong>Pandoc</strong></td>
+          <td><span class="check">✓ (parse only)</span></td>
+          <td><span class="cross">✗ (no writer)</span></td>
+          <td><span class="cross">✗</span></td>
+          <td>GPL-2.0</td>
+          <td>Haskell</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>IBM DOORS 9.5+</strong></td>
+          <td><span class="cross">✗ (Word/CSV)</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>Commercial</td>
+          <td>—</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>Siemens Polarion</strong></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>Commercial</td>
+          <td>—</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>PTC Codebeamer</strong></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>Commercial</td>
+          <td>—</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>ReqView</strong></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>Commercial</td>
+          <td>—</td>
+          <td><span class="check">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>reqifsharp (C#)</strong></td>
+          <td><span class="cross">✗ (library only)</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td>LGPL-3.0</td>
+          <td>C#</td>
+          <td><span class="partial">Low activity</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 8. Conclusion ───────────────────────────────────── -->
+  <h2>Conclusion</h2>
+
+  <p>
+    The gap between Markdown's simplicity and ReqIF's structural richness is real and deliberate.
+    Markdown was designed for document authoring; ReqIF was designed for requirements data exchange.
+    The fact that no turnkey Markdown-to-ReqIF converter dominates the market reflects this mismatch — it is not an oversight.
+  </p>
+
+  <p>
+    That said, the situation is improving.
+    <strong>StrictDoc</strong> is the closest thing to a complete open-source solution and is under active development as of March 2026 (v0.19.0).
+    Its native SDoc format closes the structural gap by giving plain-text requirements a proper grammar, typed attributes, UIDs, and parent-child links — all the things ReqIF needs and that Markdown cannot express.
+    If you are starting a requirements project that will eventually need to produce ReqIF, using SDoc (or at minimum Markdown-with-YAML-front-matter inside StrictDoc) is worth the marginal overhead.
+  </p>
+
+  <p>
+    The <strong>reqif Python library</strong> is a reliable foundation for anyone building custom tooling.
+    With 14 releases across 2024–2025 and official OMG schema validation support, it is the most credible low-level building block available.
+  </p>
+
+  <p>
+    For teams in regulated industries with an existing RM tool in place, the pragmatic answer remains unchanged: use Pandoc to convert Markdown to Word or HTML, import that into your tool, and let the tool produce the ReqIF.
+    It is a two-step process, but it benefits from the tool's battle-tested ReqIF implementation and preserves the metadata model that your supply-chain partners expect.
+  </p>
+
+  <div class="callout callout-info">
+    <div class="callout-title">Watch this space</div>
+    <p>
+      The prostep ivip ReqIF Implementor Forum continues to publish interoperability test results, and LLM-assisted requirement extraction (demonstrated with Codebeamer in early 2025) suggests a future where AI-generated Markdown can be enriched with structure and piped to ReqIF with less manual effort.
+      StrictDoc's roadmap also includes improving Markdown support from "experimental" to first-class — that milestone, whenever it arrives, will meaningfully lower the barrier for git-native requirements teams.
+    </p>
+  </div>
+
+  <hr />
+
+  <div class="footer">
+    <p>
+      Research sources:
+      <a href="https://github.com/strictdoc-project/strictdoc" target="_blank">StrictDoc GitHub</a> ·
+      <a href="https://github.com/strictdoc-project/reqif" target="_blank">reqif Python library</a> ·
+      <a href="https://github.com/invap/doorstop-reqif" target="_blank">doorstop-reqif</a> ·
+      <a href="https://www.omg.org/spec/ReqIF/1.2/About-ReqIF" target="_blank">OMG ReqIF 1.2</a> ·
+      <a href="https://www.ps-ent-2023.de/fileadmin/prod-download/prostep-ivip_ImplementationGuide_ReqIF_V1-8.pdf" target="_blank">prostep ivip Implementation Guide v1.8</a> ·
+      <a href="https://www.reqif.academy/" target="_blank">ReqIF.academy</a> ·
+      <a href="https://pypi.org/project/reqif/" target="_blank">reqif on PyPI</a> ·
+      <a href="https://strictdoc.readthedocs.io/en/stable/stable/docs/strictdoc_01_user_guide.html" target="_blank">StrictDoc User Guide</a>
+    </p>
+    <p style="margin-top:0.5rem;">Article written March 2026.</p>
+  </div>
+
+</div>
+</body>
+</html>
