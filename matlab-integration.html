@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MATLAB Integration Approaches: A Complete Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f1117;
+      color: #dde1ee;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .back-link {
+      display: inline-block;
+      color: #6b7080;
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: #6c8ef5; }
+    .back-link::before { content: "← "; }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8125rem;
+      color: #6b7080;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .meta-sep { color: #252830; }
+    .tag {
+      background: #16181f;
+      border: 1px solid #252830;
+      border-radius: 4px;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+      color: #6c8ef5;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .lede {
+      font-size: 1.0625rem;
+      color: #9aa0b2;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #252830;
+    }
+
+    /* ── Sections ────────────────────────────────────────────── */
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #fff;
+      margin: 2.5rem 0 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #252830;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #dde1ee;
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    p { margin-bottom: 1rem; color: #c8cdd9; }
+
+    a { color: #6c8ef5; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    ul, ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+      color: #c8cdd9;
+    }
+    li { margin-bottom: 0.35rem; }
+
+    strong { color: #dde1ee; }
+
+    /* ── Code ────────────────────────────────────────────────── */
+    code {
+      background: #0e1018;
+      border: 1px solid #252830;
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85em;
+      color: #4ec9b0;
+    }
+
+    pre {
+      background: #0e1018;
+      border: 1px solid #252830;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.8125rem;
+      color: #c8cdd9;
+      line-height: 1.6;
+    }
+    .kw  { color: #569cd6; }
+    .str { color: #ce9178; }
+    .cmt { color: #6a9955; font-style: italic; }
+    .attr { color: #9cdcfe; }
+    .val { color: #ce9178; }
+    .fn  { color: #dcdcaa; }
+    .punct { color: #6b7080; }
+    .num { color: #b5cea8; }
+
+    /* ── Callout boxes ───────────────────────────────────────── */
+    .callout {
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      border-left: 4px solid;
+      background: #16181f;
+    }
+    .callout-info  { border-color: #6c8ef5; }
+    .callout-warn  { border-color: #f0b429; }
+    .callout-tip   { border-color: #3ecf8e; }
+    .callout-danger{ border-color: #f2545b; }
+
+    .callout-title {
+      font-weight: 700;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+    .callout-info  .callout-title { color: #6c8ef5; }
+    .callout-warn  .callout-title { color: #f0b429; }
+    .callout-tip   .callout-title { color: #3ecf8e; }
+    .callout-danger .callout-title { color: #f2545b; }
+    .callout p { color: #c8cdd9; margin-bottom: 0; }
+
+    /* ── Approach cards ──────────────────────────────────────── */
+    .tool-card {
+      background: #16181f;
+      border: 1px solid #252830;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .tool-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .tool-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .tool-badges {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-green  { background: rgba(62,207,142,0.15); color: #3ecf8e; border: 1px solid rgba(62,207,142,0.3); }
+    .badge-yellow { background: rgba(240,180,41,0.15); color: #f0b429; border: 1px solid rgba(240,180,41,0.3); }
+    .badge-red    { background: rgba(242,84,91,0.15);  color: #f2545b; border: 1px solid rgba(242,84,91,0.3); }
+    .badge-blue   { background: rgba(108,142,245,0.15);color: #6c8ef5; border: 1px solid rgba(108,142,245,0.3); }
+    .badge-purple { background: rgba(188,140,255,0.15);color: #bc8cff; border: 1px solid rgba(188,140,255,0.3); }
+    .badge-cyan   { background: rgba(78,201,176,0.15); color: #4ec9b0; border: 1px solid rgba(78,201,176,0.3); }
+
+    .tool-desc { color: #c8cdd9; font-size: 0.9375rem; margin-bottom: 0.75rem; }
+    .tool-meta { font-size: 0.8125rem; color: #6b7080; margin-bottom: 0.6rem; }
+    .tool-meta a { color: #6c8ef5; }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    @media (max-width: 540px) {
+      .pros-cons { grid-template-columns: 1fr; }
+    }
+    .pros, .cons {
+      background: #0e1018;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+    }
+    .pros-title { color: #3ecf8e; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .cons-title { color: #f2545b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .pros ul, .cons ul { margin: 0; padding-left: 1.1rem; }
+    .pros li, .cons li { font-size: 0.875rem; color: #c8cdd9; margin-bottom: 0.2rem; }
+
+    /* ── Comparison table ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 1rem 0 1.5rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead th {
+      background: #16181f;
+      color: #6b7080;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid #252830;
+      text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid #1c1e27; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 0.6rem 0.9rem; color: #c8cdd9; vertical-align: top; }
+    tbody tr:hover { background: #16181f; }
+
+    .check   { color: #3ecf8e; font-weight: 700; }
+    .cross   { color: #f2545b; font-weight: 700; }
+    .partial { color: #f0b429; font-weight: 700; }
+
+    /* ── Decision guide ──────────────────────────────────────── */
+    .decision-step {
+      background: #16181f;
+      border: 1px solid #252830;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .decision-q {
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.9375rem;
+      margin-bottom: 0.4rem;
+    }
+    .decision-answers {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+    .decision-answers li {
+      font-size: 0.875rem;
+      color: #c8cdd9;
+      margin-bottom: 0.3rem;
+    }
+    .decision-answers li strong { color: #6c8ef5; }
+
+    /* ── Recommendations ─────────────────────────────────────── */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    @media (max-width: 560px) {
+      .rec-grid { grid-template-columns: 1fr; }
+    }
+    .rec-card {
+      background: #16181f;
+      border: 1px solid #252830;
+      border-radius: 8px;
+      padding: 1rem 1.15rem;
+    }
+    .rec-scenario {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7080;
+      margin-bottom: 0.35rem;
+    }
+    .rec-pick {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+    .rec-why {
+      font-size: 0.8125rem;
+      color: #9aa0b2;
+    }
+
+    /* ── Section divider ─────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid #252830;
+      margin: 2.5rem 0;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #252830;
+      font-size: 0.8125rem;
+      color: #6b7080;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <a class="back-link" href="index.html">Back to index</a>
+
+  <div class="meta">
+    <span>March 2026</span>
+    <span class="meta-sep">|</span>
+    <span class="tag">MATLAB</span>
+    <span class="meta-sep">|</span>
+    <span class="tag">Integration</span>
+    <span class="meta-sep">|</span>
+    <span class="tag">Python</span>
+  </div>
+
+  <h1>MATLAB Integration Approaches: A Complete Guide</h1>
+
+  <p class="lede">
+    There are at least eleven distinct ways to connect MATLAB to the rest of your software stack — and they differ radically in licensing requirements, startup overhead, deployment complexity, and what you can actually do with them. This is a thorough, opinionated breakdown of every approach that matters in 2025/2026, from the official Engine API to ZMQ socket bridges, with honest assessments of where each one breaks down.
+  </p>
+
+  <!-- ── Quick Comparison ──────────────────────────────────── -->
+  <h2>Quick Comparison</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Approach</th>
+          <th>License Required</th>
+          <th>Python Integration</th>
+          <th>Complexity</th>
+          <th>Best For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Engine API (matlab.engine)</strong></td>
+          <td><span class="cross">Full MATLAB</span></td>
+          <td><span class="check">Native</span></td>
+          <td>Low</td>
+          <td>Dev-time scripting, tightly-coupled pipelines</td>
+        </tr>
+        <tr>
+          <td><strong>jupyter-matlab-proxy</strong></td>
+          <td><span class="cross">Full MATLAB</span></td>
+          <td><span class="check">Notebook</span></td>
+          <td>Low</td>
+          <td>Interactive notebooks, teaching, JupyterHub</td>
+        </tr>
+        <tr>
+          <td><strong>MATLAB Kernel (imatlab / matlab_kernel)</strong></td>
+          <td><span class="cross">Full MATLAB</span></td>
+          <td><span class="partial">Via engine</span></td>
+          <td>Medium</td>
+          <td>Jupyter notebooks without proxy overhead</td>
+        </tr>
+        <tr>
+          <td><strong>Subprocess / batch mode</strong></td>
+          <td><span class="cross">Full MATLAB</span></td>
+          <td><span class="partial">stdout/files</span></td>
+          <td>Low</td>
+          <td>CI/CD, HPC, simple automation pipelines</td>
+        </tr>
+        <tr>
+          <td><strong>MATLAB Compiler + MCR</strong></td>
+          <td><span class="partial">Compiler (build only)</span></td>
+          <td><span class="partial">C library / exe</span></td>
+          <td>High</td>
+          <td>License-free deployment, distributing to end users</td>
+        </tr>
+        <tr>
+          <td><strong>MATLAB Production Server</strong></td>
+          <td><span class="cross">MPS License</span></td>
+          <td><span class="check">REST API</span></td>
+          <td>High</td>
+          <td>Enterprise, multi-client, scalable REST services</td>
+        </tr>
+        <tr>
+          <td><strong>MATLAB Web App Server</strong></td>
+          <td><span class="cross">MWAS License</span></td>
+          <td><span class="cross">Browser only</span></td>
+          <td>Medium</td>
+          <td>Internal dashboards, GUI-heavy apps for non-MATLAB users</td>
+        </tr>
+        <tr>
+          <td><strong>GNU Octave</strong></td>
+          <td><span class="check">Free / GPL</span></td>
+          <td><span class="partial">oct2py</span></td>
+          <td>Low</td>
+          <td>Open-source replacement, education, CI without license</td>
+        </tr>
+        <tr>
+          <td><strong>Python (NumPy/SciPy)</strong></td>
+          <td><span class="check">Free</span></td>
+          <td><span class="check">Native</span></td>
+          <td>Medium</td>
+          <td>Greenfield projects, ML integration, modern stacks</td>
+        </tr>
+        <tr>
+          <td><strong>COM/ActiveX (win32com)</strong></td>
+          <td><span class="cross">Full MATLAB</span></td>
+          <td><span class="partial">Windows only</span></td>
+          <td>Medium</td>
+          <td>Legacy Windows automation, historical codebases</td>
+        </tr>
+        <tr>
+          <td><strong>ZMQ/socket bridges</strong></td>
+          <td><span class="cross">Full MATLAB</span></td>
+          <td><span class="partial">Custom IPC</span></td>
+          <td>Very High</td>
+          <td>Real-time streaming, polyglot pipelines</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">Licensing Reality</div>
+    <p>Every approach except MATLAB Compiler+MCR deployment, GNU Octave, and Python still requires an active MATLAB license to <em>run</em> code. The Compiler only moves the license requirement to build time — end users get the free MCR, but you still pay for MATLAB and MATLAB Compiler toolbox to build in the first place.</p>
+  </div>
+
+  <!-- ── 1. Engine API ──────────────────────────────────────── -->
+  <h2>1. MATLAB Engine API for Python (<code>matlab.engine</code>)</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">matlab.engine — Official MathWorks Python API</div>
+      <div class="tool-badges">
+        <span class="badge badge-blue">Official</span>
+        <span class="badge badge-yellow">License Required</span>
+        <span class="badge badge-cyan">In-Process</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      The MATLAB Engine API for Python starts a full MATLAB process from within Python and lets you call any MATLAB function, transfer arrays, and read/write the MATLAB workspace directly. Released as a proper PyPI package (<code>matlabengine</code>) since MATLAB R2022b, it is the most direct way to call MATLAB from Python without intermediate files or sockets.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://pypi.org/project/matlabengine/" target="_blank">PyPI: matlabengine</a> &middot;
+      <a href="https://github.com/mathworks/matlab-engine-for-python" target="_blank">GitHub</a> &middot;
+      <a href="https://www.mathworks.com/help/matlab/matlab_external/limitations-to-the-matlab-engine-for-python.html" target="_blank">Limitations docs</a> &middot;
+      <a href="https://www.mathworks.com/support/requirements/python-compatibility.html" target="_blank">Python version compatibility</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Official, MathWorks-supported</li>
+          <li>Call any MATLAB function by name</li>
+          <li>Read/write MATLAB workspace variables</li>
+          <li>Async startup via <code>background=True</code></li>
+          <li>Connect to shared MATLAB sessions</li>
+          <li>Available on PyPI since R2022b</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Full MATLAB license required on every machine</li>
+          <li>Startup time: 10–30s for a fresh MATLAB process</li>
+          <li>Version pinning: <code>matlabengine==9.13.7</code> must match your MATLAB release exactly</li>
+          <li>2 GB data size limit per call</li>
+          <li>No remote connections — localhost only</li>
+          <li>No Python keyword arguments — positional only</li>
+          <li>Recursive data structures not supported</li>
+          <li>Python 2.x dropped since R2023a</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>How it works</h3>
+  <p>
+    <code>matlab.engine.start_matlab()</code> spawns a MATLAB process and returns an engine handle. Every subsequent call blocks Python until MATLAB returns. The startup cost is paid once; subsequent calls are fast. Shared engines let multiple Python scripts connect to the same already-running MATLAB session to amortize startup time.
+  </p>
+
+  <pre><code><span class="kw">import</span> matlab.engine
+
+<span class="cmt"># Start synchronously (blocks ~15–30 seconds)</span>
+eng = matlab.engine.<span class="fn">start_matlab</span>()
+
+<span class="cmt"># Or start in background, do other work, then wait</span>
+future = matlab.engine.<span class="fn">start_matlab</span>(background=<span class="kw">True</span>)
+eng = future.<span class="fn">result</span>()
+
+<span class="cmt"># Call any MATLAB function</span>
+result = eng.<span class="fn">sqrt</span>(<span class="num">16.0</span>)            <span class="cmt"># returns 4.0</span>
+val = eng.<span class="fn">eval</span>(<span class="str">"pi * 2"</span>, nargout=<span class="num">1</span>)  <span class="cmt"># eval a string</span>
+
+<span class="cmt"># Transfer numpy-like arrays</span>
+<span class="kw">import</span> matlab
+arr = matlab.<span class="fn">double</span>([[<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>], [<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>]])
+result = eng.<span class="fn">sum</span>(arr)
+
+<span class="cmt"># Connect to a named shared engine (already running)</span>
+eng2 = matlab.engine.<span class="fn">connect_matlab</span>(<span class="str">'my_session'</span>)
+
+eng.<span class="fn">quit</span>()</code></pre>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">Version Pinning Trap</div>
+    <p>The <code>matlabengine</code> PyPI package version must exactly match your installed MATLAB release. R2024b ships engine version 24.2. If you upgrade MATLAB, you must also update the Python package — and if your environment pins it via <code>requirements.txt</code>, the mismatch will silently fail at import time with a cryptic error.</p>
+  </div>
+
+  <!-- ── 2. jupyter-matlab-proxy ─────────────────────────────── -->
+  <h2>2. jupyter-matlab-proxy — Browser-Based MATLAB in Jupyter</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">jupyter-matlab-proxy</div>
+      <div class="tool-badges">
+        <span class="badge badge-blue">Official MathWorks</span>
+        <span class="badge badge-yellow">License Required</span>
+        <span class="badge badge-green">JupyterHub Ready</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      MathWorks' official Jupyter integration package. It does two distinct things: (1) provides an official MATLAB kernel for Jupyter notebooks, and (2) proxies the full MATLAB desktop GUI into a browser tab directly from JupyterLab. You can write <code>.ipynb</code> notebooks with MATLAB cells and also open the full MATLAB IDE — including App Designer, Simulink, and the command window — without leaving your browser.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://github.com/mathworks/jupyter-matlab-proxy" target="_blank">GitHub</a> &middot;
+      <a href="https://pypi.org/project/jupyter-matlab-proxy/" target="_blank">PyPI</a> &middot;
+      <a href="https://www.mathworks.com/products/reference-architectures/jupyter.html" target="_blank">MathWorks product page</a> &middot;
+      <a href="https://blogs.mathworks.com/matlab/2023/01/30/official-mathworks-matlab-kernel-for-jupyter-released/" target="_blank">Official announcement blog</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Official MathWorks package — actively maintained</li>
+          <li>Full MATLAB IDE in browser (not just a kernel)</li>
+          <li>Works with JupyterHub, single-user servers, and cloud deployments</li>
+          <li>Windows support added in v0.6.0</li>
+          <li>Licensing UI built-in — prompts on first execution</li>
+          <li>Multiple notebooks share one MATLAB process by default</li>
+          <li>Active release cadence: v0.16.4 shipped March 2025</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Full MATLAB license (or network license) required</li>
+          <li>MATLAB must be installed and on PATH</li>
+          <li>Heavier than a bare kernel — proxies full MATLAB process</li>
+          <li>Shared workspace across notebooks is confusing in multi-user setups</li>
+          <li>Simulink UI requires VNC or reference architecture setup</li>
+          <li>Some MATLAB commands unsupported in kernel mode</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Kernel mode vs. desktop proxy mode</h3>
+  <p>
+    These are two separate capabilities bundled in one package. In <strong>kernel mode</strong>, MATLAB executes cells in a Jupyter notebook like any other language kernel — outputs appear inline, plots render in the notebook. In <strong>desktop proxy mode</strong>, clicking "Open MATLAB" launches the full MATLAB desktop in a new browser tab, proxied through Jupyter's server. Desktop mode is significantly heavier but gives you access to every MATLAB GUI feature including App Designer and Simulink (without needing a separate VNC setup on Linux).
+  </p>
+
+  <pre><code><span class="cmt"># Install</span>
+pip install jupyter-matlab-proxy
+
+<span class="cmt"># Launch JupyterLab — MATLAB kernel appears in the kernel picker</span>
+jupyter lab
+
+<span class="cmt"># In a MATLAB notebook cell:</span>
+x = linspace(0, 2*pi, 100);
+y = sin(x);
+plot(x, y);
+title(<span class="str">'Sine wave'</span>);
+
+<span class="cmt"># Use %%matlab new_session to get a dedicated MATLAB process</span>
+<span class="cmt"># (instead of the shared default)</span></code></pre>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">JupyterHub Deployment</div>
+    <p>For JupyterHub, install <code>jupyter-matlab-proxy</code> in the Docker image or conda environment that JupyterHub spawns for each user. Each user's MATLAB session is isolated at the Jupyter server level. You will need a concurrent-user network license or a license server with enough seats to cover simultaneous users.</p>
+  </div>
+
+  <!-- ── 3. MATLAB Kernels ───────────────────────────────────── -->
+  <h2>3. Community MATLAB Kernels — imatlab and matlab_kernel</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">imatlab + matlab_kernel (Community Kernels)</div>
+      <div class="tool-badges">
+        <span class="badge badge-purple">Community</span>
+        <span class="badge badge-yellow">License Required</span>
+        <span class="badge badge-cyan">Jupyter Kernel</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      Two community-maintained alternatives to the MathWorks official kernel. <strong>imatlab</strong> (by the imatlab GitHub org) uses the MATLAB Engine API directly and supports interactive Plotly graphics with shared engine connections. <strong>matlab_kernel</strong> (by Calysto) is built on MetaKernel and provides a rich magics system and configurable plot output settings.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://github.com/imatlab/imatlab" target="_blank">imatlab GitHub</a> &middot;
+      <a href="https://github.com/Calysto/matlab_kernel" target="_blank">matlab_kernel GitHub</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>imatlab: interactive Plotly graphics (not just static images)</li>
+          <li>imatlab: shared engine support via <code>IMATLAB_CONNECT</code></li>
+          <li>matlab_kernel: full MetaKernel magics (<code>%lsmagic</code>)</li>
+          <li>matlab_kernel: configurable plot format, resolution, backend</li>
+          <li>Both are lighter than jupyter-matlab-proxy</li>
+          <li>History shared with MATLAB's native History.xml (imatlab)</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Community maintained — lower support guarantees</li>
+          <li>Both require MATLAB Engine API (full license)</li>
+          <li>imatlab: async timer output completely unsupported</li>
+          <li>imatlab: MATLAB debugger cleared before each execution</li>
+          <li>imatlab: Windows timing issues with pause()</li>
+          <li>No browser-based MATLAB desktop access</li>
+          <li>MathWorks' official kernel is now preferred for new setups</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt"># Install imatlab</span>
+pip install imatlab
+python -m imatlab install  <span class="cmt"># registers the kernel with Jupyter</span>
+
+<span class="cmt"># Install matlab_kernel</span>
+pip install matlab_kernel
+python -m matlab_kernel install
+
+<span class="cmt"># Connect imatlab to a named shared MATLAB engine</span>
+<span class="cmt"># (in MATLAB: matlab.engine.shareEngine('mySession'))</span>
+<span class="attr">IMATLAB_CONNECT</span>=mySession jupyter lab
+
+<span class="cmt"># matlab_kernel plot magic</span>
+%plot -f svg -r 150 -s 800,600</code></pre>
+
+  <div class="callout callout-info">
+    <div class="callout-title">Which kernel to choose?</div>
+    <p>For new setups: use <strong>jupyter-matlab-proxy</strong> — it is official, actively maintained, and includes the browser desktop. Use <strong>imatlab</strong> if you need interactive Plotly graphics in notebooks. Use <strong>matlab_kernel</strong> if you need the MetaKernel magics system or fine-grained plot control and can't use the proxy.</p>
+  </div>
+
+  <!-- ── 4. Subprocess / batch ──────────────────────────────── -->
+  <h2>4. Subprocess / Batch Mode</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">matlab -batch — Non-Interactive Automation</div>
+      <div class="tool-badges">
+        <span class="badge badge-green">Simple</span>
+        <span class="badge badge-yellow">License Required</span>
+        <span class="badge badge-cyan">CI/CD Friendly</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      Calling the MATLAB executable as a subprocess is the simplest form of integration — no Python package required, no version pinning, no sockets. The <code>-batch</code> flag (R2019a+) runs a script or expression non-interactively, exits with a proper return code on error, and is the correct modern approach for CI/CD and HPC. Older <code>-r "cmd; exit"</code> still works but exits 0 on failure.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://www.mathworks.com/help/matlab/ref/batchstartupoptionused.html" target="_blank">batchStartupOptionUsed docs</a> &middot;
+      <a href="https://www.mathworks.com/matlabcentral/answers/41558-how-to-run-matlab-files-in-batch-mode-or-as-a-batch-process-guide-request" target="_blank">Batch mode guide</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Zero Python dependencies — just subprocess</li>
+          <li>Works in any language or shell script</li>
+          <li>Correct exit codes with <code>-batch</code></li>
+          <li>-nodisplay/-nosplash reduce overhead on Linux/HPC</li>
+          <li>-nojvm skips JVM for pure computation scripts</li>
+          <li>Easy to integrate into Makefiles, GitHub Actions, Slurm</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Full MATLAB startup on every call (~15–30s)</li>
+          <li>No interactive input — headless only</li>
+          <li>Data exchange via files (.mat, CSV, JSON) or stdout parsing</li>
+          <li>stdout parsing is fragile if MATLAB warnings contaminate output</li>
+          <li>Full MATLAB license still required</li>
+          <li>One MATLAB process per subprocess call — expensive at scale</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt"># Modern batch mode (-batch exits non-zero on error)</span>
+matlab -nodisplay -nosplash -batch <span class="str">"run('my_script.m')"</span>
+
+<span class="cmt"># Pass parameters via environment variables or -r</span>
+matlab -nodisplay -nosplash -batch <span class="str">"param=42; run('compute.m')"</span>
+
+<span class="cmt"># In Python via subprocess</span>
+<span class="kw">import</span> subprocess, json, pathlib
+
+<span class="kw">def</span> <span class="fn">run_matlab_script</span>(script_path, output_json):
+    result = subprocess.<span class="fn">run</span>(
+        [<span class="str">'matlab'</span>, <span class="str">'-nodisplay'</span>, <span class="str">'-nosplash'</span>, <span class="str">'-batch'</span>,
+         <span class="fn">f</span><span class="str">"run('<span class="attr">{script_path}</span>')"</span>],
+        capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>, timeout=<span class="num">300</span>
+    )
+    <span class="kw">if</span> result.returncode != <span class="num">0</span>:
+        <span class="kw">raise</span> <span class="fn">RuntimeError</span>(result.stderr)
+    <span class="kw">return</span> json.<span class="fn">loads</span>(pathlib.Path(output_json).<span class="fn">read_text</span>())
+
+<span class="cmt"># In MATLAB script: save results to JSON for Python to read</span>
+<span class="cmt"># result = struct('value', 42, 'status', 'ok');</span>
+<span class="cmt"># fid = fopen('output.json', 'w');</span>
+<span class="cmt"># fprintf(fid, jsonencode(result));</span>
+<span class="cmt"># fclose(fid);</span>
+
+<span class="cmt"># Guard interactive-only code in batch mode</span>
+<span class="cmt"># if ~batchStartupOptionUsed; userInput = input('Enter value: '); end</span></code></pre>
+
+  <div class="callout callout-info">
+    <div class="callout-title">-batch vs. -r</div>
+    <p>The <code>-batch</code> flag was added in R2019a specifically to fix the silent-failure problem: if your script throws an unhandled error, <code>-batch</code> exits with code 1 (detectable in CI). The old <code>-r "cmd; exit"</code> exits 0 regardless. Always prefer <code>-batch</code> in automated pipelines. Use <code>batchStartupOptionUsed</code> inside MATLAB scripts to conditionally skip interactive prompts.</p>
+  </div>
+
+  <!-- ── 5. MATLAB Compiler + MCR ───────────────────────────── -->
+  <h2>5. MATLAB Compiler + MATLAB Runtime (MCR)</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">MATLAB Compiler + MCR — License-Free Deployment</div>
+      <div class="tool-badges">
+        <span class="badge badge-green">No Runtime License</span>
+        <span class="badge badge-red">Compiler License Required (build)</span>
+        <span class="badge badge-purple">Standalone</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      MATLAB Compiler (<code>mcc</code>) compiles MATLAB code into standalone executables, shared libraries (C/C++/Java/.NET), or Python packages. End users run against the free MATLAB Runtime (MCR) — no MATLAB license needed at deployment time. Starting in R2024b, you can create minimal custom MCR installers to reduce the historically bloated runtime footprint (typically 3–5 GB).
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://www.mathworks.com/products/compiler/matlab-runtime.html" target="_blank">MATLAB Runtime downloads</a> &middot;
+      <a href="https://www.mathworks.com/help/compiler/about-the-matlab-runtime.html" target="_blank">About MCR</a> &middot;
+      <a href="https://www.mathworks.com/help/compiler/matlab-compiler-licensing.html" target="_blank">Licensing docs</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>End users need no MATLAB license — MCR is free</li>
+          <li>Protects IP: source .m files encrypted in CTF archive</li>
+          <li>Compile to exe, shared library (.so/.dll), Python package</li>
+          <li>R2024b: custom minimal MCR installers available</li>
+          <li>R2024b: GPU libraries no longer required by default</li>
+          <li>Docker containers supported since R2022b</li>
+          <li>Works on Windows, Linux, macOS</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Requires MATLAB Compiler toolbox license to build</li>
+          <li>MCR must exactly match the compiler version used</li>
+          <li>MCR installer still ~1–5 GB depending on toolboxes used</li>
+          <li>Cold startup adds ~10–20s for MCR initialization</li>
+          <li>Not all MATLAB toolboxes are compilable (some require live license)</li>
+          <li>Dynamic code (eval, load from paths) may fail at runtime</li>
+          <li>Debugging compiled apps is significantly harder</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Compilation targets</h3>
+  <p>The <code>mcc</code> compiler generates several types of artifacts depending on the flags used:</p>
+  <ul>
+    <li><strong>Standalone executable</strong> (<code>mcc -m</code>): a binary that bundles all dependencies into a CTF (Component Technology File) archive and calls into MCR.</li>
+    <li><strong>C/C++ shared library</strong> (<code>mcc -l</code>): a <code>.so</code> or <code>.dll</code> callable from C/C++ code.</li>
+    <li><strong>Python package</strong> (<code>compiler.build.pythonPackage</code>): wraps MATLAB functions in a Python wheel, callable via a thin Python API backed by MCR.</li>
+    <li><strong>Java package</strong> (<code>mcc -W java</code>): a JAR with callable Java classes.</li>
+    <li><strong>.NET assembly</strong>: a DLL for .NET/C# consumers.</li>
+  </ul>
+
+  <pre><code><span class="cmt">% In MATLAB: compile a function to a standalone exe</span>
+mcc -m my_function.m -o my_app
+
+<span class="cmt">% Compile to a Python package (MATLAB R2021b+)</span>
+compiler.build.<span class="fn">pythonPackage</span>(<span class="str">'my_function.m'</span>, ...
+    <span class="str">'PackageName'</span>, <span class="str">'MyMatlabLib'</span>, ...
+    <span class="str">'OutputDir'</span>, <span class="str">'./my_matlab_lib_pkg'</span>);
+
+<span class="cmt">% Build a custom minimal MCR installer (R2024b+)</span>
+compiler.runtime.<span class="fn">customInstaller</span>(<span class="str">'my_app.ctf'</span>, ...
+    <span class="str">'OutputDir'</span>, <span class="str">'./installer'</span>);</code></pre>
+
+  <pre><code><span class="cmt"># Python: call a compiled MATLAB package via MCR</span>
+<span class="kw">import</span> sys
+sys.path.<span class="fn">append</span>(<span class="str">'/path/to/my_matlab_lib_pkg'</span>)
+
+<span class="kw">import</span> my_matlab_lib
+<span class="kw">import</span> matlab.engine
+
+lib = my_matlab_lib.<span class="fn">initialize</span>()
+result = lib.<span class="fn">my_function</span>(<span class="num">3.14</span>, nargout=<span class="num">1</span>)
+lib.<span class="fn">terminate</span>()</code></pre>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">Version Pinning Is Absolute</div>
+    <p>MCR version pinning is stricter than the Engine API. A compiled app built with R2024a will only run against the R2024a MCR — not R2024b, not R2023b. This makes long-term maintenance painful: any MATLAB upgrade requires recompilation and redeployment. Plan your release cadence accordingly.</p>
+  </div>
+
+  <!-- ── 6. Production Server ───────────────────────────────── -->
+  <h2>6. MATLAB Production Server</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">MATLAB Production Server — Enterprise REST Deployment</div>
+      <div class="tool-badges">
+        <span class="badge badge-red">Enterprise License</span>
+        <span class="badge badge-green">REST API</span>
+        <span class="badge badge-blue">Scalable</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      MATLAB Production Server (MPS) hosts compiled MATLAB functions as REST API endpoints. Client applications in any language (Python, Java, .NET, JavaScript) call these endpoints over HTTP/HTTPS. MPS handles concurrency, scaling, and health monitoring. As of R2024b it also supports deploying MATLAB functions as MCP (Model Context Protocol) tools callable from AI agents and chat applications.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://www.mathworks.com/products/matlab-production-server.html" target="_blank">MPS product page</a> &middot;
+      <a href="https://www.mathworks.com/help/mps/restfuljson/restful-api.html" target="_blank">REST API docs</a> &middot;
+      <a href="https://github.com/mathworks-ref-arch/openapi-productionserver" target="_blank">OpenAPI integration (GitHub)</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Clients need no MATLAB knowledge or license</li>
+          <li>REST API works from any language or HTTP client</li>
+          <li>Horizontal scaling via load balancer</li>
+          <li>Kubernetes/Docker support (AWS, Azure, GKE)</li>
+          <li>Built-in Prometheus metrics and health endpoints</li>
+          <li>Async request mode supported</li>
+          <li>MCP tool support for AI agents (R2024b+)</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Separate, expensive MPS license required</li>
+          <li>MATLAB Compiler SDK required to build deployable archives</li>
+          <li>Stateless: no persistent workspace between calls</li>
+          <li>Complex to operate for small teams</li>
+          <li>Functions must be pre-compiled — no dynamic MATLAB execution</li>
+          <li>Heavy infrastructure overhead for simple use cases</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt">% Step 1: Compile your function for MPS</span>
+compiler.build.<span class="fn">productionServerArchive</span>(<span class="str">'my_algorithm.m'</span>, ...
+    <span class="str">'ArchiveName'</span>, <span class="str">'my_archive'</span>);
+
+<span class="cmt"># Step 2: Call via REST from Python</span>
+<span class="kw">import</span> requests, json
+
+url = <span class="str">"http://mps-server:9910/my_archive/my_algorithm"</span>
+payload = {
+    <span class="str">"nargout"</span>: <span class="num">1</span>,
+    <span class="str">"rhs"</span>: [{<span class="str">"mwtype"</span>: <span class="str">"double"</span>, <span class="str">"mwdata"</span>: [<span class="num">3.14</span>]}]
+}
+resp = requests.<span class="fn">post</span>(url, json=payload)
+result = resp.<span class="fn">json</span>()[<span class="str">"lhs"</span>][<span class="num">0</span>][<span class="str">"mwdata"</span>]</code></pre>
+
+  <!-- ── 7. Web App Server ───────────────────────────────────── -->
+  <h2>7. MATLAB Web App Server</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">MATLAB Web App Server — Browser-Hosted MATLAB Apps</div>
+      <div class="tool-badges">
+        <span class="badge badge-red">Enterprise License</span>
+        <span class="badge badge-blue">No MATLAB for Users</span>
+        <span class="badge badge-cyan">CTF Deploy</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      MATLAB Web App Server lets you host apps built in App Designer as interactive web apps accessible from any browser — no MATLAB installation required for end users. Apps are packaged as CTF files using the Web App Compiler and uploaded to the server. R2025a adds direct deploy-to-server from within MATLAB. This is the right tool when you want to expose a GUI tool to non-technical users inside a firewall.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://www.mathworks.com/products/matlab-web-app-server.html" target="_blank">Product page</a> &middot;
+      <a href="https://www.mathworks.com/help/compiler/web-apps.html" target="_blank">Web Apps docs</a> &middot;
+      <a href="https://www.mathworks.com/help/webappserver/ug/deploy-a-web-app.html" target="_blank">Deploy a Web App</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>End users need only a browser — no MATLAB</li>
+          <li>Supports OpenID Connect and LDAP authentication</li>
+          <li>Multiple MCR versions supported simultaneously</li>
+          <li>Docker containers supported (R2022b+)</li>
+          <li>No repackaging needed when upgrading MATLAB Runtime</li>
+          <li>Secrets management for API keys and passwords</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Requires MATLAB Web App Server license (separate product)</li>
+          <li>Designed for trusted intranet, not public internet</li>
+          <li>Apps must be built in App Designer — no script-based apps</li>
+          <li>No programmatic API: output is always HTML/browser UI</li>
+          <li>Web App Compiler + MATLAB Compiler required to build</li>
+          <li>Not a replacement for a REST API</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 8. GNU Octave ──────────────────────────────────────── -->
+  <h2>8. GNU Octave — Open-Source MATLAB-Compatible</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">GNU Octave</div>
+      <div class="tool-badges">
+        <span class="badge badge-green">Free / GPL</span>
+        <span class="badge badge-cyan">~95% Compatible</span>
+        <span class="badge badge-yellow">No Simulink</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      GNU Octave is a free, open-source scientific programming language with syntax highly compatible with MATLAB. It runs most MATLAB scripts without modification and integrates with Python via the <code>oct2py</code> bridge library. In 2025, Octave remains the go-to choice for license-free MATLAB-compatible computation — particularly in CI/CD pipelines where a full MATLAB seat is not available.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://octave.org/" target="_blank">GNU Octave website</a> &middot;
+      <a href="https://wiki.octave.org/Differences_between_Octave_and_Matlab" target="_blank">Differences from MATLAB</a> &middot;
+      <a href="https://github.com/blink1073/oct2py" target="_blank">oct2py GitHub</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Completely free, GPL licensed</li>
+          <li>Runs most MATLAB scripts without modification</li>
+          <li>oct2py provides Python bridge similar to matlab.engine</li>
+          <li>Read/write .mat files</li>
+          <li>Octave Forge packages for additional functionality</li>
+          <li>Works in CI/CD without any license server</li>
+          <li>Active community development</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>No Simulink equivalent — block-diagram modeling not possible</li>
+          <li>JIT compiler is incomplete — loops can be 100x slower</li>
+          <li>Some MATLAB toolboxes have no Octave Forge equivalent</li>
+          <li>Octave-specific syntax extensions can break MATLAB portability</li>
+          <li>No MATLAB v7.3 HDF5 .mat file compatibility</li>
+          <li>Limited commercial support options</li>
+          <li>GUI less polished than MATLAB desktop</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Key compatibility gaps in 2025</h3>
+  <p>
+    Octave parses roughly 95% of real-world MATLAB scripts without changes. The gaps that matter most: <strong>Simulink</strong> (no equivalent), the <strong>Statistics and Machine Learning Toolbox</strong> (only partially covered by Octave Forge), and <strong>Stateflow</strong> (no equivalent). The JIT compiler gap is critical for loop-heavy code — vectorize everything or accept a significant performance penalty.
+  </p>
+
+  <pre><code><span class="cmt"># Install oct2py for Python-Octave bridge</span>
+pip install oct2py
+
+<span class="kw">from</span> oct2py <span class="kw">import</span> Oct2Py
+
+oc = <span class="fn">Oct2Py</span>()
+
+<span class="cmt"># Call Octave functions from Python</span>
+result = oc.<span class="fn">sqrt</span>(<span class="num">16.0</span>)  <span class="cmt"># returns 4.0</span>
+
+<span class="cmt"># Evaluate Octave code</span>
+oc.<span class="fn">eval</span>(<span class="str">"x = linspace(0, 2*pi, 100);"</span>)
+y = oc.<span class="fn">eval</span>(<span class="str">"sin(x)"</span>, verbose=<span class="kw">False</span>)
+
+<span class="cmt"># Pass NumPy arrays in and out</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+arr = np.<span class="fn">array</span>([[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>]])
+result = oc.<span class="fn">det</span>(arr)  <span class="cmt"># returns -2.0</span>
+
+oc.<span class="fn">exit</span>()</code></pre>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">CI/CD Without a MATLAB License</div>
+    <p>If you need to run MATLAB-compatible tests in GitHub Actions or GitLab CI without paying for a MATLAB license, Octave is your only realistic option. Install it via <code>apt install octave</code> in the CI container and run tests with <code>octave --no-gui --eval "run_tests"</code>. This works well for pure-numeric computation. It falls apart if your code uses MATLAB-specific toolboxes.</p>
+  </div>
+
+  <!-- ── 9. Python replacements ─────────────────────────────── -->
+  <h2>9. Python Replacements — NumPy, SciPy, python-control</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">NumPy / SciPy / python-control Stack</div>
+      <div class="tool-badges">
+        <span class="badge badge-green">Free</span>
+        <span class="badge badge-green">No License</span>
+        <span class="badge badge-blue">Modern Ecosystem</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      For greenfield projects, Python's scientific stack often replaces MATLAB entirely. NumPy provides N-dimensional arrays and linear algebra; SciPy adds optimization, signal processing (<code>scipy.signal</code>), ODE solvers, and statistics; python-control handles control system design; Matplotlib covers plotting. Performance for vectorized code matches MATLAB for most workloads — the gap has largely closed.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://numpy.org/doc/stable/user/numpy-for-matlab-users.html" target="_blank">NumPy for MATLAB users</a> &middot;
+      <a href="https://docs.scipy.org/doc/scipy/" target="_blank">SciPy docs</a> &middot;
+      <a href="https://python-control.readthedocs.io/" target="_blank">python-control docs</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Completely free — no license, no server</li>
+          <li>Performance matches MATLAB for vectorized code</li>
+          <li>Seamless ML/AI integration (PyTorch, JAX, scikit-learn)</li>
+          <li>Larger talent pool — Python is everywhere</li>
+          <li>Better deployment story — pip, Docker, cloud functions</li>
+          <li>Numba/CuPy for GPU and JIT acceleration</li>
+          <li>Pandas for tabular data, xarray for labeled arrays</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>No Simulink equivalent for block-diagram modeling</li>
+          <li>MATLAB toolboxes (Control, Image Processing, RF) are more mature</li>
+          <li>0-indexed arrays — all MATLAB indices must be decremented by 1</li>
+          <li>scipy.signal lacks some specialized MATLAB DSP features</li>
+          <li>Migrating existing MATLAB codebases is significant effort</li>
+          <li>No official MathWorks toolbox-parity guarantee</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt"># MATLAB → Python equivalents</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> scipy.signal <span class="kw">as</span> sig
+<span class="kw">import</span> control
+
+<span class="cmt"># MATLAB: A = [1 2; 3 4]; eig(A)</span>
+A = np.<span class="fn">array</span>([[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>]])
+eigenvalues = np.linalg.<span class="fn">eig</span>(A)
+
+<span class="cmt"># MATLAB: [b,a] = butter(4, 0.2); freqz(b,a)</span>
+b, a = sig.<span class="fn">butter</span>(<span class="num">4</span>, <span class="num">0.2</span>)
+w, h = sig.<span class="fn">freqz</span>(b, a)
+
+<span class="cmt"># MATLAB: step(tf([1],[1 2 1]))</span>
+sys = control.<span class="fn">tf</span>([<span class="num">1</span>], [<span class="num">1</span>, <span class="num">2</span>, <span class="num">1</span>])
+t, y = control.<span class="fn">step_response</span>(sys)
+
+<span class="cmt"># MATLAB: x = linspace(0, 2*pi, 100); (0-indexed in Python)</span>
+x = np.<span class="fn">linspace</span>(<span class="num">0</span>, <span class="num">2</span> * np.pi, <span class="num">100</span>)
+y = np.<span class="fn">sin</span>(x)</code></pre>
+
+  <h3>What the Python stack cannot replace</h3>
+  <p>
+    The hard gaps: <strong>Simulink</strong> (no equivalent block-diagram simulator), <strong>Stateflow</strong>, the <strong>Embedded Coder</strong> (C code generation from MATLAB/Simulink models), and the <strong>DO-178C/IEC 61508 certified toolchains</strong> used in aerospace and automotive. If your workflow touches any of these, Python is not a drop-in replacement.
+  </p>
+
+  <!-- ── 10. COM/ActiveX ────────────────────────────────────── -->
+  <h2>10. COM/ActiveX Automation on Windows</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">win32com.client — Windows COM Automation</div>
+      <div class="tool-badges">
+        <span class="badge badge-yellow">Windows Only</span>
+        <span class="badge badge-red">Legacy</span>
+        <span class="badge badge-yellow">License Required</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      The historical approach before the Engine API existed. Windows COM (Component Object Model) lets Python control the MATLAB application via <code>win32com.client.Dispatch("Matlab.Application")</code>. MATLAB exposes itself as an automation server on Windows. This approach predates the Engine API and is essentially never the right choice for new code — but you may encounter it in legacy Windows automation scripts.
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://pypi.org/project/pywin32/" target="_blank">pywin32 on PyPI</a> &middot;
+      <a href="https://pbpython.com/windows-com.html" target="_blank">COM automation with Python (pbpython)</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>No MATLAB Engine package required</li>
+          <li>Can interact with already-running MATLAB GUI</li>
+          <li>Works with very old MATLAB versions</li>
+          <li>Familiar pattern if you already automate Excel via COM</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Windows only — no macOS, no Linux</li>
+          <li>Strictly worse than the Engine API in every way</li>
+          <li>Full MATLAB license required</li>
+          <li>Fragile: depends on COM registry state</li>
+          <li>No type safety — errors surface at runtime</li>
+          <li>No async mode</li>
+          <li>MathWorks does not document or support this path</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt"># Legacy COM approach — do not use for new projects</span>
+<span class="kw">import</span> win32com.client
+
+<span class="cmt"># Start or connect to MATLAB</span>
+matlab = win32com.client.<span class="fn">Dispatch</span>(<span class="str">"Matlab.Application"</span>)
+
+<span class="cmt"># Execute a command string</span>
+matlab.<span class="fn">Execute</span>(<span class="str">"x = sqrt(16)"</span>)
+
+<span class="cmt"># Get a workspace variable</span>
+x = matlab.<span class="fn">GetVariable</span>(<span class="str">"x"</span>, <span class="str">"base"</span>)  <span class="cmt"># returns 4.0</span>
+
+<span class="cmt"># Put a variable into MATLAB workspace</span>
+matlab.<span class="fn">PutWorkspaceData</span>(<span class="str">"myVar"</span>, <span class="str">"base"</span>, <span class="num">42.0</span>)
+
+<span class="cmt"># Prefer matlab.engine instead:</span>
+<span class="cmt"># import matlab.engine; eng = matlab.engine.start_matlab()</span></code></pre>
+
+  <div class="callout callout-danger">
+    <div class="callout-title">Do Not Use for New Projects</div>
+    <p>The COM/ActiveX approach is Windows-only, undocumented by MathWorks, and strictly inferior to the Engine API in reliability, type safety, and cross-platform support. The only reason to use it is if you are maintaining legacy code that already depends on it and cannot be changed.</p>
+  </div>
+
+  <!-- ── 11. ZMQ Bridges ────────────────────────────────────── -->
+  <h2>11. ZMQ / Socket Bridges — Custom IPC</h2>
+
+  <div class="tool-card">
+    <div class="tool-card-header">
+      <div class="tool-name">ZMQ / pymatbridge / Custom Socket Bridges</div>
+      <div class="tool-badges">
+        <span class="badge badge-purple">Advanced</span>
+        <span class="badge badge-yellow">License Required</span>
+        <span class="badge badge-cyan">Real-Time IPC</span>
+      </div>
+    </div>
+    <div class="tool-desc">
+      Custom inter-process communication bridges using ZeroMQ (ZMQ) allow Python and MATLAB to run as independent processes and exchange data in real time. <code>pymatbridge</code> wraps this into a library, while hand-rolled solutions use REQ-REP or PUB-SUB patterns directly. Useful for long-running MATLAB sessions that receive work items from Python, stream results, or participate in polyglot pipelines (e.g., MATLAB doing signal processing while Python handles I/O and visualization).
+    </div>
+    <div class="tool-meta">
+      Links:
+      <a href="https://github.com/arokem/python-matlab-bridge" target="_blank">pymatbridge GitHub</a> &middot;
+      <a href="https://github.com/fagg/matlab-zmq" target="_blank">matlab-zmq MEX bindings</a> &middot;
+      <a href="https://zeromq.org/get-started/" target="_blank">ZeroMQ docs</a>
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="pros-title">Pros</div>
+        <ul>
+          <li>Persistent MATLAB session — no per-call startup cost</li>
+          <li>Decoupled processes — crash isolation</li>
+          <li>Works across processes, machines, and languages</li>
+          <li>PUB-SUB enables real-time data streaming</li>
+          <li>Not limited by Engine API data size restrictions</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="cons-title">Cons</div>
+        <ul>
+          <li>Significant implementation complexity</li>
+          <li>Serialization overhead — everything must be encoded/decoded</li>
+          <li>pymatbridge is community-maintained and not actively developed</li>
+          <li>matlab-zmq requires MEX compilation</li>
+          <li>No security: arbitrary MATLAB execution by design</li>
+          <li>Full MATLAB license still required</li>
+          <li>Debugging cross-process issues is painful</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt"># Python side: REQ-REP pattern with ZMQ</span>
+<span class="kw">import</span> zmq, json, numpy <span class="kw">as</span> np
+
+ctx = zmq.<span class="fn">Context</span>()
+sock = ctx.<span class="fn">socket</span>(zmq.REQ)
+sock.<span class="fn">connect</span>(<span class="str">"tcp://localhost:5555"</span>)
+
+<span class="cmt"># Send a computation request</span>
+request = {<span class="str">"cmd"</span>: <span class="str">"fft"</span>, <span class="str">"data"</span>: np.<span class="fn">random.randn</span>(<span class="num">1024</span>).<span class="fn">tolist</span>()}
+sock.<span class="fn">send_json</span>(request)
+response = sock.<span class="fn">recv_json</span>()
+result = np.<span class="fn">array</span>(response[<span class="str">"result"</span>])</code></pre>
+
+  <pre><code><span class="cmt">% MATLAB side: receive and process (requires matlab-zmq)</span>
+<span class="cmt">% ctx = zmq.core.ctx_new();</span>
+<span class="cmt">% sock = zmq.core.socket(ctx, zmq.core.CONSTANTS.ZMQ_REP);</span>
+<span class="cmt">% zmq.core.bind(sock, 'tcp://*:5555');</span>
+<span class="cmt">% while true</span>
+<span class="cmt">%   msg = zmq.core.recv(sock);</span>
+<span class="cmt">%   req = jsondecode(char(msg));</span>
+<span class="cmt">%   result = fft(req.data);</span>
+<span class="cmt">%   zmq.core.send(sock, jsonencode(struct('result', result)));</span>
+<span class="cmt">% end</span></code></pre>
+
+  <hr />
+
+  <!-- ── Decision Guide ─────────────────────────────────────── -->
+  <h2>Decision Guide</h2>
+
+  <p>Work through these questions in order to identify the right approach for your situation:</p>
+
+  <div class="decision-step">
+    <div class="decision-q">1. Do you have a MATLAB license available?</div>
+    <ul class="decision-answers">
+      <li><strong>No, and I can't get one:</strong> Go to Q2.</li>
+      <li><strong>Yes, developer license only (no production deployment):</strong> Engine API, subprocess, or kernel approaches. Go to Q4.</li>
+      <li><strong>Yes, including MATLAB Compiler:</strong> MCR deployment is an option. Go to Q3.</li>
+      <li><strong>Yes, including Production Server or Web App Server:</strong> Enterprise path available. Go to Q5.</li>
+    </ul>
+  </div>
+
+  <div class="decision-step">
+    <div class="decision-q">2. No MATLAB license — what do you actually need?</div>
+    <ul class="decision-answers">
+      <li><strong>Numeric computation compatible with MATLAB syntax:</strong> Use <strong>GNU Octave</strong>. Most scripts run unchanged.</li>
+      <li><strong>Greenfield project, not committed to MATLAB syntax:</strong> Use <strong>NumPy/SciPy/python-control</strong> — no license, better ecosystem, better deployment.</li>
+      <li><strong>You have a compiled MCR artifact from someone else:</strong> Install the free <strong>MCR</strong> (matching version) and call it directly.</li>
+      <li><strong>Simulink models are involved:</strong> There is no free alternative — you need a MATLAB/Simulink license.</li>
+    </ul>
+  </div>
+
+  <div class="decision-step">
+    <div class="decision-q">3. You have MATLAB Compiler — do end users need a MATLAB license?</div>
+    <ul class="decision-answers">
+      <li><strong>Yes, end users need license-free access:</strong> Compile with <code>mcc</code> and distribute with the free <strong>MCR</strong>. Use <code>compiler.build.pythonPackage</code> for Python consumers.</li>
+      <li><strong>End users are internal developers who have MATLAB:</strong> MCR is unnecessary overhead. Use the Engine API or subprocess instead.</li>
+    </ul>
+  </div>
+
+  <div class="decision-step">
+    <div class="decision-q">4. You have a developer MATLAB license — how are you integrating?</div>
+    <ul class="decision-answers">
+      <li><strong>Python script that calls MATLAB functions:</strong> Use the <strong>Engine API</strong> (<code>matlab.engine</code>). It is the official path.</li>
+      <li><strong>Jupyter notebooks for research or teaching:</strong> Use <strong>jupyter-matlab-proxy</strong>. It is official, maintained, and includes browser desktop access.</li>
+      <li><strong>CI/CD pipeline — run MATLAB tests or scripts:</strong> Use <strong>subprocess + <code>-batch</code></strong>. Zero Python dependencies, correct exit codes.</li>
+      <li><strong>Long-running MATLAB session processing Python requests:</strong> Use a <strong>ZMQ bridge</strong> if you need real-time streaming, or keep an Engine session open for sequential calls.</li>
+      <li><strong>Windows-only legacy system:</strong> <strong>COM/ActiveX</strong> if you cannot change it, but plan to migrate to the Engine API.</li>
+    </ul>
+  </div>
+
+  <div class="decision-step">
+    <div class="decision-q">5. You have a Production Server or Web App Server license — who consumes the MATLAB?</div>
+    <ul class="decision-answers">
+      <li><strong>Other applications via HTTP API (Java, Python, JavaScript, .NET):</strong> Deploy compiled functions to <strong>MATLAB Production Server</strong>. Clients call REST endpoints.</li>
+      <li><strong>Non-technical internal users via a browser:</strong> Build an App Designer app, compile it, and host on <strong>MATLAB Web App Server</strong>.</li>
+      <li><strong>AI agents or chat applications:</strong> Use MPS with MCP tool support (available R2024b+).</li>
+    </ul>
+  </div>
+
+  <div class="decision-step">
+    <div class="decision-q">6. Is startup latency a hard constraint?</div>
+    <ul class="decision-answers">
+      <li><strong>Cannot tolerate 15–30 second startup:</strong> Keep a persistent MATLAB session alive (Engine API with shared session, or a ZMQ bridge). The startup cost is one-time, not per-call.</li>
+      <li><strong>Startup is fine, calls must be fast:</strong> Engine API with synchronous calls — each function call takes milliseconds once the engine is running.</li>
+      <li><strong>Completely latency-sensitive real-time:</strong> MCR-compiled shared library called inline from C/C++ is the fastest option. No Python overhead.</li>
+    </ul>
+  </div>
+
+  <hr />
+
+  <!-- ── Recommendations ────────────────────────────────────── -->
+  <h2>Opinionated Recommendations by Scenario</h2>
+
+  <div class="rec-grid">
+    <div class="rec-card">
+      <div class="rec-scenario">Research / Data Science</div>
+      <div class="rec-pick">jupyter-matlab-proxy</div>
+      <div class="rec-why">Notebooks, inline outputs, browser desktop for interactive exploration. If budget is a concern, switch to NumPy/SciPy for new work.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">CI/CD Pipeline</div>
+      <div class="rec-pick">subprocess -batch</div>
+      <div class="rec-why">No Python dependencies, correct exit codes, works in any CI system. If no MATLAB license in CI: Octave.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Python App Calling MATLAB</div>
+      <div class="rec-pick">matlab.engine (Engine API)</div>
+      <div class="rec-why">Official, well-documented, handles type conversion. Use shared sessions to avoid startup cost. Accept the version pinning constraint.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Distributing to End Users</div>
+      <div class="rec-pick">MATLAB Compiler + MCR</div>
+      <div class="rec-why">Only option for license-free delivery of MATLAB logic. Painful version pinning, but it works. Consider compiled Python package for Python consumers.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Enterprise REST Service</div>
+      <div class="rec-pick">MATLAB Production Server</div>
+      <div class="rec-why">Proper scaling, health checks, Prometheus metrics, language-agnostic REST clients. Heavy license cost, but the right tool at enterprise scale.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Internal Dashboard for Non-Engineers</div>
+      <div class="rec-pick">MATLAB Web App Server</div>
+      <div class="rec-why">Non-technical users get a polished browser interface with no MATLAB install. Requires App Designer skills and a MWAS license.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">No License Available</div>
+      <div class="rec-pick">GNU Octave or NumPy/SciPy</div>
+      <div class="rec-why">Octave for existing MATLAB scripts. NumPy/SciPy for new projects. Octave for toolbox-dependent code only if the toolbox has an Octave Forge equivalent.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Greenfield Numeric Project</div>
+      <div class="rec-pick">NumPy / SciPy / python-control</div>
+      <div class="rec-why">No license, better deployment, ML/AI integration, larger talent pool. Accept the migration cost from MATLAB idioms. Do not use MATLAB unless Simulink is required.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Real-Time Streaming Pipeline</div>
+      <div class="rec-pick">ZMQ Bridge</div>
+      <div class="rec-why">Only option when MATLAB must receive continuous input or stream results to Python without per-call startup. Complex to build; justify before committing.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-scenario">Teaching / Education</div>
+      <div class="rec-pick">jupyter-matlab-proxy on JupyterHub</div>
+      <div class="rec-why">Students get notebooks in a browser with no local MATLAB install. MathWorks offers academic licensing for institutions. Littlest JupyterHub works for small cohorts.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-title">The Honest Take on MATLAB in 2026</div>
+    <p>MATLAB's integration story has improved significantly since the Engine API landed on PyPI. For serious engineering workflows that depend on Simulink, specialized toolboxes, or certified code generation, MATLAB remains without peer — and the Engine API or Production Server are solid integration points. For pure numeric computation, Python's scientific stack is now genuinely competitive and offers a far better deployment and ecosystem story. The painful cases are organizations maintaining large MATLAB codebases who want Python interop: the Engine API is the right answer there, with subprocess as a lower-complexity fallback for CI/CD.</p>
+  </div>
+
+  <hr />
+
+  <!-- ── References ─────────────────────────────────────────── -->
+  <h2>Official Documentation Links</h2>
+
+  <ul>
+    <li><a href="https://github.com/mathworks/matlab-engine-for-python" target="_blank">matlab-engine-for-python — GitHub (MathWorks)</a></li>
+    <li><a href="https://pypi.org/project/matlabengine/" target="_blank">matlabengine — PyPI</a></li>
+    <li><a href="https://www.mathworks.com/help/matlab/matlab_external/limitations-to-the-matlab-engine-for-python.html" target="_blank">Engine API Limitations — MathWorks docs</a></li>
+    <li><a href="https://www.mathworks.com/support/requirements/python-compatibility.html" target="_blank">Python version compatibility matrix — MathWorks</a></li>
+    <li><a href="https://github.com/mathworks/jupyter-matlab-proxy" target="_blank">jupyter-matlab-proxy — GitHub (MathWorks)</a></li>
+    <li><a href="https://www.mathworks.com/products/reference-architectures/jupyter.html" target="_blank">MATLAB Integration for Jupyter — MathWorks product page</a></li>
+    <li><a href="https://blogs.mathworks.com/matlab/2023/01/30/official-mathworks-matlab-kernel-for-jupyter-released/" target="_blank">Official MATLAB kernel for Jupyter — MathWorks blog</a></li>
+    <li><a href="https://github.com/imatlab/imatlab" target="_blank">imatlab — GitHub</a></li>
+    <li><a href="https://github.com/Calysto/matlab_kernel" target="_blank">matlab_kernel (Calysto) — GitHub</a></li>
+    <li><a href="https://www.mathworks.com/products/compiler/matlab-runtime.html" target="_blank">MATLAB Runtime (MCR) — downloads and docs</a></li>
+    <li><a href="https://www.mathworks.com/help/compiler/about-the-matlab-runtime.html" target="_blank">About MATLAB Runtime — MathWorks docs</a></li>
+    <li><a href="https://www.mathworks.com/products/matlab-production-server.html" target="_blank">MATLAB Production Server — product page</a></li>
+    <li><a href="https://www.mathworks.com/help/mps/restfuljson/restful-api.html" target="_blank">MPS RESTful API — MathWorks docs</a></li>
+    <li><a href="https://github.com/mathworks-ref-arch/openapi-productionserver" target="_blank">OpenAPI for Production Server — GitHub</a></li>
+    <li><a href="https://www.mathworks.com/products/matlab-web-app-server.html" target="_blank">MATLAB Web App Server — product page</a></li>
+    <li><a href="https://octave.org/" target="_blank">GNU Octave — official website</a></li>
+    <li><a href="https://wiki.octave.org/Differences_between_Octave_and_Matlab" target="_blank">Octave/MATLAB differences — Octave wiki</a></li>
+    <li><a href="https://github.com/blink1073/oct2py" target="_blank">oct2py — GitHub (Python-Octave bridge)</a></li>
+    <li><a href="https://numpy.org/doc/stable/user/numpy-for-matlab-users.html" target="_blank">NumPy for MATLAB Users — NumPy docs</a></li>
+    <li><a href="https://python-control.readthedocs.io/" target="_blank">python-control — documentation</a></li>
+    <li><a href="https://github.com/arokem/python-matlab-bridge" target="_blank">pymatbridge (ZMQ bridge) — GitHub</a></li>
+    <li><a href="https://github.com/fagg/matlab-zmq" target="_blank">matlab-zmq MEX bindings — GitHub</a></li>
+  </ul>
+
+  <div class="footer">
+    Research compiled March 2026. MATLAB Engine API version matrix and jupyter-matlab-proxy release history current as of March 2025 release cycle. MCR size reduction features as of R2024b.
+  </div>
+
+</div>
+</body>
+</html>
