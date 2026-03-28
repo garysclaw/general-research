@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Paintball Tactics, Strategy &amp; How to Actually Get Good</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --secondary: #c8cdd9;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --accent-soft: #1e2340;
+      --green: #3ecf8e;
+      --green-soft: #0d2a1e;
+      --yellow: #f0b429;
+      --yellow-soft: #2a1f08;
+      --red: #f2545b;
+      --red-soft: #2a0d0f;
+      --cyan: #4ec9b0;
+      --cyan-soft: #0d2420;
+      --tag-bg: #1a1d27;
+      --code-bg: #0e1018;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    .page-wrap {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Header / Hero ── */
+    .hero {
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); text-decoration: none; }
+    .back-link svg { flex-shrink: 0; }
+
+    .hero-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin-bottom: 24px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      font-weight: 500;
+    }
+    .badge-green  { background: rgba(62,207,142,0.12); color: var(--green); border: 1px solid rgba(62,207,142,0.25); }
+    .badge-blue   { background: rgba(108,142,245,0.12); color: var(--accent); border: 1px solid rgba(108,142,245,0.25); }
+    .badge-yellow { background: rgba(240,180,41,0.12); color: var(--yellow); border: 1px solid rgba(240,180,41,0.25); }
+    .badge-red    { background: rgba(242,84,91,0.12);  color: var(--red);    border: 1px solid rgba(242,84,91,0.25); }
+    .badge-cyan   { background: rgba(78,201,176,0.12); color: var(--cyan);   border: 1px solid rgba(78,201,176,0.25); }
+
+    /* ── Quick Tips Grid ── */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 28px 0 0;
+    }
+    .tip-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .tip-card .tip-num {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .tip-card .tip-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .tip-card .tip-body {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── Article sections ── */
+    .section {
+      margin-bottom: 52px;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 24px 0 8px;
+    }
+    .section p {
+      color: var(--secondary);
+      margin-bottom: 14px;
+    }
+    .section ul, .section ol {
+      padding-left: 1.4rem;
+      margin-bottom: 14px;
+      color: var(--secondary);
+    }
+    .section li {
+      margin-bottom: 6px;
+      line-height: 1.65;
+    }
+    .section li strong { color: var(--text); }
+
+    /* ── Callout boxes ── */
+    .callout {
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 18px 0;
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+    .callout-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .callout p { margin-bottom: 0; }
+    .callout.info    { background: var(--accent-soft); border-left: 4px solid var(--accent);  color: #aab4d8; }
+    .callout.info .callout-title    { color: var(--accent); }
+    .callout.tip     { background: var(--green-soft);  border-left: 4px solid var(--green);   color: #8dd4b2; }
+    .callout.tip .callout-title     { color: var(--green); }
+    .callout.warning { background: var(--yellow-soft); border-left: 4px solid var(--yellow);  color: #c99f5a; }
+    .callout.warning .callout-title { color: var(--yellow); }
+    .callout.danger  { background: var(--red-soft);    border-left: 4px solid var(--red);     color: #c27074; }
+    .callout.danger .callout-title  { color: var(--red); }
+
+    /* ── Tool/Role cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .role-card .role-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .role-card .role-sub {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .role-card ul {
+      padding-left: 1.2rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .role-card li { margin-bottom: 4px; line-height: 1.5; }
+
+    /* ── Comparison table ── */
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead th {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 9px 14px;
+      color: var(--secondary);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--surface); }
+
+    /* ── Mistake cards ── */
+    .mistake-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .mistake-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: 8px;
+      padding: 14px 18px;
+    }
+    .mistake-item .mistake-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .mistake-item .mistake-fix {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .mistake-item .mistake-fix strong { color: var(--green); }
+
+    /* ── Drill cards ── */
+    .drill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .drill-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .drill-card .drill-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .drill-card p {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 0;
+      line-height: 1.55;
+    }
+
+    /* ── References ── */
+    .ref-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .ref-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.84rem;
+    }
+    .ref-item .ref-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .ref-item a { color: var(--accent); font-weight: 500; }
+
+    /* ── Inline code ── */
+    code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.87em;
+      color: var(--cyan);
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+    }
+    .toc-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .toc ol {
+      padding-left: 1.4rem;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+    .toc li { margin-bottom: 4px; }
+    .toc a { color: var(--secondary); }
+    .toc a:hover { color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.78rem;
+      color: #3a3e50;
+      border-top: 1px solid var(--border);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 540px) {
+      .hero h1 { font-size: 1.5rem; }
+      .tips-grid, .card-grid, .drill-grid, .ref-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <a class="back-link" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Open Research
+    </a>
+    <div class="hero-label">Tactics &amp; Strategy</div>
+    <h1>Paintball Tactics, Strategy &amp; How to Actually Get Good</h1>
+    <p class="hero-sub">A deep guide to movement, positioning, team roles, snap shooting, speedball vs woodsball formats, advanced techniques, and the mental game. Opinionated. Specific. Actually useful.</p>
+    <div class="hero-meta">
+      <span class="badge badge-green">All Skill Levels</span>
+      <span class="badge badge-blue">Speedball</span>
+      <span class="badge badge-blue">Woodsball</span>
+      <span class="badge badge-yellow">Competitive</span>
+      <span class="badge badge-cyan">Mar 2026</span>
+    </div>
+  </div>
+
+  <!-- Quick Tips Grid -->
+  <div class="section">
+    <div class="section-label">At a glance</div>
+    <h2>8 Things That Separate Winners From Eliminatees</h2>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-num">01</div>
+        <div class="tip-title">Never Stand Still</div>
+        <div class="tip-body">A stationary target is a dead target. Move between cover constantly — your opponents track you the moment you stop.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">02</div>
+        <div class="tip-title">Communicate Everything</div>
+        <div class="tip-body">Call opponent positions, announce your moves, and track the count. A chatty team beats a silent one almost every time.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">03</div>
+        <div class="tip-title">Master Snap Shooting</div>
+        <div class="tip-body">Get out, send 1–2 shots, get back behind cover. Minimize exposure time. This single skill wins more gunfights than anything else.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">04</div>
+        <div class="tip-title">Play Both Hands</div>
+        <div class="tip-body">Shoot from the right AND left sides of bunkers. If you can only shoot one direction, your opponent knows exactly where you'll appear.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">05</div>
+        <div class="tip-title">Walk the Field First</div>
+        <div class="tip-body">Before every game, study the layout. Know the chokepoints, the key bunkers, and the lines opponents are likely to run.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">06</div>
+        <div class="tip-title">Create Crossfire</div>
+        <div class="tip-body">Two teammates covering the same target from different angles is almost impossible to defend against. Position for angles, not just cover.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">07</div>
+        <div class="tip-title">Get a Thermal Lens</div>
+        <div class="tip-body">Single-pane masks fog. A dual-pane thermal lens is not optional — it is the single most important equipment upgrade you can make.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-num">08</div>
+        <div class="tip-title">Shoot with Purpose</div>
+        <div class="tip-body">Every ball has a job: eliminate, suppress, or create movement. Spraying randomly gives away your position and wastes paint for nothing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Table of Contents</div>
+    <ol>
+      <li><a href="#fundamentals">Fundamentals — The Non-Negotiables</a></li>
+      <li><a href="#movement">Movement &amp; Positioning</a></li>
+      <li><a href="#team-play">Team Play &amp; Communication</a></li>
+      <li><a href="#roles">Team Roles — Front, Mid, Back</a></li>
+      <li><a href="#speedball">Speedball Tactics</a></li>
+      <li><a href="#woodsball">Woodsball Tactics</a></li>
+      <li><a href="#advanced">Advanced Techniques</a></li>
+      <li><a href="#equipment">Equipment — What Actually Matters</a></li>
+      <li><a href="#mistakes">Beginner Mistakes — Stop Doing This</a></li>
+      <li><a href="#mental">The Mental Game</a></li>
+      <li><a href="#training">Training &amp; Improvement</a></li>
+      <li><a href="#competitive">Competitive Paintball &amp; NXL</a></li>
+      <li><a href="#references">References &amp; Resources</a></li>
+    </ol>
+  </div>
+
+  <!-- Section 1: Fundamentals -->
+  <div class="section" id="fundamentals">
+    <div class="section-label">Section 1</div>
+    <h2>Fundamentals — The Non-Negotiables</h2>
+
+    <p>Before tactics, there are principles. Every advanced technique in paintball is built on a handful of things that every player at every level has to get right. Skip these and all the tactical knowledge in the world won't save you.</p>
+
+    <h3>Cover vs Concealment</h3>
+    <p>These are not the same thing. <strong>Cover</strong> stops paintballs — a solid bunker, a thick tree trunk, a concrete barrier. <strong>Concealment</strong> hides you but does not stop paint — tall grass, a thin wooden fence, a bush. Beginners treat both as equivalent and then get eliminated by paint that passes straight through their "cover." Know what actually stops a ball before you trust your life to it.</p>
+
+    <h3>The Three Keywords</h3>
+    <p>Every decision on the field should run through three filters: <strong>cover</strong> (am I protected?), <strong>mobility</strong> (can I move?), and <strong>aggression</strong> (am I being a threat?). A player who is well-covered but immobile and passive has zero value to their team. Find positions that let you be all three.</p>
+
+    <h3>Trigger Discipline</h3>
+    <p>You are not a machine gun. Every shot you fire tells your opponents exactly where you are. Shoot when you have a reasonable shot, or when you need to keep someone pinned (suppressive fire). Firing blindly wastes paint, gives away your position, and achieves nothing. At the same time, do not go silent — a player who never fires is also useless. The balance is intentional shooting.</p>
+
+    <h3>Marker Setup</h3>
+    <p>Before any game: confirm your tank is full, your hopper is charged, your barrel is clean, and your velocity is within field limits (typically 280–300 fps). A gun that breaks paint in the barrel or has a leaking air line will ruin your game and your team's game. Basic maintenance takes five minutes and prevents 90% of field failures.</p>
+
+    <div class="callout tip">
+      <div class="callout-title">The real first step</div>
+      <p>The difference between players who improve fast and players who stagnate is almost never about equipment or natural talent. It is about whether they think during the game or just react to it. Ask yourself after every elimination: <em>Why did I get hit? What was I doing wrong?</em> That habit alone accelerates improvement faster than anything else.</p>
+    </div>
+  </div>
+
+  <!-- Section 2: Movement -->
+  <div class="section" id="movement">
+    <div class="section-label">Section 2</div>
+    <h2>Movement &amp; Positioning</h2>
+
+    <p>Paintball movement is not just running between spots. It is a discipline. Players who move well are hard to eliminate, create confusion for opponents, and consistently find better angles. Players who stand still get shot.</p>
+
+    <h3>The Golden Rule: Never Stay Put</h3>
+    <p>The moment you fire from a position, your opponents know where you are. If you stay in the exact same spot and pop out in the same direction, they will be pre-aimed and waiting. After every snap shot, consider moving — even just a metre to the other side of the bunker changes your profile and angle enough to reset the opponent's read on you.</p>
+
+    <h3>Sprint Discipline</h3>
+    <p>Short, fast bursts. Never run in a straight line when opponents can see you — use a zig-zag pattern. Keep your marker up and your head down while sprinting. Plan your route before you leave cover: know where you are going and what cover you are heading to. Hesitation in the open gets you eliminated.</p>
+
+    <h3>Sliding Into Bunkers</h3>
+    <p>When running to a bunker at speed, slide into it feet-first rather than running straight into the back of it. This controls your deceleration, gets you low faster, and reduces the chance you overrun your cover. Practice it — it feels awkward at first but becomes natural quickly and is noticeably safer than a standing arrival.</p>
+
+    <h3>Bounding Overwatch</h3>
+    <p>When your team needs to advance, use pairs. One player holds a position and fires to keep opponents heads down. The other sprints to the next piece of cover. Then they switch — the rear player advances while the now-forward player provides fire. This rhythm is called bounding overwatch and it is the single most effective way to move a team up a field without taking unnecessary casualties.</p>
+
+    <h3>Body Position Behind Bunkers</h3>
+    <p>Stay tight to your bunker. Do not hug it so closely that your barrel bounces off the edge when you snap out, but do not stand two feet back from it either. Get low — a crouched or kneeling stance makes you a smaller target. Keep your feet and elbows tucked in. Beginners frequently get eliminated because an elbow or foot is sticking out while they are busy looking the other direction.</p>
+
+    <div class="callout info">
+      <div class="callout-title">Blind spots kill</div>
+      <p>Players gain ground and then get immediately eliminated because they are not looking sideways. Going straight forward and getting flanked from the side — or even behind — is one of the most common mid-game deaths. Every time you advance, sweep left and right before you go, and look back.</p>
+    </div>
+
+    <h3>Reading Lanes</h3>
+    <p>A "lane" is a path across the field that you can fire paint down to hit runners on the break or during movement. Back players shoot lanes at the start of a point to punish opponents who run to the same bunker positions every time. If you are running the break, study where the lanes are likely to come from and time your movement to when the opposing back player has to reload or reload. Lanes go both ways — be aware of which lines are dangerous to cross.</p>
+  </div>
+
+  <!-- Section 3: Team Play -->
+  <div class="section" id="team-play">
+    <div class="section-label">Section 3</div>
+    <h2>Team Play &amp; Communication</h2>
+
+    <p>Paintball is not a solo sport. The most technically skilled individual player will lose consistently to an average coordinated team. Communication is not a nice-to-have — it is the core mechanic that makes everything else work.</p>
+
+    <h3>What to Call Out</h3>
+    <p>Keep calls short and specific. Nobody needs a paragraph. Common vocabulary:</p>
+    <ul>
+      <li><strong>"One right!"</strong> — opponent at a specific location on your right</li>
+      <li><strong>"Snake is live!"</strong> — someone is in the snake bunker</li>
+      <li><strong>"You're good left!"</strong> — no opposition on that side, safe to move</li>
+      <li><strong>"Bumping!"</strong> — you are about to move, give me cover</li>
+      <li><strong>"One down, four up!"</strong> — count update, keep everyone aware of the numbers</li>
+      <li><strong>"I'm lit!"</strong> / <strong>"Check me!"</strong> — player thinks they may be out, asking referee to check</li>
+    </ul>
+
+    <h3>Counting Opponents</h3>
+    <p>Know the count at all times. When someone gets eliminated, announce it immediately. A team that knows it has a 4-versus-3 advantage and actually acts on that advantage (by pushing, flanking, or forcing the squeeze) will win far more often than a team that has the numbers but does not coordinate. Count management is back player discipline, but everyone should be updating it.</p>
+
+    <h3>Pre-Game Walkthrough</h3>
+    <p>Walk the field before every game. Identify the key bunkers, the likely snake and dorito positions (in speedball), or the natural chokepoints (in woodsball). Decide which player is going where on the break. Agree on a basic communication system if you are playing with strangers. Even a 90-second conversation before the whistle dramatically improves performance.</p>
+
+    <h3>When to Push</h3>
+    <p>Push when you have a numbers advantage. Push when an opponent has to reload and nobody else can cover them. Push when an opponent has been isolated by crossfire and cannot see the angle you are running from. Do not push purely on emotion. The "I'm going to bunker this guy" instinct kills a lot of players who go at the wrong moment.</p>
+
+    <div class="callout tip">
+      <div class="callout-title">The chatty team principle</div>
+      <p>In tournament paintball, teams that communicate constantly — not just in crisis moments — consistently outperform quieter opponents. You will often hear high-level players making calls every few seconds: positions, movements, counts. It feels excessive until you play against a team doing it and realize how blind you are by comparison.</p>
+    </div>
+  </div>
+
+  <!-- Section 4: Team Roles -->
+  <div class="section" id="roles">
+    <div class="section-label">Section 4</div>
+    <h2>Team Roles — Front, Mid, Back</h2>
+
+    <p>Organized teams assign roles. Every player does not play the same way. Here is what each position actually does and who should play it.</p>
+
+    <div class="card-grid">
+      <div class="role-card">
+        <div class="role-name">Front Player</div>
+        <div class="role-sub" style="color: var(--red);">Aggressor / Runner</div>
+        <ul>
+          <li>Sprints to the furthest downfield bunker on the break</li>
+          <li>Often does not shoot during the initial run — just gets there</li>
+          <li>Eliminates opponents at close range</li>
+          <li>Executes bunkers when the back player pins someone</li>
+          <li>Carries fewer pods — speed over volume</li>
+          <li>Needs: speed, aggression, nerve</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Mid Player</div>
+        <div class="role-sub" style="color: var(--yellow);">Insert / Versatile</div>
+        <ul>
+          <li>Fills gaps between front and back as the game evolves</li>
+          <li>Replaces eliminated teammates in critical positions</li>
+          <li>Can fire while moving, jump into the snake, or shoot lanes</li>
+          <li>The jack-of-all-trades and considered the hardest position to play well</li>
+          <li>Must adapt moment to moment based on what the team needs</li>
+          <li>Needs: game-reading ability, communication, versatility</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Back Player</div>
+        <div class="role-sub" style="color: var(--accent);">Anchor / Field General</div>
+        <ul>
+          <li>Shoots lanes on the break to punish predictable runners</li>
+          <li>Provides suppressive fire to enable teammate movement</li>
+          <li>Calls opponent positions — has the widest view of the field</li>
+          <li>Carries the most paint — often 1,500+ balls in tournament play</li>
+          <li>Losing a back corner often collapses the entire game plan</li>
+          <li>Needs: field awareness, communication, accuracy at range</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-title">Role mismatch is common</div>
+      <p>Most beginners want to be the front player because it looks exciting. Most beginners <em>should</em> play mid or back until they understand the field well enough to know what a front player should be doing. A front player who runs to the wrong bunker or goes at the wrong moment can eliminate themselves and open the field for the opposing team.</p>
+    </div>
+  </div>
+
+  <!-- Section 5: Speedball -->
+  <div class="section" id="speedball">
+    <div class="section-label">Section 5</div>
+    <h2>Speedball Tactics</h2>
+
+    <p>Speedball (also called hyperball or airball) is played on a small, symmetrical field with inflatable bunkers. Fields are typically 150 × 120 feet in professional play. The format is fast, the games are short, and every second matters. There is no hiding in speedball.</p>
+
+    <h3>The Break</h3>
+    <p>The first five seconds of a speedball point often determine the outcome. Teams have practised breakouts — each player has a designated bunker they sprint to while back players shoot lanes down the sides to pin runners. Study the field layout before your game and agree on your breakout assignments. A coordinated break gives your team positional advantage before the first exchange of fire.</p>
+
+    <h3>Snake Side vs Dorito Side</h3>
+    <p>Most speedball fields have a snake (a long, low bunker running along one side) and doritos (tall, wedge-shaped bunkers typically in a corner or mid-field position). These two sides require different approaches:</p>
+    <ul>
+      <li><strong>Snake:</strong> Low-profile, belly-crawl cover. The snake lets a player work their way up the field while staying largely invisible. A player deep in the snake has devastating angles on the opposition — but getting there requires a fast run and good timing on the break. Being a snake player requires speed and comfort playing flat on the ground.</li>
+      <li><strong>Dorito:</strong> Higher-profile bunker, typically played crouching or kneeling. The dorito offers good angles across the field and is a key shooting position. Players who lay flat behind a dorito expose their feet to players at wide angles — know when to stand and when to crouch based on where the fire is coming from.</li>
+    </ul>
+
+    <h3>Controlling the Field</h3>
+    <p>Speedball is a geometry game. The team that holds the most advanced bunkers forces opponents into worse and worse angles until they cannot defend. Push your front players forward and your mid player should be ready to fill the bunker of any eliminated teammate. Never surrender territory passively — if your front player goes down, your mid should be moving into that space almost immediately.</p>
+
+    <h3>Rate of Fire and Suppression</h3>
+    <p>In the NXL format, markers are capped at 10.5 balls per second (triggered by pulling the trigger 5 BPS to activate ramping). This is enough to lay down genuine suppressive fire. Back players use this to pin opponents behind their bunkers, creating windows for teammates to advance. Suppressive fire is not random spray — it is controlled pressure aimed at making a specific opponent unable to poke out and shoot.</p>
+
+    <div class="callout info">
+      <div class="callout-title">Speedball coaching tip</div>
+      <p>The cross-field shot is underused by beginners. Because the field is symmetric, the player directly opposite you is your mirror — but the players on <em>your</em> side of the field shooting across at the opposing side often have better angles on opponents than the players shooting straight ahead. Think diagonally.</p>
+    </div>
+  </div>
+
+  <!-- Section 6: Woodsball -->
+  <div class="section" id="woodsball">
+    <div class="section-label">Section 6</div>
+    <h2>Woodsball Tactics</h2>
+
+    <p>Woodsball is a completely different game from speedball. Fields are large, games are long, natural cover is everywhere, and patience becomes a genuine weapon. The player who moves poorly and makes noise gets eliminated. The player who reads terrain and uses it smartly dominates.</p>
+
+    <h3>Read and Use Terrain</h3>
+    <p>Natural cover in woodsball varies enormously: trees block paint, tall grass conceals but does not stop it, hills give elevation and sight lines. Before a woodsball game, walk the field and note: where are the chokepoints opponents must pass through? Where are the elevated positions that provide wide fields of fire? Where can a small team hold a large advance? These questions shape your whole strategy.</p>
+
+    <h3>Flanking</h3>
+    <p>Flanking is the most powerful tactic in woodsball. Send part of your team on a wide arc around the opponent's position while the rest engage head-on. The engaged group pins the enemy — the flankers attack from an unexpected direction. Execute this with communication: the flanking group moves quietly and does not announce the approach. The distraction group maintains enough fire pressure to keep opponents focused forward. When the flankers open up, the opposition faces fire from two directions and usually collapses quickly.</p>
+
+    <h3>The Ambush</h3>
+    <p>Woodsball's long games and large maps create ambush opportunities that speedball never allows. Identify paths opponents are likely to travel — chokepoints near objectives, routes between cover clusters, approaches to flag stations. Position hidden players along these routes and wait. Ambushes require patience and silence. Do not fire too early. Let opponents commit to the route before opening up. A well-set ambush can eliminate half a team in seconds.</p>
+
+    <h3>Moving Quietly</h3>
+    <p>Rattling pods give you away before you even arrive. Pack your pods tight so paintballs do not rattle. Avoid brushing past branches if you can. Move slowly when stealth matters. In woodsball, sound is intelligence — both yours and theirs.</p>
+
+    <h3>Defensive Setup</h3>
+    <p>If you are holding an objective, set up overlapping fields of fire. No single approach should be unobserved. Place one or two players on wide flanks to prevent being flanked yourself. Identify your fallback positions in advance — if the main position is overrun, where do you regroup? Players who only plan the hold and not the retreat often get eliminated chasing a lost position.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Speedball</th>
+            <th>Woodsball</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Field size</td>
+            <td>Small, ~150 × 120 ft</td>
+            <td>Large, often acres</td>
+          </tr>
+          <tr>
+            <td>Game duration</td>
+            <td>Minutes per point</td>
+            <td>20 min to hours</td>
+          </tr>
+          <tr>
+            <td>Paint consumption</td>
+            <td>High — back players carry 1,500+</td>
+            <td>Lower — patience over volume</td>
+          </tr>
+          <tr>
+            <td>Key skill</td>
+            <td>Snap shooting, lane reading</td>
+            <td>Terrain use, patience, stealth</td>
+          </tr>
+          <tr>
+            <td>Communication style</td>
+            <td>Loud, constant, real-time</td>
+            <td>Hand signals, quiet calls</td>
+          </tr>
+          <tr>
+            <td>Cover type</td>
+            <td>Inflatable bunkers — symmetrical</td>
+            <td>Natural terrain — asymmetric</td>
+          </tr>
+          <tr>
+            <td>Gear focus</td>
+            <td>Lightweight, fast marker, agility</td>
+            <td>Camo, pod packs, comfort</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 7: Advanced Techniques -->
+  <div class="section" id="advanced">
+    <div class="section-label">Section 7</div>
+    <h2>Advanced Techniques</h2>
+
+    <h3>Snap Shooting — The Core Gunfighting Skill</h3>
+    <p>Snap shooting is the art of briefly exposing yourself to fire one or two shots and immediately returning to full cover. Done correctly, your opponent has milliseconds to react — not enough time to aim. Poorly executed, you are standing in the open long enough to get tagged easily.</p>
+
+    <p>The mechanics: do a quick "head check" from behind the bunker to locate your opponent. Pre-aim your marker at where you will appear. Roll out — not using your whole body, just enough — fire one or two shots, and snap back. Your goal is under half a second of exposure. Use the top and both sides of your bunker to vary the angle. Never pop out from the exact same spot twice in a row.</p>
+
+    <p>The advanced version: vary your rhythm. Pop, pause, pop again from a different angle. Get your opponent expecting a regular pattern and then change it. The player who snaps out on their opponent's rhythm loses. The player who breaks the rhythm wins.</p>
+
+    <div class="callout tip">
+      <div class="callout-title">The three-in-a-row drill</div>
+      <p>Set a target in a bunker. Stand in another bunker. Do one head check to locate the target. Then snap shoot one shot at a time — you must hit the target three times consecutively to complete the drill. A miss resets the count. This drill forces accuracy over speed and builds the habit of aiming on every single snap shot. Most professionals practice snap shooting for at least an hour per day.</p>
+    </div>
+
+    <h3>Bunkering</h3>
+    <p>Bunkering is running up to an opponent's bunker and eliminating them from point-blank range. It is high-risk, high-reward, and devastating when executed correctly. The key conditions that make a bunker viable:</p>
+    <ul>
+      <li>Your teammate has the target pinned with suppressive fire — they cannot pop out</li>
+      <li>The target does not know your position</li>
+      <li>The rest of the opposing team is contained or eliminated</li>
+      <li>You have a clear route with at least one intermediate cover point</li>
+    </ul>
+    <p>The execution: sprint at full speed. Do not hesitate once you commit. Half-speed bunkering is the worst outcome — you are out in the open for longer than a full sprint would require, and your target has more time to react. Have your marker up and ready to fire the instant you clear the edge of their bunker.</p>
+
+    <h3>Crossfire</h3>
+    <p>Crossfire is when two teammates hold angles that overlap on the same target or zone, making it impossible for an opponent to face one threat without exposing themselves to the other. This is the foundation of coordinated team play. Creating crossfires should be a constant goal in your positioning — when you set up behind a bunker, ask: can a teammate get an angle that covers the direction I cannot cover from here?</p>
+
+    <h3>The Squeeze Play</h3>
+    <p>The squeeze is a coordinated crossfire attack. One player pins an opponent by shooting from one angle, forcing them to hide to one side. A second player, from a wide angle on the other side, can then shoot the exposed side of the opponent. You are literally squeezing them across their own bunker. The wider the angle the second player has, the more effective the squeeze.</p>
+
+    <h3>Baiting</h3>
+    <p>Baiting means deliberately appearing to retreat or seem vulnerable to draw an opponent into an aggressive move. Let them feel like they are winning a snap-shooting exchange. Back into your bunker slightly more than usual. Make them feel safe to bump forward. When they make the move, you are already pre-aimed at the bunker they are running to. This works specifically because aggressive players are trained to pounce on perceived weakness — use that against them.</p>
+
+    <h3>Timing Reloads</h3>
+    <p>A player who has just emptied their hopper and is reloading cannot fire. In speedball, hoppers typically hold 200 balls and a back player can go through them quickly. Watch the fire rate from a specific bunker — when it stops for a moment, that is your window to move. In woodsball, players on gravity-fed hoppers can be heard tapping or shaking their hopper. Listen for it.</p>
+  </div>
+
+  <!-- Section 8: Equipment -->
+  <div class="section" id="equipment">
+    <div class="section-label">Section 8</div>
+    <h2>Equipment — What Actually Matters</h2>
+
+    <p>Paintball gear marketing will convince you that a $2,000 marker is what stands between you and winning. It is not. Most of the equipment decisions that actually matter cost less and are overlooked by beginners.</p>
+
+    <h3>The Mask Is Non-Negotiable</h3>
+    <p>This is the single most important piece of gear you own. A fogging mask blinds you at the worst possible moment. A cracked lens is a safety hazard. The upgrade that matters most is a <strong>thermal (dual-pane) lens</strong>. It works like double glazing — two lens panels separated by an air gap prevent the temperature differential that causes fogging. A quality thermal-lens mask ($60–$120) will outperform a cheap mask with anti-fog spray every time. Buy it before anything else.</p>
+
+    <p>Mask care: clean the lens with only a microfiber cloth and water or purpose-made lens cleaner. Never use paper towels or a t-shirt on a thermal lens — the inner pane scratches easily and once scratched it will fog permanently. Store the mask in a goggle bag away from direct sunlight.</p>
+
+    <h3>Hopper / Loader</h3>
+    <p>Three categories exist: gravity-fed (cheap, slow, fine for casual rental play), agitated (sensors and a paddle to keep paint moving, faster but still limited), and force-fed (actively pushes paint into the breach — keeps up with electronic markers firing 10+ BPS). If you are playing with an electronic marker and especially if you are doing competitive speedball, use a force-fed loader. Brands like Dye LTR and Empire Halo are popular reliable options. A mismatched marker/hopper combination causes paint to chop in the breach — messy, expensive, and game-ending.</p>
+
+    <h3>Barrel Length and Bore</h3>
+    <p>Longer barrels are quieter and provide slightly better accuracy at range. Shorter barrels are lighter and do not catch on bunkers during fast movement. Most competitive speedball players use 14-inch barrels — a reasonable balance. Bore matching matters more than length: the barrel bore should closely match the diameter of your paintballs. Oversized paintballs rattle down an undersized barrel; undersized paintballs fall out of an oversized one. Both cause accuracy problems.</p>
+
+    <h3>Pod Pack and Pods</h3>
+    <p>Carry enough paint for your role: front players can get away with 2–3 pods, back players in competitive play may need 8–10. Pack pods tight to prevent paint from rattling during movement — you will hear rattling paintballs give away your position in woodsball. Keep pods out of direct sunlight before games — heat makes paintballs swell, which causes barrel breaks.</p>
+
+    <h3>Marker Maintenance</h3>
+    <p>After every game session: wipe down the outside, barrel swab the barrel until it comes out clean, inspect O-rings for wear. Lubricate O-rings and internal mechanisms sparingly with paintball-specific oil. Check the bolt O-ring — a worn bolt O-ring causes inconsistent velocity which destroys accuracy. Before disconnecting the tank, always dry-fire a few times to release remaining pressure. Store the marker with the barrel plug in and the tank removed.</p>
+
+    <div class="callout warning">
+      <div class="callout-title">The equipment trap</div>
+      <p>Many players spend thousands on markers and gear while their fundamentals are poor. A skilled player with a Tippmann A5 will consistently beat a novice with a high-end tournament marker. Get your technique right first, then let equipment fill in specific gaps that technique alone cannot solve.</p>
+    </div>
+
+    <h3>Footwear</h3>
+    <p>Cleats or mid-cut hiking boots. Running shoes are not adequate — you will slip on wet grass, roll ankles on uneven terrain, and lack the traction needed for explosive starts and stops. This is a frequently ignored upgrade that directly affects how safely and effectively you can move.</p>
+  </div>
+
+  <!-- Section 9: Beginner Mistakes -->
+  <div class="section" id="mistakes">
+    <div class="section-label">Section 9</div>
+    <h2>Beginner Mistakes — Stop Doing This</h2>
+
+    <p>Most of these mistakes happen because beginners are either scared (and go too passive) or overconfident (and go too aggressive at the wrong moment). Awareness is the first step to fixing them.</p>
+
+    <div class="mistake-list">
+      <div class="mistake-item">
+        <div class="mistake-title">Hiding and not engaging</div>
+        <div class="mistake-fix">Burying yourself in the deepest bush and waiting is the most common new-player failure mode. You cannot see anything, communicate nothing, and contribute zero. <strong>Fix: get to cover, then immediately start looking for threats and opportunities.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Tunnel vision on one opponent</div>
+        <div class="mistake-fix">Fixating on a snap-shooting duel while a flanker closes in from the side is how most mid-game deaths happen. <strong>Fix: scan constantly. Know where all opponents are, not just the one you are fighting.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Wasting paint</div>
+        <div class="mistake-fix">Firing 50 balls at an opponent firmly behind their bunker achieves nothing except emptying your hopper. <strong>Fix: fire purposefully — to suppress, to create a specific window, or to make an elimination. Otherwise wait.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Shooting from the same spot every time</div>
+        <div class="mistake-fix">Pop out right, pop out right, pop out right — your opponent knows where you will be and will time their shot. <strong>Fix: vary your angle every single snap. Use top, left, right. Be unpredictable.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Not communicating</div>
+        <div class="mistake-fix">Silence is costly. Teammates running blind without position calls get flanked and eliminated in situations that were avoidable. <strong>Fix: call positions, movements, and counts constantly. Make it a habit.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Moving too far forward too fast</div>
+        <div class="mistake-fix">Over-aggression without back-player support usually ends with an isolated front player being eliminated from multiple angles. <strong>Fix: coordinate movement with teammates. Someone should be covering you before you bump.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Standing up behind bunkers</div>
+        <div class="mistake-fix">Full standing profile = maximum target. Many beginner eliminations are paint that clips an arm, shoulder, or helmet because the player is not crouching. <strong>Fix: stay low behind cover. A smaller profile is harder to hit.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Forgetting about feet and elbows</div>
+        <div class="mistake-fix">Focused on looking right, elbow sticking out left. Opponents who have your bunker covered will shoot that elbow. <strong>Fix: tuck everything in before you snap shot. Do a quick body check each time you go into cover.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Mask off on the field</div>
+        <div class="mistake-fix">The mask comes off and a paintball comes in. This is a genuine eye injury risk. <strong>Fix: the mask does not come off until you are in a designated safe zone. No exceptions. Ever.</strong></div>
+      </div>
+      <div class="mistake-item">
+        <div class="mistake-title">Leaving paint in the sun</div>
+        <div class="mistake-fix">Heat causes paintballs to swell. They will not fit your barrel properly, break inside the marker, and generally wreck your accuracy. <strong>Fix: keep your pods in shade or in your pack until you need them.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 10: Mental Game -->
+  <div class="section" id="mental">
+    <div class="section-label">Section 10</div>
+    <h2>The Mental Game</h2>
+
+    <p>Paintball is a psychological sport. The moment the game starts, you are managing adrenaline, fear, and information overload simultaneously. Players who manage this well make better decisions under pressure. Players who do not make rushed shots, forget to communicate, and get eliminated by mistakes they would never make in a calm moment.</p>
+
+    <h3>Managing the Adrenaline Spike</h3>
+    <p>When the whistle blows and paint starts flying, the fight-or-flight response kicks in. Adrenaline sharpens your senses up to a point — beyond that it causes tunnel vision, rushed decisions, and impaired judgment. The antidote is controlled breathing. Even one slow breath behind cover before you make a major decision (bumping forward, attempting a bunker, changing positions) resets your decision-making enough to matter. It feels trivial. It is not.</p>
+
+    <h3>Staying Calm When Losing</h3>
+    <p>Most teams play worse when behind. They rush, abandon coordination, and force plays that are not there. The teams that come back from 3-versus-1 deficits are the ones that stay methodical. One careful elimination at a time, using terrain, communication, and timing. Never mentally quit mid-point. The last player on your team winning a 1-versus-4 — it happens, and it happens because that player refused to panic.</p>
+
+    <h3>Reading the Field Before the Game</h3>
+    <p>Walk the field. Not just to satisfy a pre-game ritual — actually think about it. Where will opponents naturally push? What bunkers control the most space? If you were the opposing team, where would your front player go on the break? What is the most dangerous angle from their perspective? Five minutes of genuine field analysis before a game gives you an information advantage that other teams simply do not have.</p>
+
+    <h3>Visualization</h3>
+    <p>Elite players use visualization routinely. Before the game, mentally rehearse your breakout route, your first snap shot exchange, and your primary movement path. See it happen in your head. This is not superstition — it builds neural pathways that make those actions faster and more fluid under pressure. The mental rep costs nothing and helps more than most players expect.</p>
+
+    <h3>Post-Game Reflection</h3>
+    <p>The question to ask after every elimination: <em>Why did I get hit?</em> Not as criticism, but as analysis. Was it a snap-shot duel you could have won with better timing? Did someone flank you because your team stopped counting? Were you too far forward without support? Answering this question honestly after every game compounds faster than almost any other improvement habit.</p>
+  </div>
+
+  <!-- Section 11: Training -->
+  <div class="section" id="training">
+    <div class="section-label">Section 11</div>
+    <h2>Training &amp; Improvement</h2>
+
+    <p>You will not improve by just playing more games passively. Deliberate practice — both on and off the field — is what creates real growth. Here are the drills and habits that actually work.</p>
+
+    <div class="drill-grid">
+      <div class="drill-card">
+        <div class="drill-title">Dry Fire Trigger Practice</div>
+        <p>Disconnect your marker from air. Practice trigger pulls, snap-out-and-fire movements, and bilateral shooting from both sides of a doorframe or furniture stand-in. 15 minutes daily beats 90 minutes once a week.</p>
+      </div>
+      <div class="drill-card">
+        <div class="drill-title">Three-in-a-Row Snap Shot</div>
+        <p>Place a target at distance. Head check once, then snap shoot one shot at a time until you hit three consecutive shots. A miss resets the count. Builds accuracy under the requirement to hit — not just spray near the target.</p>
+      </div>
+      <div class="drill-card">
+        <div class="drill-title">Bunker Entry Drill</div>
+        <p>Sprint to a bunker and practice sliding into it correctly. Then pop up from different sides. Repeat. The goal is to make the full sequence — sprint, slide, establish, snap — smooth enough that it requires no conscious thought during a game.</p>
+      </div>
+      <div class="drill-card">
+        <div class="drill-title">Agility Ladder / T-Drill</div>
+        <p>The T-drill trains acceleration, deceleration, and lateral movement. Place cones in a T-shape and run the pattern. Directly mimics the start-stop-change direction movement used to approach bunkers and change positions.</p>
+      </div>
+      <div class="drill-card">
+        <div class="drill-title">Watch Pro Footage</div>
+        <p>Watch NXL matches and study back player lane shooting, front player break decisions, and how coordinated teams execute the squeeze. Pay attention to what they do between snap shots — that is where the real game is played.</p>
+      </div>
+      <div class="drill-card">
+        <div class="drill-title">Bounding Overwatch Pair Drill</div>
+        <p>With a partner: one person holds a fixed position and fires (dry fire or with blanks), the other sprints to a bunker and establishes. Swap. Run this repeatedly until the rhythm is automatic. Real games require this happening without thinking about it.</p>
+      </div>
+    </div>
+
+    <h3>Physical Conditioning</h3>
+    <p>Paintball requires short explosive bursts, sustained low-profile crouching, rapid direction changes, and the ability to repeat these across multiple games in a day. The most useful physical training is:</p>
+    <ul>
+      <li><strong>Sprint intervals:</strong> 10–60 metre sprints with full recovery. Builds the explosive speed needed to cross open ground safely.</li>
+      <li><strong>Lower body strength:</strong> Squats, lunges, single-leg exercises. Crouching and moving from low positions demands leg strength and joint stability.</li>
+      <li><strong>Core strength:</strong> Planks, rotational exercises, mountain climbers. Accuracy when fatigued or in awkward positions depends heavily on core stability.</li>
+      <li><strong>Metabolic conditioning:</strong> Combine strength and cardio rather than treating them separately. Fast compound movements with short rest periods build the specific fitness profile paintball demands.</li>
+    </ul>
+
+    <div class="callout info">
+      <div class="callout-title">Slow is smooth, smooth is fast</div>
+      <p>When learning a physical technique — bunker entries, snap shots, lateral movement — always start at a speed where you can execute it correctly. Practise sloppy fast and you build sloppy fast habits. The speed comes naturally once the movement pattern is correct.</p>
+    </div>
+  </div>
+
+  <!-- Section 12: Competitive -->
+  <div class="section" id="competitive">
+    <div class="section-label">Section 12</div>
+    <h2>Competitive Paintball &amp; the NXL</h2>
+
+    <p>If you want to take paintball seriously beyond casual rec play, the structured competitive path exists and is accessible at every level.</p>
+
+    <h3>The NXL Structure</h3>
+    <p>The <strong>National Xball League (NXL)</strong> is the primary competitive organization for tournament paintball in the United States, with an equivalent European circuit. It runs a divisional structure from beginner amateur through to professional, competing at events across Dallas, Las Vegas, Chicago, Orlando, Philadelphia, and the season-ending World Cup in Kissimmee, Florida.</p>
+
+    <h3>Playing Formats</h3>
+    <ul>
+      <li><strong>5-on-5 Race to X:</strong> The most common tournament format. Teams play point after point in a 12–15 minute match (varies by division), racing to reach a target number of points or win the most by the clock. This is the format you will encounter at most regional and national events.</li>
+      <li><strong>7-on-7:</strong> 7-minute match format, teams play to hit the opposing buzzer. The larger team size allows more complex breakout plays and more mid-field pressure.</li>
+      <li><strong>3-on-3:</strong> Short format, 3 minutes, entry-level competitive. Good starting point for teams new to tournament play.</li>
+      <li><strong>10-on-10:</strong> Larger squads, longer format. Less common but exists in specific divisions.</li>
+    </ul>
+
+    <h3>NXL Firing Mode</h3>
+    <p>All NXL formats use a standardized firing mode: if you trigger 5 BPS, your marker ramps up to 10.5 BPS. This requires an electronic marker. Classic Division allows mechanical markers, capped at 5.5 BPS. Markers must be in tournament mode, locked against field adjustments. Bringing a correctly configured marker to your first event is not optional — referees chrono and mode-check regularly.</p>
+
+    <h3>Getting Into Competition</h3>
+    <p>Start with local or regional series before NXL events. The financial and travel commitment of NXL can be steep — entry fees, paint costs, travel, accommodation — and competing regionally first builds the experience to make that investment worthwhile. Many cities have local paintball leagues that run regular events on weekends; these are the best on-ramp into competitive play.</p>
+
+    <div class="callout warning">
+      <div class="callout-title">Manage expectations</div>
+      <p>Your first tournament will probably not go well. Most teams lose badly at their first event and learn more about the game in two days of tournament play than in months of recreational games. The point of entering early is the education, not the result. Teams who commit to the process and keep entering events improve rapidly.</p>
+    </div>
+  </div>
+
+  <!-- References -->
+  <div class="section" id="references">
+    <div class="section-label">Section 13</div>
+    <h2>References &amp; Resources</h2>
+
+    <p>The following are legitimate, high-quality resources for continuing your paintball education. The community is genuinely helpful and well-documented online.</p>
+
+    <h3>YouTube Channels Worth Watching</h3>
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="ref-label">Instructional</div>
+        <a href="https://www.bkipaintball.com/" target="_blank" rel="noopener">BKi School of Paintball</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">World-champion coaches. Structured courses on snap shooting, positions, and mental game.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">News &amp; Analysis</div>
+        <a href="https://www.socialpaintball.com/" target="_blank" rel="noopener">Social Paintball</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">The independent voice of tournament paintball — news, interviews, and competitive coverage.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Tournament Footage</div>
+        <a href="https://bestofpaintball.com/" target="_blank" rel="noopener">Best of Paintball</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Full tournament recordings and highlight films from official NXL and international events.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Gear &amp; Community</div>
+        <a href="https://paintballruinedmylife.com/" target="_blank" rel="noopener">Paintball Ruined My Life</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Honest gear reviews, industry news, and tips from an opinionated community perspective.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Gear Reviews</div>
+        <a href="https://www.lonewolfpaintball.com/blogs/news" target="_blank" rel="noopener">Lone Wolf Paintball Blog</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Practical guides on maintenance, equipment selection, and technique for all skill levels.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Drills &amp; Tips</div>
+        <a href="https://www.bunkerkings.com/blogs/bnkr-kngs-wks-paintball-blog" target="_blank" rel="noopener">Bunkerkings Blog</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Drills, snap shot training, and competitive insights from a major paintball brand with pro-player involvement.</span>
+      </div>
+    </div>
+
+    <h3>Community Forums</h3>
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="ref-label">Forum</div>
+        <a href="https://www.pbnation.com/" target="_blank" rel="noopener">PBNation</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">The oldest and largest paintball forum. Gear trading, tactic discussions, and a large archive of community knowledge.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Forum</div>
+        <a href="https://www.paintballforum.com/" target="_blank" rel="noopener">Paintball Forum</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Active community covering woodsball tactics, gear setup, and strategy threads.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Subreddit</div>
+        <a href="https://www.reddit.com/r/paintball/" target="_blank" rel="noopener">r/paintball</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Active subreddit for questions, field photos, gear advice, and community discussion.</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Official</div>
+        <a href="https://www.nxlpaintball.com/" target="_blank" rel="noopener">NXL Paintball</a><br>
+        <span style="color: var(--muted); font-size: 0.78rem;">Official NXL site — rulebooks, event schedules, divisional rankings, and format information.</span>
+      </div>
+    </div>
+
+    <h3>Tactical Reading</h3>
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="ref-label">Snap Shooting Guide</div>
+        <a href="https://www.choicepaintballguns.com/paintball-snap-shooting-tips-article" target="_blank" rel="noopener">Choice Paintball Guns — Snap Shooting</a>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Bunkering Guide</div>
+        <a href="https://paintballic.com/how-to-bunker-an-opponent-in-paintball/" target="_blank" rel="noopener">Paintballic — Bunkering Step by Step</a>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Movement Guide</div>
+        <a href="https://whiteriverpaintball.com/2024/07/17/how-to-move-on-a-paintball-field/" target="_blank" rel="noopener">White River Paintball — Field Movement</a>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Team Roles</div>
+        <a href="https://www.choicepaintballguns.com/tactical-paintball-squad-article" target="_blank" rel="noopener">Choice Paintball — Positions &amp; Roles</a>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Mental Game</div>
+        <a href="https://www.paintballusa.org/blog/staying-calm-and-composed-in-paintball" target="_blank" rel="noopener">Paintball USA — Staying Calm</a>
+      </div>
+      <div class="ref-item">
+        <div class="ref-label">Fitness</div>
+        <a href="https://www.playbetterpaintball.com/blog/paintball-fitness-a-comprehensive-guide-to-exercising-for-paintball/" target="_blank" rel="noopener">Play Better Paintball — Fitness Guide</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<footer>Open Research &mdash; Paintball Tactics &amp; Strategy &mdash; Mar 2026</footer>
+
+</body>
+</html>
