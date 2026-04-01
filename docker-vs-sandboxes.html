@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker Containers vs Sandboxes — Infrastructure Research</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --tag-bg: #1a1d27;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      font-size: 0.97rem;
+      line-height: 1.7;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+    }
+    .back-link {
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .back-link:hover { color: var(--text); text-decoration: none; }
+    .meta-line {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .meta-line span { color: var(--accent); }
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+      max-width: 720px;
+    }
+    .lede {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.65;
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    /* ── Section titles ── */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+      padding-left: 0.85rem;
+      margin: 2.8rem 0 1.1rem;
+      line-height: 1.3;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 1.8rem 0 0.6rem;
+    }
+
+    h4 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 1.4rem 0 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    p { margin-bottom: 0.85rem; color: var(--text); }
+
+    ul, ol {
+      padding-left: 1.4rem;
+      margin-bottom: 0.85rem;
+    }
+    li { margin-bottom: 0.3rem; color: var(--text); }
+    li strong { color: var(--text); }
+
+    /* ── Callout boxes ── */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin: 1.2rem 0;
+      font-size: 0.93rem;
+    }
+    .callout.warn {
+      border-left-color: var(--yellow);
+      background: #1c1a12;
+    }
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #1c1010;
+    }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout-title {
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.5rem;
+    }
+    .callout .callout-title { color: var(--accent); }
+    .callout.warn .callout-title { color: var(--yellow); }
+    .callout.danger .callout-title { color: var(--red); }
+
+    /* ── Code blocks ── */
+    pre {
+      background: #0a0c12;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.4rem;
+    }
+    pre code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #c9d1e8;
+      background: none;
+      padding: 0;
+    }
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.83em;
+      background: #1a1d27;
+      color: #a8b4e8;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+    }
+    pre code { color: #c9d1e8; }
+
+    /* Syntax hint colors inside pre */
+    .kw { color: #7c9ef5; }
+    .cm { color: #5a6380; font-style: italic; }
+    .st { color: #8ec78e; }
+    .nb { color: #e8b46e; }
+
+    /* ── Comparison table ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      margin: 1.2rem 0 1.8rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .compare-table thead tr {
+      background: #1a1d27;
+    }
+    .compare-table th {
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .compare-table td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .compare-table tbody tr:last-child td { border-bottom: none; }
+    .compare-table tbody tr:hover { background: #12141a; }
+    .compare-table td:first-child { font-weight: 600; white-space: nowrap; }
+
+    .good  { background: #0d3322; color: var(--green); font-weight: 600; }
+    .warn  { background: #2d2200; color: var(--yellow); font-weight: 600; }
+    .bad   { background: #2d0d0d; color: var(--red); font-weight: 600; }
+
+    /* ── Decision table ── */
+    .decision-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 1.2rem 0 1.8rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .decision-table thead tr { background: #1a1d27; }
+    .decision-table th {
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .decision-table td {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .decision-table tbody tr:last-child td { border-bottom: none; }
+    .decision-table tbody tr:hover { background: #12141a; }
+    .decision-table td:first-child { color: var(--muted); font-size: 0.82rem; }
+    .decision-table td:nth-child(2) { font-weight: 600; color: var(--accent); }
+
+    /* ── Tag chips ── */
+    .tag {
+      display: inline-block;
+      background: var(--tag-bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: 0.74rem;
+      font-weight: 500;
+      padding: 0.18em 0.7em;
+      margin: 0.15em 0.15em;
+    }
+    .tag.green { background: #0a2418; color: var(--green); border-color: #1a5c3a; }
+    .tag.red   { background: #250a0a; color: var(--red);   border-color: #5c1a1a; }
+    .tag.yellow { background: #251d08; color: var(--yellow); border-color: #5c4a10; }
+    .tag.blue  { background: #0d1530; color: var(--accent); border-color: #2a3870; }
+
+    .tags { margin: 0.5rem 0 1rem; }
+
+    /* ── Spectrum bar ── */
+    .spectrum {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 1.2rem 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .spectrum-item {
+      flex: 1;
+      padding: 0.65rem 0.5rem;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .spectrum-item:last-child { border-right: none; }
+    .spectrum-item .label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .spectrum-item .sublabel { font-size: 0.7rem; font-weight: 400; color: var(--muted); margin-top: 0.2rem; }
+    .sp-1 { background: #1a1d27; color: var(--muted); }
+    .sp-2 { background: #1a2a1a; color: #5dba7a; }
+    .sp-3 { background: #1a2400; color: var(--yellow); }
+    .sp-4 { background: #1f1020; color: #b07de8; }
+    .sp-5 { background: #201010; color: var(--red); }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+
+    /* ── Escape section ── */
+    .cve-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin: 0.9rem 0;
+    }
+    .cve-card .cve-id {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.3rem;
+    }
+    .cve-card p { margin-bottom: 0; font-size: 0.9rem; }
+    .cve-card .immune {
+      font-size: 0.8rem;
+      color: var(--green);
+      margin-top: 0.4rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      main { padding: 1.5rem 1rem 3rem; }
+      header { padding: 1rem 1rem; }
+      header h1 { font-size: 1.4rem; }
+      .compare-table { font-size: 0.75rem; }
+      .compare-table th, .compare-table td { padding: 0.45rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back-link">&#8592; Back to Research Index</a>
+  <div class="meta-line">March 31, 2026 &nbsp;·&nbsp; <span>INFRASTRUCTURE</span></div>
+  <h1>Docker Containers vs Sandboxes</h1>
+  <p class="lede">
+    A deep dive into isolation technologies: Docker, gVisor, Firecracker, Kata Containers, WASM,
+    and OS-level policy sandboxes — understanding the isolation spectrum, the real security
+    implications of shared kernels, and when to reach for each tool.
+  </p>
+</header>
+
+<main>
+
+  <!-- ════════════════════════════════════════════════
+       1. OPENING CALLOUT — THE CORE CONFUSION
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">The Core Confusion: "Sandbox" Is an Overloaded Term</h2>
+
+  <div class="callout">
+    <div class="callout-title">Key Mental Model</div>
+    <p>
+      Containers <em>are</em> a form of sandboxing — they isolate processes using Linux namespaces
+      and cgroups. But when engineers say "sandbox," they often mean something with deeper isolation
+      guarantees than a container provides. The question is never <em>sandbox vs container</em>; it
+      is always <em>which point on the isolation spectrum do you need?</em>
+    </p>
+  </div>
+
+  <p>
+    "Sandbox" means different things in different contexts. A browser sandbox (V8 Isolate) is
+    vastly different from a gVisor sandbox, which is vastly different from a Firecracker microVM.
+    What they share is the intent: constrain what untrusted code can do. The mechanisms —
+    and therefore the security guarantees — differ enormously.
+  </p>
+
+  <p>
+    Isolation exists on a spectrum. Moving right means stronger isolation and higher overhead:
+  </p>
+
+  <div class="spectrum">
+    <div class="spectrum-item sp-1">
+      <div class="label">OS Process</div>
+      <div class="sublabel">ulimit only</div>
+    </div>
+    <div class="spectrum-item sp-2">
+      <div class="label">Container</div>
+      <div class="sublabel">namespaces + cgroups</div>
+    </div>
+    <div class="spectrum-item sp-3">
+      <div class="label">gVisor</div>
+      <div class="sublabel">syscall interception</div>
+    </div>
+    <div class="spectrum-item sp-4">
+      <div class="label">Kata / Firecracker</div>
+      <div class="sublabel">per-container VM kernel</div>
+    </div>
+    <div class="spectrum-item sp-5">
+      <div class="label">Full VM</div>
+      <div class="sublabel">separate hardware emulation</div>
+    </div>
+  </div>
+
+  <p>
+    Every step to the right reduces the attack surface but increases startup latency and resource
+    overhead. The right choice depends on who is running the code, what the blast radius of an
+    escape is, and what your performance budget allows.
+  </p>
+
+  <!-- ════════════════════════════════════════════════
+       2. WHAT IS A CONTAINER?
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">What Is a Container? (Docker, OCI)</h2>
+
+  <p>
+    A container is not a virtual machine. It is a collection of Linux kernel features that create
+    the <em>illusion</em> of an isolated environment while sharing the host's kernel. Docker and
+    the OCI (Open Container Initiative) runtime spec standardise how these features are assembled.
+  </p>
+
+  <h3>Linux Namespaces — the Isolation Primitive</h3>
+  <p>
+    Namespaces partition kernel resources so that one set of processes sees one set of resources
+    and another set of processes sees a different set. Docker uses six namespaces:
+  </p>
+  <ul>
+    <li><strong>pid</strong> — process tree isolation; container PID 1 appears as init inside, but has a different PID on the host</li>
+    <li><strong>net</strong> — separate network stack: interfaces, routes, iptables rules, sockets</li>
+    <li><strong>mnt</strong> — private mount table; the container's filesystem view</li>
+    <li><strong>uts</strong> — independent hostname and domain name (UTS = UNIX Time-sharing System)</li>
+    <li><strong>ipc</strong> — isolated System V IPC and POSIX message queues</li>
+    <li><strong>user</strong> — UID/GID remapping; UID 0 inside maps to unprivileged UID outside (when enabled)</li>
+  </ul>
+
+  <div class="callout warn">
+    <div class="callout-title">Critical Point</div>
+    <p>
+      Namespaces do <em>not</em> prevent syscalls. A process inside a container can still call
+      <code>open(2)</code>, <code>mmap(2)</code>, <code>clone(2)</code>, or any other syscall.
+      Namespaces only change what the kernel returns — not whether the syscall is allowed.
+      This is the fundamental distinction from a gVisor or VM sandbox.
+    </p>
+  </div>
+
+  <h3>cgroups — Resource Governance</h3>
+  <p>
+    Control Groups (cgroups v2) enforce resource limits. Docker translates <code>--memory</code>,
+    <code>--cpus</code>, and <code>--blkio-weight</code> flags into cgroup entries under
+    <code>/sys/fs/cgroup/</code>. A container hitting its memory limit gets OOM-killed by the
+    kernel; it cannot steal memory from other containers. However, cgroups are about
+    <em>fairness and limits</em>, not security isolation — they don't prevent a container from
+    making privilege-escalation syscalls.
+  </p>
+
+  <h3>Union Filesystems (overlay2)</h3>
+  <p>
+    Docker images are built from immutable layers stacked with OverlayFS. Each image layer is
+    a directory diff. At runtime, a thin writable layer sits on top (copy-on-write). This makes
+    images share common base layers on disk and allows containers to start without copying gigabytes
+    of data. The container sees a merged view but writes only to its own layer.
+  </p>
+
+  <h3>The Key Security Implication: Shared Host Kernel</h3>
+
+  <div class="callout danger">
+    <div class="callout-title">The Single Biggest Security Fact About Containers</div>
+    <p>
+      Every Docker container on a host shares the same Linux kernel. If a container exploits a
+      kernel vulnerability — a buffer overflow in a syscall handler, a race condition in
+      <code>io_uring</code>, a privilege escalation via a kernel data structure — it can escape
+      to the host and own every other container on the machine. There is no kernel-level boundary
+      between containers; only namespace and cgroup accounting enforced <em>by</em> that kernel.
+    </p>
+  </div>
+
+  <h3>Performance Characteristics</h3>
+  <ul>
+    <li><strong>Startup time:</strong> ~50–150ms for a typical container (image already pulled)</li>
+    <li><strong>CPU overhead:</strong> &lt;1% vs bare metal for most workloads (namespace lookups are negligible)</li>
+    <li><strong>Memory overhead:</strong> ~1–5 MB per container daemon bookkeeping; no hypervisor tax</li>
+    <li><strong>I/O:</strong> overlay2 adds one extra copy-on-write on first write per file; subsequent writes are native speed</li>
+  </ul>
+
+  <!-- ════════════════════════════════════════════════
+       3. THE SANDBOX LANDSCAPE
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">The Sandbox Landscape — Five Categories</h2>
+
+  <!-- A: gVisor -->
+  <h3>A. Kernel-Intercepting Sandboxes — gVisor (runsc)</h3>
+  <div class="tags">
+    <span class="tag blue">Google</span>
+    <span class="tag">Open Source</span>
+    <span class="tag green">Recommended for untrusted code</span>
+  </div>
+
+  <p>
+    gVisor is Google's answer to the shared-kernel problem. Instead of letting container processes
+    talk directly to the host kernel, gVisor inserts a userspace Go binary called <strong>the
+    Sentry</strong> that intercepts every Linux syscall the container makes.
+  </p>
+
+  <p>
+    The Sentry is a Linux kernel implemented in Go — it understands <code>open(2)</code>,
+    <code>read(2)</code>, <code>fork(2)</code>, etc., and re-implements them in userspace. The
+    container process thinks it's talking to a real Linux kernel. In reality, the Sentry handles
+    the call and only makes a <em>tiny</em> set of carefully audited syscalls down to the actual
+    host kernel. This dramatically shrinks the host kernel's attack surface from hundreds of
+    syscalls to a handful.
+  </p>
+
+  <p>gVisor runs in two modes:</p>
+  <ul>
+    <li>
+      <strong>ptrace mode</strong> — uses <code>PTRACE_SYSCALL</code> to intercept calls. Works
+      on any Linux machine. Slower (~2–5x overhead for syscall-heavy workloads).
+    </li>
+    <li>
+      <strong>KVM mode</strong> — the Sentry runs inside a KVM virtual machine, with hardware
+      assistance for syscall interception. Faster (~20–30% overhead), requires KVM device.
+    </li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-title">Real-World Deployment</div>
+    <p>
+      Google Cloud Run and GKE Sandbox use gVisor as the default runtime for all user workloads.
+      Every Cloud Run container you deploy is isolated by gVisor's Sentry, not bare runc.
+      This is how Google safely multi-tenants millions of customer containers on shared hosts.
+    </p>
+  </div>
+
+  <p><strong>Trade-offs:</strong></p>
+  <ul>
+    <li>~20–30% CPU overhead (KVM mode) to ~2–5x overhead (ptrace mode) for syscall-intensive code</li>
+    <li>Some syscalls are not yet implemented — applications using <code>io_uring</code>, obscure ioctls, or newer kernel features may fail</li>
+    <li>Compatibility testing required before production adoption</li>
+  </ul>
+
+  <!-- B: Kata / Firecracker -->
+  <h3>B. VM-Based Containers — Kata Containers / Firecracker</h3>
+  <div class="tags">
+    <span class="tag">AWS</span>
+    <span class="tag">OpenInfra Foundation</span>
+    <span class="tag green">Strongest container-compat isolation</span>
+  </div>
+
+  <p>
+    Rather than intercepting syscalls, Kata Containers give each container (or pod) its own
+    lightweight virtual machine with its own kernel. The container runtime (containerd or CRI-O)
+    launches a minimal VM using QEMU, AWS Firecracker, or Cloud Hypervisor, boots a stripped-down
+    Linux kernel inside it, and then starts the container inside that VM.
+  </p>
+
+  <p>
+    <strong>Firecracker</strong> (developed by AWS for Lambda and Fargate) is purpose-built for
+    this use case. It is a minimal VMM (Virtual Machine Monitor) written in Rust that exposes
+    only a small set of emulated devices (virtio-net, virtio-block, serial). This tiny surface
+    area means:
+  </p>
+  <ul>
+    <li>Boot time: ~125ms for a Firecracker microVM (vs ~1–2s for QEMU)</li>
+    <li>Memory overhead: &lt;5 MB per microVM for the VMM itself</li>
+    <li>True kernel isolation: a CVE in the host kernel does not affect code running inside the VM kernel</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-title">Who Uses This</div>
+    <p>
+      AWS Lambda runs every function invocation inside a Firecracker microVM. AWS Fargate uses
+      Firecracker for ECS/EKS workloads. Fly.io runs customer VMs on Firecracker. This is the
+      technology enabling true multi-tenant serverless compute where customer A's kernel panic
+      cannot affect customer B.
+    </p>
+  </div>
+
+  <p><strong>Trade-offs:</strong></p>
+  <ul>
+    <li>~125ms cold start vs ~50ms for containers (still fast enough for serverless)</li>
+    <li>Higher baseline memory than containers (one kernel + VMM per workload)</li>
+    <li>Requires KVM hardware support — no nested virtualisation in most cloud instances unless explicitly enabled</li>
+  </ul>
+
+  <!-- C: seccomp / AppArmor / SELinux -->
+  <h3>C. OS-Level Policy Sandboxes — seccomp, AppArmor, SELinux</h3>
+  <div class="tags">
+    <span class="tag blue">Built into Linux</span>
+    <span class="tag">Works inside containers</span>
+  </div>
+
+  <p>
+    These are not separate runtimes — they are Linux kernel security mechanisms that restrict what
+    a process (including a container process) is allowed to do. Docker applies them by default,
+    and they can be tightened significantly.
+  </p>
+
+  <p><strong>seccomp (Secure Computing Mode)</strong> — a kernel feature that installs a
+    BPF filter on the syscall path. Every syscall is checked against the filter before execution.
+    Docker's default seccomp profile blocks ~44 syscalls including <code>ptrace</code>,
+    <code>kexec_load</code>, <code>perf_event_open</code>, <code>bpf</code>, and others that
+    have historically been used in container escapes. You can tighten this to an allowlist of
+    only the syscalls your application actually needs.
+  </p>
+
+  <p><strong>AppArmor</strong> — a Linux Security Module that enforces path-based mandatory
+    access control. Docker's default AppArmor profile (<code>docker-default</code>) restricts
+    mount operations, denies access to <code>/proc/sysrq-trigger</code>, and limits certain
+    capabilities. Custom profiles can lock down file paths, network access, and capability use.
+  </p>
+
+  <p><strong>SELinux</strong> — uses security labels (contexts) on files, processes, and sockets.
+    Mandatory access control enforced by the kernel's security framework. Common in RHEL/Fedora
+    environments. Container runtimes assign an <code>svirt_lxc_net_t</code> type to container
+    processes, constraining what they can access on the host.
+  </p>
+
+  <div class="callout">
+    <div class="callout-title">Important Nuance</div>
+    <p>
+      seccomp, AppArmor, and SELinux work <em>inside</em> the shared-kernel model. They reduce
+      the syscall surface available to a container, but they do not eliminate the host kernel
+      exposure entirely. A zero-day in a syscall that is <em>on</em> the allowlist can still
+      result in a host escape. They are defence-in-depth, not isolation boundaries.
+    </p>
+  </div>
+
+  <!-- D: WASM / V8 Isolates / Deno -->
+  <h3>D. Language/Runtime Sandboxes — WASM, V8 Isolates, Deno</h3>
+  <div class="tags">
+    <span class="tag">Cloudflare Workers</span>
+    <span class="tag">Fastly Compute</span>
+    <span class="tag green">~0ms startup</span>
+  </div>
+
+  <p>
+    These sandboxes operate at the language/runtime level rather than the OS level. They do not
+    use namespaces or VMs — they sandbox at the instruction level.
+  </p>
+
+  <p><strong>WebAssembly (WASM)</strong> — a binary instruction format that runs in a
+    capability-based sandbox. WASM programs cannot make syscalls at all; the runtime (Wasmtime,
+    WasmEdge, browser engine) mediates all I/O through explicit imports. WASI (WebAssembly System
+    Interface) defines a capability model: you must explicitly grant access to directories, sockets,
+    and clocks. Deny-by-default, with explicitly granted permissions.
+  </p>
+
+  <p><strong>V8 Isolates</strong> (used by Cloudflare Workers) — V8 runs JavaScript inside
+    isolated heaps called "Isolates". Each Worker gets its own Isolate with no shared memory.
+    A single OS process can host thousands of Isolates simultaneously. Startup time is ~0ms
+    for warm Isolates, ~1–5ms for cold. The trade-off: JavaScript only (or languages compiled
+    to JS/WASM), and the V8 security model assumes bugs in V8 itself are fixed promptly.
+  </p>
+
+  <p><strong>Deno</strong> — a JavaScript/TypeScript runtime built on V8 with an explicit
+    permission system. Network access, file system access, and environment variable access
+    are all denied by default and must be granted with flags like <code>--allow-net=api.example.com</code>
+    and <code>--allow-read=/tmp</code>. This makes the permission model auditable at launch time.
+  </p>
+
+  <p><strong>Trade-offs:</strong> language-specific (or requires compiling to WASM/JS),
+    not general-purpose, cannot run arbitrary Linux binaries.</p>
+
+  <!-- E: Full VM -->
+  <h3>E. Hypervisor / Full VM — QEMU, VirtualBox, KVM</h3>
+  <div class="tags">
+    <span class="tag red">Highest overhead</span>
+    <span class="tag green">Strongest isolation</span>
+  </div>
+
+  <p>
+    Traditional virtual machines emulate complete hardware — CPU, memory, disk controllers,
+    network cards. Each VM boots its own kernel and userspace OS from scratch. The hypervisor
+    (QEMU/KVM, VirtualBox, VMware ESXi, Hyper-V) manages resource allocation and hardware
+    emulation. The attack surface from a guest to the host is the hypervisor itself — a much
+    smaller and more audited codebase than an entire Linux kernel.
+  </p>
+  <ul>
+    <li>Startup: 5–30 seconds (full OS boot)</li>
+    <li>Memory: 256 MB–several GB per VM (full OS stack)</li>
+    <li>Isolation: complete kernel + userspace separation</li>
+    <li>Use case: different OS (Windows on Linux host), maximum compliance requirements, legacy software</li>
+  </ul>
+
+  <!-- ════════════════════════════════════════════════
+       4. SECURITY COMPARISON TABLE
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">Security Comparison Deep-Dive</h2>
+
+  <p>
+    The following table compares technologies across the dimensions that matter most for
+    security architecture decisions. Risk assessments assume a competent attacker with
+    knowledge of public CVEs.
+  </p>
+
+  <div style="overflow-x:auto;">
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Technology</th>
+        <th>Kernel Shared</th>
+        <th>Syscall Exposure</th>
+        <th>Escape Risk</th>
+        <th>CVE Isolation</th>
+        <th>Startup</th>
+        <th>Mem Overhead</th>
+        <th>Best Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Docker (default)</td>
+        <td class="bad">Yes</td>
+        <td class="warn">~300 allowed</td>
+        <td class="warn">Medium</td>
+        <td class="bad">None</td>
+        <td class="good">~100ms</td>
+        <td class="good">~5 MB</td>
+        <td>Trusted internal services</td>
+      </tr>
+      <tr>
+        <td>Docker + gVisor</td>
+        <td class="warn">Partial*</td>
+        <td class="good">~50 host syscalls</td>
+        <td class="good">Low</td>
+        <td class="warn">Partial</td>
+        <td class="good">~150ms</td>
+        <td class="warn">~20 MB</td>
+        <td>Untrusted 3rd-party code</td>
+      </tr>
+      <tr>
+        <td>Docker + seccomp strict</td>
+        <td class="bad">Yes</td>
+        <td class="good">~60 allowed</td>
+        <td class="warn">Low–Med</td>
+        <td class="bad">None</td>
+        <td class="good">~100ms</td>
+        <td class="good">~5 MB</td>
+        <td>Prod services, defence in depth</td>
+      </tr>
+      <tr>
+        <td>Kata / Firecracker</td>
+        <td class="good">No</td>
+        <td class="good">Host unexposed</td>
+        <td class="good">Very Low</td>
+        <td class="good">Full</td>
+        <td class="warn">~125–300ms</td>
+        <td class="warn">~50–128 MB</td>
+        <td>User code execution, serverless</td>
+      </tr>
+      <tr>
+        <td>VM (QEMU/KVM)</td>
+        <td class="good">No</td>
+        <td class="good">None</td>
+        <td class="good">Very Low</td>
+        <td class="good">Full</td>
+        <td class="bad">5–30s</td>
+        <td class="bad">256 MB+</td>
+        <td>Different OS, compliance</td>
+      </tr>
+      <tr>
+        <td>WASM (Wasmtime)</td>
+        <td class="good">No syscalls</td>
+        <td class="good">Capability only</td>
+        <td class="good">Very Low</td>
+        <td class="good">Full</td>
+        <td class="good">~1ms</td>
+        <td class="good">~2 MB</td>
+        <td>Plugins, edge compute</td>
+      </tr>
+      <tr>
+        <td>V8 Isolate</td>
+        <td class="warn">Process shared</td>
+        <td class="good">None (JS sandbox)</td>
+        <td class="good">Low</td>
+        <td class="warn">V8 bugs only</td>
+        <td class="good">~0–5ms</td>
+        <td class="good">~1–3 MB</td>
+        <td>Serverless JS, edge workers</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="font-size:0.78rem; color:var(--muted);">
+    * gVisor's Sentry does make a small set of host syscalls; the host kernel exposure is
+    dramatically reduced but not eliminated. KVM mode further reduces this.
+  </p>
+
+  <!-- ════════════════════════════════════════════════
+       5. DECISION MATRIX — WHEN TO USE WHAT
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">When to Use What — Decision Matrix</h2>
+
+  <h3>Use Plain Docker When</h3>
+  <ul>
+    <li>Running <strong>internal services you trust</strong> — your own application code, written by your team</li>
+    <li><strong>Development environments</strong> — fast iteration matters more than maximum isolation</li>
+    <li><strong>CI/CD build runners</strong> where the code being built is from your own repositories</li>
+    <li><strong>Performance is critical</strong> and you cannot accept even a 20% CPU overhead</li>
+    <li>Multi-tenant where all tenants are <strong>your own team</strong> (not external customers)</li>
+  </ul>
+
+  <h3>Use Docker + Strict seccomp/AppArmor When</h3>
+  <ul>
+    <li><strong>Production workloads</strong> — defence in depth costs almost nothing in performance</li>
+    <li>You want 95% of Docker convenience with a meaningfully better security posture</li>
+    <li><strong>Network-exposed services</strong> — reduces the syscall surface an exploited app can leverage</li>
+    <li>You need to demonstrate security controls for audit purposes without changing your runtime</li>
+  </ul>
+
+  <h3>Use gVisor (runsc) When</h3>
+  <ul>
+    <li>Running <strong>untrusted or third-party code</strong> — npm packages, user-submitted Dockerfiles</li>
+    <li><strong>Multi-tenant SaaS</strong> where one customer's container could attack another</li>
+    <li>You need <strong>Linux ABI compatibility</strong> (gVisor implements the Linux syscall interface) but stronger isolation than containers</li>
+    <li>You are already on <strong>Google Cloud Run or GKE</strong> — gVisor is the default there</li>
+    <li>Compatibility with your workload has been validated (test first — some apps break)</li>
+  </ul>
+
+  <h3>Use Kata Containers / Firecracker When</h3>
+  <ul>
+    <li>Running <strong>truly untrusted code</strong> — user uploads, arbitrary code execution services</li>
+    <li>Building a <strong>serverless functions platform</strong> (AWS Lambda model)</li>
+    <li>A <strong>kernel vulnerability would be catastrophic</strong> — financial systems, health data</li>
+    <li><strong>Compliance requirements</strong> (PCI DSS, HIPAA, FedRAMP) explicitly require VM-level isolation between workloads</li>
+    <li>You can accept ~125–300ms cold start overhead</li>
+  </ul>
+
+  <h3>Use WASM When</h3>
+  <ul>
+    <li>Building a <strong>plugin system or extension point</strong> — WASM is the new DLL</li>
+    <li><strong>Edge compute</strong> (Cloudflare Workers, Fastly Compute) where ~0ms startup and small binary size matter</li>
+    <li><strong>Language-agnostic sandboxing</strong> — compile Rust, Go, C, Python, etc. to WASM</li>
+    <li>You need <strong>deterministic, reproducible execution</strong> (WASM is well-specified)</li>
+    <li>The workload is computationally intensive but does not need arbitrary OS access</li>
+  </ul>
+
+  <h3>Use Plain VMs When</h3>
+  <ul>
+    <li><strong>Legacy software</strong> that cannot be containerised (requires specific kernel version, specific drivers)</li>
+    <li><strong>Different OS entirely</strong> — running Windows on a Linux host</li>
+    <li><strong>Maximum isolation</strong> with full OS auditing, snapshotting, and rollback</li>
+    <li>The 30-second boot time is acceptable (batch jobs, long-running workloads)</li>
+  </ul>
+
+  <!-- ════════════════════════════════════════════════
+       6. PRACTICAL EXAMPLES — RUNNABLE COMMANDS
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">Practical Examples — Runnable Commands</h2>
+
+  <div class="callout">
+    <div class="callout-title">Note</div>
+    <p>
+      All commands below are copy-paste ready. Commands marked with
+      <code># host</code> run on the Docker host; commands inside blocks without that marker
+      run inside the container. Tested on Ubuntu 22.04/24.04.
+    </p>
+  </div>
+
+  <!-- Example 1: Docker baseline -->
+  <h3>Example 1 — Docker Baseline: Inspect Isolation</h3>
+  <pre><code><span class="cm"># Run a container and inspect its isolation</span>
+docker run --rm -it ubuntu:24.04 bash
+
+<span class="cm"># Inside the container — check your namespaces</span>
+ls -la /proc/self/ns/
+<span class="cm"># You'll see: cgroup, ipc, mnt, net, pid, pid_for_children, time, uts, user</span>
+
+<span class="cm"># Check if memory limit is set (requires cgroups v2)</span>
+cat /sys/fs/cgroup/memory.max
+<span class="cm"># "max" means unlimited; set a limit with: docker run --memory=512m ...</span>
+
+<span class="cm"># Verify you can't see host processes</span>
+ps aux
+<span class="cm"># Only container processes visible — pid namespace at work</span>
+
+<span class="cm"># Try to mount — should be denied (CAP_SYS_ADMIN not granted by default)</span>
+mount -t proc proc /tmp/proc
+<span class="cm"># mount: /tmp/proc: permission denied.</span>
+
+<span class="cm"># Check capabilities (should be a reduced set)</span>
+cat /proc/self/status | grep CapEff
+<span class="cm"># Decode: capsh --decode=&lt;hex&gt;</span></code></pre>
+
+  <!-- Example 2: Strict seccomp -->
+  <h3>Example 2 — Docker with a Strict seccomp Profile</h3>
+  <p>
+    Create <code>strict-seccomp.json</code> — an allowlist profile that blocks
+    <code>ptrace</code>, <code>process_vm_readv</code>, <code>process_vm_writev</code>,
+    <code>kexec_load</code>, <code>perf_event_open</code>, and <code>bpf</code>:
+  </p>
+  <pre><code>{
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "architectures": ["SCMP_ARCH_X86_64", "SCMP_ARCH_X86", "SCMP_ARCH_X32"],
+  "syscalls": [
+    {
+      "names": [
+        "accept", "accept4", "access", "arch_prctl", "bind", "brk",
+        "capget", "capset", "chdir", "chmod", "chown", "clock_getres",
+        "clock_gettime", "clock_nanosleep", "close", "connect",
+        "copy_file_range", "creat", "dup", "dup2", "dup3",
+        "epoll_create", "epoll_create1", "epoll_ctl", "epoll_pwait",
+        "epoll_wait", "eventfd", "eventfd2", "execve", "execveat",
+        "exit", "exit_group", "faccessat", "fadvise64", "fallocate",
+        "fanotify_mark", "fchdir", "fchmod", "fchmodat", "fchown",
+        "fchownat", "fcntl", "fdatasync", "fgetxattr", "flistxattr",
+        "flock", "fork", "fremovexattr", "fsetxattr", "fstat",
+        "fstatfs", "fsync", "ftruncate", "futex", "getcpu",
+        "getcwd", "getdents", "getdents64", "getegid", "geteuid",
+        "getgid", "getgroups", "getitimer", "getpeername", "getpgid",
+        "getpgrp", "getpid", "getppid", "getpriority", "getrandom",
+        "getrlimit", "getrusage", "getsid", "getsockname", "getsockopt",
+        "gettid", "gettimeofday", "getuid", "getxattr", "inotify_add_watch",
+        "inotify_init", "inotify_init1", "inotify_rm_watch", "ioctl",
+        "kill", "lchown", "lgetxattr", "link", "linkat", "listen",
+        "listxattr", "llistxattr", "lremovexattr", "lseek", "lsetxattr",
+        "lstat", "madvise", "memfd_create", "mkdir", "mkdirat",
+        "mknod", "mknodat", "mlock", "mlock2", "mlockall", "mmap",
+        "mprotect", "mq_getsetattr", "mq_notify", "mq_open",
+        "mq_timedreceive", "mq_timedsend", "mq_unlink", "mremap",
+        "msgctl", "msgget", "msgrcv", "msgsnd", "msync", "munlock",
+        "munlockall", "munmap", "nanosleep", "newfstatat", "open",
+        "openat", "pause", "pipe", "pipe2", "poll", "ppoll",
+        "prctl", "pread64", "preadv", "preadv2", "prlimit64",
+        "pwrite64", "pwritev", "pwritev2", "read", "readahead",
+        "readlink", "readlinkat", "readv", "recv", "recvfrom",
+        "recvmmsg", "recvmsg", "rename", "renameat", "renameat2",
+        "restart_syscall", "rmdir", "rt_sigaction", "rt_sigpending",
+        "rt_sigprocmask", "rt_sigqueueinfo", "rt_sigreturn",
+        "rt_sigsuspend", "rt_sigtimedwait", "rt_tgsigqueueinfo",
+        "sched_getaffinity", "sched_getattr", "sched_getparam",
+        "sched_getscheduler", "sched_get_priority_max",
+        "sched_get_priority_min", "sched_setaffinity", "sched_setattr",
+        "sched_setparam", "sched_setscheduler", "sched_yield",
+        "seccomp", "select", "semctl", "semget", "semop", "semtimedop",
+        "send", "sendfile", "sendmmsg", "sendmsg", "sendto",
+        "setfsgid", "setfsuid", "setgid", "setgroups", "setitimer",
+        "setpgid", "setpriority", "setregid", "setresgid", "setresuid",
+        "setreuid", "setrlimit", "setsid", "setsockopt", "setuid",
+        "setxattr", "shmat", "shmctl", "shmdt", "shmget",
+        "shutdown", "sigaltstack", "signalfd", "signalfd4",
+        "sigreturn", "socket", "socketcall", "socketpair",
+        "splice", "stat", "statfs", "statx", "symlink", "symlinkat",
+        "sync", "sync_file_range", "syncfs", "tee", "tgkill",
+        "time", "timer_create", "timer_delete", "timerfd_create",
+        "timerfd_gettime", "timerfd_settime", "timer_getoverrun",
+        "timer_gettime", "timer_settime", "times", "tkill",
+        "truncate", "ugetrlimit", "umask", "uname", "unlink",
+        "unlinkat", "utime", "utimensat", "utimes", "vfork",
+        "vmsplice", "wait4", "waitid", "waitpid", "write", "writev"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}</code></pre>
+
+  <pre><code><span class="cm"># Apply the profile — strace should fail (uses ptrace, which is NOT in allowlist)</span>
+docker run --rm -it \
+  --security-opt seccomp=strict-seccomp.json \
+  ubuntu:24.04 \
+  strace ls
+<span class="cm"># strace: ptrace(PTRACE_TRACEME, ...): Operation not permitted</span>
+
+<span class="cm"># A normal command works fine</span>
+docker run --rm \
+  --security-opt seccomp=strict-seccomp.json \
+  ubuntu:24.04 \
+  ls /etc
+<span class="cm"># Works normally — ls only needs open, read, write, getdents64</span></code></pre>
+
+  <!-- Example 3: Hardened Docker -->
+  <h3>Example 3 — Maximally Hardened Docker Container</h3>
+  <pre><code><span class="cm"># Drop ALL Linux capabilities, add back only what nginx needs</span>
+docker run --rm -it \
+  --cap-drop=ALL \
+  --cap-add=NET_BIND_SERVICE \
+  --read-only \
+  --tmpfs /tmp:size=50m,mode=1777 \
+  --tmpfs /var/cache/nginx:size=50m \
+  --tmpfs /var/run:size=10m \
+  --no-new-privileges \
+  --security-opt no-new-privileges:true \
+  --security-opt apparmor=docker-default \
+  --user 101:101 \
+  nginx:alpine
+
+<span class="cm"># What each flag does:
+# --cap-drop=ALL            Remove all 38 Linux capabilities
+# --cap-add=NET_BIND_SERVICE Allow binding to ports &lt;1024 (needed for :80)
+# --read-only               Root filesystem is immutable
+# --tmpfs ...               Writable in-memory mounts for runtime files
+# --no-new-privileges       Prevent setuid binaries from gaining capabilities
+# --user 101:101            Run as non-root (nginx user in alpine image)</span></code></pre>
+
+  <!-- Example 4: gVisor -->
+  <h3>Example 4 — Install and Run gVisor (runsc)</h3>
+  <pre><code><span class="cm"># ── Install gVisor on Ubuntu/Debian ──</span>
+(
+  set -e
+  ARCH=$(uname -m)
+  URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
+  wget ${URL}/runsc ${URL}/runsc.sha512
+  sha512sum -c runsc.sha512
+  rm -f runsc.sha512
+  chmod a+rx runsc
+  sudo mv runsc /usr/local/bin
+)
+
+<span class="cm"># ── Register runsc as a Docker runtime ──</span>
+sudo tee /etc/docker/daemon.json &lt;&lt; 'EOF'
+{
+  "runtimes": {
+    "runsc": {
+      "path": "/usr/local/bin/runsc"
+    }
+  }
+}
+EOF
+sudo systemctl reload docker
+
+<span class="cm"># ── Run a container with gVisor ──</span>
+docker run --runtime=runsc --rm -it ubuntu:24.04 bash
+
+<span class="cm"># ── Verify gVisor is intercepting syscalls ──</span>
+docker run --runtime=runsc --rm ubuntu:24.04 \
+  sh -c "cat /proc/version"
+<span class="cm"># Output: Linux version 4.4.0 #1 SMP Sun Jan 10 15:06:54 PST 2016 (GVisor)
+# Key: "GVisor" in the kernel version string — you're talking to the Sentry, not the real kernel</span>
+
+<span class="cm"># ── Compare: same command with regular runc ──</span>
+docker run --runtime=runc --rm ubuntu:24.04 \
+  sh -c "cat /proc/version"
+<span class="cm"># Output: Linux version 6.8.0-51-generic (buildd@...) ...
+# This is the real host kernel version</span>
+
+<span class="cm"># ── gVisor syscall interception demo ──</span>
+<span class="cm"># Try kexec_load (blocked even if not in seccomp profile, since Sentry never forwards it)</span>
+docker run --runtime=runsc --rm ubuntu:24.04 \
+  sh -c "python3 -c \"import ctypes; ctypes.CDLL(None).syscall(246, 0, 0, 0, 0)\""
+<span class="cm"># EPERM — gVisor's Sentry returns permission denied; host kernel never sees it</span></code></pre>
+
+  <!-- Example 5: Firecracker -->
+  <h3>Example 5 — Firecracker microVM Setup</h3>
+  <pre><code><span class="cm"># ── Check KVM availability ──</span>
+ls /dev/kvm &amp;&amp; echo "KVM available" || echo "KVM not available"
+<span class="cm"># Firecracker requires /dev/kvm — check cloud provider docs for nested virt support</span>
+
+<span class="cm"># ── Install Firecracker ──</span>
+ARCH="$(uname -m)"
+release_url="https://github.com/firecracker-microvm/firecracker/releases"
+latest=$(basename $(curl -fsSLI -o /dev/null -w %{url_effective} ${release_url}/latest))
+curl -L ${release_url}/download/${latest}/firecracker-${latest}-${ARCH}.tgz \
+  | tar -xz
+sudo mv release-${latest}-$(uname -m)/firecracker-${latest}-${ARCH} /usr/local/bin/firecracker
+sudo chmod +x /usr/local/bin/firecracker
+firecracker --version
+
+<span class="cm"># ── Download quickstart demo images (x86_64) ──</span>
+curl -fsSL -o hello-vmlinux.bin \
+  https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin
+curl -fsSL -o hello-rootfs.ext4 \
+  https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/rootfs/bionic.rootfs.ext4
+
+<span class="cm"># ── Start Firecracker API socket ──</span>
+rm -f /tmp/firecracker.socket
+firecracker --api-sock /tmp/firecracker.socket &amp;
+
+<span class="cm"># ── Configure the microVM via REST API ──</span>
+<span class="cm"># Set kernel</span>
+curl -s -X PUT \
+  --unix-socket /tmp/firecracker.socket \
+  http://localhost/boot-source \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kernel_image_path": "./hello-vmlinux.bin",
+    "boot_args": "console=ttyS0 reboot=k panic=1 pci=off"
+  }'
+
+<span class="cm"># Set rootfs</span>
+curl -s -X PUT \
+  --unix-socket /tmp/firecracker.socket \
+  http://localhost/drives/rootfs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "drive_id": "rootfs",
+    "path_on_host": "./hello-rootfs.ext4",
+    "is_root_device": true,
+    "is_read_only": false
+  }'
+
+<span class="cm"># Set machine config (1 vCPU, 256 MB RAM)</span>
+curl -s -X PUT \
+  --unix-socket /tmp/firecracker.socket \
+  http://localhost/machine-config \
+  -H "Content-Type: application/json" \
+  -d '{"vcpu_count": 1, "mem_size_mib": 256}'
+
+<span class="cm"># Boot it</span>
+curl -s -X PUT \
+  --unix-socket /tmp/firecracker.socket \
+  http://localhost/actions \
+  -H "Content-Type: application/json" \
+  -d '{"action_type": "InstanceStart"}'
+<span class="cm"># MicroVM boots in ~125ms — serial console output appears on stdout</span></code></pre>
+
+  <!-- Example 6: WASM -->
+  <h3>Example 6 — WASM Sandbox with Wasmtime</h3>
+  <pre><code><span class="cm"># ── Install wasmtime ──</span>
+curl https://wasmtime.dev/install.sh -sSf | bash
+source ~/.bashrc   <span class="cm"># or restart shell</span>
+wasmtime --version
+
+<span class="cm"># ── Write a test program ──</span>
+cat &gt; sandbox_test.rs &lt;&lt; 'EOF'
+use std::fs;
+use std::io::Read;
+
+fn main() {
+    println!("Hello from WASM sandbox!");
+
+    // Attempt to read a file — only works if --dir is granted
+    match fs::read_to_string("/etc/hostname") {
+        Ok(content) =&gt; println!("Host: {}", content.trim()),
+        Err(e) =&gt; println!("File access denied: {} (expected in sandbox)", e),
+    }
+}
+EOF
+
+<span class="cm"># ── Compile to WASM (requires Rust + wasm32-wasip1 target) ──</span>
+rustup target add wasm32-wasip1
+rustc --target wasm32-wasip1 sandbox_test.rs -o sandbox_test.wasm
+
+<span class="cm"># ── Run WITHOUT any filesystem access (default sandbox) ──</span>
+wasmtime sandbox_test.wasm
+<span class="cm"># Output:
+# Hello from WASM sandbox!
+# File access denied: failed to find a pre-opened file descriptor (expected in sandbox)</span>
+
+<span class="cm"># ── Run WITH /etc granted (explicit capability) ──</span>
+wasmtime --dir /etc sandbox_test.wasm
+<span class="cm"># Output:
+# Hello from WASM sandbox!
+# Host: my-server-hostname</span>
+
+<span class="cm"># ── No network by default either ──</span>
+cat &gt; net_test.wat &lt;&lt; 'EOF'
+(module
+  (import "wasi_snapshot_preview1" "sock_accept" (func $sock_accept (param i32 i32 i32) (result i32)))
+  (func (export "_start"))
+)
+EOF
+wasmtime net_test.wat
+<span class="cm"># Missing import or capability denied — network is gated behind explicit WASI permissions</span></code></pre>
+
+  <!-- Example 7: Python process sandbox -->
+  <h3>Example 7 — Python Process Sandbox with Resource Limits</h3>
+  <pre><code class="language-python">#!/usr/bin/env python3
+"""Simple process-level sandbox using resource limits + Linux namespaces."""
+import subprocess
+import tempfile
+import os
+
+def run_sandboxed(code: str, timeout: int = 5) -&gt; dict:
+    """
+    Run untrusted Python code in a subprocess with:
+    - Memory limit: 64 MB (RLIMIT_AS)
+    - CPU time limit: 2 seconds (RLIMIT_CPU)
+    - Max open files: 10 (RLIMIT_NOFILE)
+    - Network namespace isolation (unshare --net)
+    - PID namespace isolation (unshare --pid --fork)
+    - Mount namespace isolation (unshare --mount)
+    """
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        f.write(code)
+        script = f.name
+
+    try:
+        result = subprocess.run(
+            [
+                # Linux namespace isolation — requires CAP_SYS_ADMIN or user namespaces
+                "unshare", "--net", "--pid", "--mount", "--fork",
+                "python3", "-c",
+                f"""
+import resource, sys
+
+# Memory: 64 MB — process killed if it tries to allocate more
+resource.setrlimit(resource.RLIMIT_AS, (64 * 1024 * 1024, 64 * 1024 * 1024))
+
+# CPU: 2 seconds — SIGXCPU sent when exceeded
+resource.setrlimit(resource.RLIMIT_CPU, (2, 2))
+
+# Max open file descriptors: 10
+resource.setrlimit(resource.RLIMIT_NOFILE, (10, 10))
+
+# Max child processes: 0 (no fork bombing)
+resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
+
+# Max file size that can be written: 1 MB
+resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
+
+exec(open({repr(script)}).read())
+"""
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return {
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": "Timeout exceeded", "stdout": "", "stderr": ""}
+    except PermissionError as e:
+        return {"error": f"unshare failed (need user namespaces): {e}", "stdout": "", "stderr": ""}
+    finally:
+        os.unlink(script)
+
+
+# ── Test cases ──
+if __name__ == "__main__":
+    print("=== Normal code ===")
+    print(run_sandboxed('print("Hello from sandbox!")'))
+
+    print("\n=== Network access (blocked — unshare --net creates lo-only namespace) ===")
+    print(run_sandboxed('import urllib.request; urllib.request.urlopen("http://example.com")'))
+
+    print("\n=== Fork bomb (RLIMIT_NPROC = 0 prevents any child processes) ===")
+    print(run_sandboxed('import os\nwhile True: os.fork()'))
+
+    print("\n=== CPU exhaustion (killed after 2 CPU seconds) ===")
+    print(run_sandboxed('while True: pass', timeout=4))
+
+    print("\n=== Memory exhaustion (fails at 64 MB) ===")
+    print(run_sandboxed('x = " " * (100 * 1024 * 1024)'))</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-title">Security Warning</div>
+    <p>
+      This Python sandbox approach is educational. For production use of untrusted code execution,
+      use Kata Containers or Firecracker. <code>unshare</code> requires either root or user
+      namespaces enabled (<code>kernel.unprivileged_userns_clone=1</code>), and resource limits
+      can be bypassed by sufficiently motivated attackers with kernel exploits. This is a
+      defence-in-depth layer, not a complete isolation boundary.
+    </p>
+  </div>
+
+  <!-- Example 8: Kata Containers -->
+  <h3>Example 8 — Kata Containers with containerd</h3>
+  <pre><code><span class="cm"># ── Check hardware virtualisation support ──</span>
+grep -E 'vmx|svm' /proc/cpuinfo | head -1
+<span class="cm"># vmx = Intel VT-x, svm = AMD-V. Required for Kata.</span>
+ls /dev/kvm &amp;&amp; echo "KVM available"
+
+<span class="cm"># ── Install Kata Containers (Ubuntu 22.04/24.04) ──</span>
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/kata-containers/main/utils/kata-manager.sh) install-packages"
+
+<span class="cm"># Or via snap (simpler, slightly older version):</span>
+sudo snap install kata-containers --classic
+
+<span class="cm"># ── Configure containerd to use Kata as a shimv2 runtime ──</span>
+sudo mkdir -p /etc/containerd
+sudo tee /etc/containerd/config.toml &lt;&lt; 'EOF'
+version = 2
+[plugins."io.containerd.grpc.v1.cri"]
+  [plugins."io.containerd.grpc.v1.cri".containerd]
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+        runtime_type = "io.containerd.runc.v2"
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
+        runtime_type = "io.containerd.kata.v2"
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata.options]
+          ConfigPath = "/opt/kata/share/defaults/kata-containers/configuration.toml"
+EOF
+sudo systemctl restart containerd
+
+<span class="cm"># ── Run with Kata via nerdctl ──</span>
+nerdctl run --runtime=io.containerd.run.v1.kata --rm -it ubuntu:24.04 \
+  sh -c "uname -r"
+<span class="cm"># Shows a different kernel version than the host — it IS a different kernel:
+# 5.15.0-kata-containers (or similar stripped Kata kernel)
+# Compare with runc: uname -r returns the host kernel</span>
+
+<span class="cm"># ── Verify it's running as a real VM ──</span>
+nerdctl run --runtime=io.containerd.run.v1.kata --rm ubuntu:24.04 \
+  sh -c "dmesg | head -5"
+<span class="cm"># Shows the VM kernel boot messages — completely separate from host dmesg</span>
+
+<span class="cm"># ── With Kubernetes (RuntimeClass) ──</span>
+kubectl apply -f - &lt;&lt; 'EOF'
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata
+handler: kata
+EOF
+
+<span class="cm"># Then in your pod spec:</span>
+<span class="cm"># spec:</span>
+<span class="cm">#   runtimeClassName: kata</span>
+<span class="cm">#   containers: [...]</span></code></pre>
+
+  <!-- ════════════════════════════════════════════════
+       7. ESCAPE TECHNIQUES AND WHY THEY MATTER
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">Container Escape Techniques — Why Isolation Level Matters</h2>
+
+  <p>
+    Understanding real escape techniques illustrates concretely why the isolation level you choose
+    has security consequences. Each of these was a real-world vulnerability; some are patched, some
+    are configuration anti-patterns that still exist in production today.
+  </p>
+
+  <div class="cve-card">
+    <div class="cve-id">CVE-2019-5736 — runc Binary Overwrite</div>
+    <p>
+      A malicious container could overwrite the host's <code>runc</code> binary by exploiting a
+      race condition in how runc opens <code>/proc/self/exe</code>. On the next
+      <code>docker exec</code>, the attacker's code ran as root on the host. Affected every
+      runc-based container runtime (Docker, containerd, CRI-O, Podman at the time).
+    </p>
+    <p class="immune">
+      Not exploitable with gVisor (Sentry implements <code>/proc/self/exe</code> in userspace)
+      or Kata/Firecracker (host runc is never invoked inside the guest VM).
+    </p>
+  </div>
+
+  <div class="cve-card">
+    <div class="cve-id">CVE-2022-0847 — Dirty Pipe (Linux Kernel)</div>
+    <p>
+      A kernel bug in pipe buffer handling allowed unprivileged users to overwrite arbitrary
+      read-only file-backed page cache entries — including <code>/etc/passwd</code> and
+      SUID binaries. Container processes could exploit this to write to host files, escaping
+      into the host filesystem with root privileges. Affected Linux 5.8–5.16.11.
+    </p>
+    <p class="immune">
+      Kata Containers and Firecracker were completely immune — the vulnerable host kernel was
+      never directly exposed to container processes. Plain Docker containers on affected kernel
+      versions were exploitable regardless of seccomp profile.
+    </p>
+  </div>
+
+  <div class="cve-card">
+    <div class="cve-id">Configuration: --privileged Flag</div>
+    <p>
+      Running <code>docker run --privileged</code> grants the container <em>all 38 Linux
+      capabilities</em>, full access to every device on the host, and the ability to remount
+      the root filesystem. This is essentially no isolation — a process inside can trivially
+      mount the host filesystem and <code>chroot</code> into it:
+    </p>
+    <pre style="background:#0a0c12; margin:0.5rem 0 0; padding:0.6rem 0.8rem; font-size:0.78rem; border-radius:4px;"><code>mount /dev/sda1 /mnt/host &amp;&amp; chroot /mnt/host
+# Now you have a root shell on the host OS</code></pre>
+    <p style="margin-top:0.5rem; margin-bottom:0;">Never use <code>--privileged</code> in production. If you think you need it, you almost certainly need a specific capability instead.</p>
+  </div>
+
+  <div class="cve-card">
+    <div class="cve-id">Configuration: Mounted Docker Socket</div>
+    <p>
+      Mounting the Docker daemon socket into a container:
+      <code>docker run -v /var/run/docker.sock:/var/run/docker.sock</code>
+      gives that container full control over the Docker daemon — which runs as root on the host.
+      Any process inside can run:
+    </p>
+    <pre style="background:#0a0c12; margin:0.5rem 0 0; padding:0.6rem 0.8rem; font-size:0.78rem; border-radius:4px;"><code>docker run -v /:/host --rm -it ubuntu chroot /host
+# Instant root shell on the host — complete escape</code></pre>
+    <p style="margin-top:0.5rem; margin-bottom:0;">This is a trivial escape and is extremely common in CI/CD pipelines that mount the socket for "Docker-in-Docker." Use rootless Docker, Buildah, or Kaniko instead.</p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">The Pattern</div>
+    <p>
+      Notice that CVE-2019-5736 is a container runtime bug, Dirty Pipe is a kernel bug, and the
+      last two are configuration mistakes. <strong>gVisor</strong> helps with runtime bugs (the
+      Sentry is the runtime, not runc). <strong>Kata/Firecracker</strong> helps with both runtime
+      bugs <em>and</em> kernel bugs (different kernel per VM). Neither helps with configuration
+      mistakes — those require operational discipline.
+    </p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       8. QUICK-REFERENCE DECISION TABLE
+  ════════════════════════════════════════════════ -->
+  <h2 class="section-title">Quick-Reference Decision Table</h2>
+
+  <div style="overflow-x:auto;">
+  <table class="decision-table">
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Recommended</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Development environment</td>
+        <td>Docker default</td>
+        <td>Speed and convenience; trust level is your own code</td>
+      </tr>
+      <tr>
+        <td>Trusted internal microservices</td>
+        <td>Docker + seccomp</td>
+        <td>Defence in depth at near-zero overhead; reduces blast radius of app-layer exploits</td>
+      </tr>
+      <tr>
+        <td>npm install / build pipelines</td>
+        <td>Docker + gVisor</td>
+        <td>Typosquatted packages execute arbitrary code; gVisor limits kernel exposure</td>
+      </tr>
+      <tr>
+        <td>User-submitted code execution</td>
+        <td>Kata / Firecracker</td>
+        <td>Full VM isolation; kernel CVEs don't cross VM boundary</td>
+      </tr>
+      <tr>
+        <td>Serverless functions (scale to zero)</td>
+        <td>Firecracker / WASM</td>
+        <td>125ms cold start (Firecracker) or ~1ms (WASM) with strong isolation</td>
+      </tr>
+      <tr>
+        <td>Browser / app plugin system</td>
+        <td>WASM / V8 Isolates</td>
+        <td>~0ms init, capability-based, language-sandboxed, no OS exposure</td>
+      </tr>
+      <tr>
+        <td>Compliance (PCI DSS / HIPAA)</td>
+        <td>Kata + AppArmor</td>
+        <td>Auditable VM-level separation; satisfies requirements for workload isolation</td>
+      </tr>
+      <tr>
+        <td>Legacy Windows app on Linux host</td>
+        <td>Full VM (QEMU/KVM)</td>
+        <td>Different OS kernel required; containers cannot run a Windows kernel</td>
+      </tr>
+      <tr>
+        <td>Edge compute (CDN nodes)</td>
+        <td>V8 Isolates / WASM</td>
+        <td>Thousands of tenants per process; ~0ms tenant switch; no cold start</td>
+      </tr>
+      <tr>
+        <td>CI runner accepting PRs from forks</td>
+        <td>gVisor or Kata</td>
+        <td>Fork PRs contain attacker-controlled code; shared-kernel containers are insufficient</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <hr />
+
+  <h2 class="section-title">Summary</h2>
+
+  <p>
+    Containers are excellent tools for packaging and running trusted software. Their shared-kernel
+    architecture gives them near-native performance and sub-second startup, but it means every
+    container on a host is one kernel vulnerability away from a host escape. For the majority of
+    internal workloads where you trust the code, this is an acceptable trade-off.
+  </p>
+
+  <p>
+    The sandbox landscape provides a range of options for when that trade-off is not acceptable.
+    gVisor adds a userspace kernel interception layer that dramatically reduces the attack surface
+    with modest overhead. Kata Containers and Firecracker provide true VM-level isolation with
+    startup times that are competitive with containers for most workloads. WASM provides
+    capability-based isolation with essentially zero overhead for language-compatible workloads.
+  </p>
+
+  <div class="callout">
+    <div class="callout-title">The Rule of Thumb</div>
+    <p>
+      The less you trust the code running in your containers, the further right on the isolation
+      spectrum you should be. Internal services: Docker with seccomp. Third-party packages or
+      build pipelines: gVisor. User-submitted or arbitrary code execution: Kata or Firecracker.
+      No rule applies universally — measure the blast radius of an escape, then choose the
+      isolation boundary that makes that blast radius acceptable.
+    </p>
+  </div>
+
+  <div class="tags" style="margin-top:2rem;">
+    <span class="tag blue">Docker</span>
+    <span class="tag blue">Security</span>
+    <span class="tag blue">Infrastructure</span>
+    <span class="tag blue">Sandboxing</span>
+    <span class="tag">gVisor</span>
+    <span class="tag">Firecracker</span>
+    <span class="tag">Kata Containers</span>
+    <span class="tag">WebAssembly</span>
+    <span class="tag">seccomp</span>
+    <span class="tag">AppArmor</span>
+    <span class="tag">Linux Namespaces</span>
+    <span class="tag">cgroups</span>
+  </div>
+
+</main>
+
+<footer>
+  &copy; 2026 &nbsp;·&nbsp; Docker Containers vs Sandboxes &nbsp;·&nbsp; Infrastructure Research
+</footer>
+
+</body>
+</html>
