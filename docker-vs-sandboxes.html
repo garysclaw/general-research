@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Docker Containers vs Sandboxes — Infrastructure Research</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Docker Sandboxes — AI Agent Isolation Deep Dive</title>
   <style>
     :root {
       --bg: #0f1117;
@@ -17,1485 +17,937 @@
       --yellow: #f0b429;
       --tag-bg: #1a1d27;
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
-      font-size: 0.97rem;
-      line-height: 1.7;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
     }
 
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 18px;
+    }
+    .back:hover { color: var(--accent); }
+    .meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    header h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .lede {
+      font-size: 1rem;
+      color: #9ba3bc;
+      max-width: 640px;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 18px 20px;
+      margin: 24px 0;
+      font-size: 0.93rem;
+      color: #9ba3bc;
+    }
+    .callout.warn  { border-left-color: var(--yellow); }
+    .callout.green { border-left-color: var(--green); }
+    .callout.red   { border-left-color: var(--red); }
+    .callout strong { color: var(--text); }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 44px 0 16px;
+      padding-left: 12px;
+      border-left: 3px solid var(--accent);
+      color: var(--text);
+    }
+
+    p { margin-bottom: 14px; color: #c0c7dd; }
+    ul, ol { margin: 12px 0 14px 22px; color: #c0c7dd; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--text); }
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ── Header ── */
-    header {
-      border-bottom: 1px solid var(--border);
-      padding: 1.5rem 2rem;
-    }
-    .back-link {
-      font-size: 0.82rem;
-      color: var(--muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-bottom: 1rem;
-    }
-    .back-link:hover { color: var(--text); text-decoration: none; }
-    .meta-line {
-      font-size: 0.78rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-    .meta-line span { color: var(--accent); }
-    header h1 {
-      font-size: 1.85rem;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.25;
-      margin-bottom: 0.75rem;
-      max-width: 720px;
-    }
-    .lede {
-      font-size: 1.05rem;
-      color: var(--muted);
-      max-width: 720px;
-      line-height: 1.65;
-    }
-
-    /* ── Main layout ── */
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 2.5rem 2rem 4rem;
-    }
-
-    /* ── Section titles ── */
-    .section-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--text);
-      border-left: 3px solid var(--accent);
-      padding-left: 0.85rem;
-      margin: 2.8rem 0 1.1rem;
-      line-height: 1.3;
-    }
-
-    h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text);
-      margin: 1.8rem 0 0.6rem;
-    }
-
-    h4 {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin: 1.4rem 0 0.45rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    p { margin-bottom: 0.85rem; color: var(--text); }
-
-    ul, ol {
-      padding-left: 1.4rem;
-      margin-bottom: 0.85rem;
-    }
-    li { margin-bottom: 0.3rem; color: var(--text); }
-    li strong { color: var(--text); }
-
-    /* ── Callout boxes ── */
-    .callout {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
-      padding: 1rem 1.2rem;
-      margin: 1.2rem 0;
-      font-size: 0.93rem;
-    }
-    .callout.warn {
-      border-left-color: var(--yellow);
-      background: #1c1a12;
-    }
-    .callout.danger {
-      border-left-color: var(--red);
-      background: #1c1010;
-    }
-    .callout p:last-child { margin-bottom: 0; }
-    .callout-title {
-      font-weight: 700;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 0.5rem;
-    }
-    .callout .callout-title { color: var(--accent); }
-    .callout.warn .callout-title { color: var(--yellow); }
-    .callout.danger .callout-title { color: var(--red); }
-
-    /* ── Code blocks ── */
+    /* ── Code ── */
     pre {
       background: #0a0c12;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem 1.2rem;
+      border-radius: 8px;
+      padding: 16px 18px;
       overflow-x: auto;
-      margin: 1rem 0 1.4rem;
-    }
-    pre code {
-      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-      font-size: 0.82rem;
-      line-height: 1.6;
-      color: #c9d1e8;
-      background: none;
-      padding: 0;
+      margin: 16px 0 20px;
     }
     code {
-      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-      font-size: 0.83em;
-      background: #1a1d27;
-      color: #a8b4e8;
-      padding: 0.15em 0.4em;
-      border-radius: 3px;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #c8d3f0;
     }
-    pre code { color: #c9d1e8; }
+    p code, li code {
+      background: #1a1d27;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.83rem;
+      color: var(--accent);
+    }
+    .comment { color: #4a5568; }
+    .cmd     { color: var(--green); }
+    .flag    { color: var(--yellow); }
+    .str     { color: #a8d8a8; }
 
-    /* Syntax hint colors inside pre */
-    .kw { color: #7c9ef5; }
-    .cm { color: #5a6380; font-style: italic; }
-    .st { color: #8ec78e; }
-    .nb { color: #e8b46e; }
-
-    /* ── Comparison table ── */
+    /* ── Tables ── */
     .compare-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.83rem;
-      margin: 1.2rem 0 1.8rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .compare-table thead tr {
-      background: #1a1d27;
+      margin: 20px 0 28px;
+      font-size: 0.88rem;
     }
     .compare-table th {
-      padding: 0.65rem 0.75rem;
-      text-align: left;
-      font-weight: 600;
+      background: #1a1d27;
       color: var(--muted);
-      font-size: 0.78rem;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      text-align: left;
     }
     .compare-table td {
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-    }
-    .compare-table tbody tr:last-child td { border-bottom: none; }
-    .compare-table tbody tr:hover { background: #12141a; }
-    .compare-table td:first-child { font-weight: 600; white-space: nowrap; }
-
-    .good  { background: #0d3322; color: var(--green); font-weight: 600; }
-    .warn  { background: #2d2200; color: var(--yellow); font-weight: 600; }
-    .bad   { background: #2d0d0d; color: var(--red); font-weight: 600; }
-
-    /* ── Decision table ── */
-    .decision-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      margin: 1.2rem 0 1.8rem;
+      padding: 10px 14px;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .decision-table thead tr { background: #1a1d27; }
-    .decision-table th {
-      padding: 0.65rem 0.85rem;
-      text-align: left;
-      font-weight: 600;
-      color: var(--muted);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border);
-    }
-    .decision-table td {
-      padding: 0.65rem 0.85rem;
-      border-bottom: 1px solid var(--border);
+      color: #c0c7dd;
       vertical-align: top;
     }
-    .decision-table tbody tr:last-child td { border-bottom: none; }
-    .decision-table tbody tr:hover { background: #12141a; }
-    .decision-table td:first-child { color: var(--muted); font-size: 0.82rem; }
-    .decision-table td:nth-child(2) { font-weight: 600; color: var(--accent); }
+    .compare-table tr:hover td { background: #14161c; }
+    .good { background: #0d2218; color: var(--green) !important; }
+    .warn { background: #1f1a00; color: var(--yellow) !important; }
+    .bad  { background: #200f0f; color: var(--red) !important; }
+    .neu  { background: #16181f; color: var(--muted) !important; }
 
-    /* ── Tag chips ── */
+    /* ── Tags ── */
     .tag {
       display: inline-block;
       background: var(--tag-bg);
-      color: var(--muted);
       border: 1px solid var(--border);
-      border-radius: 99px;
-      font-size: 0.74rem;
-      font-weight: 500;
-      padding: 0.18em 0.7em;
-      margin: 0.15em 0.15em;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      padding: 2px 10px;
+      color: var(--muted);
+      margin: 2px 3px 2px 0;
+      letter-spacing: 0.04em;
     }
-    .tag.green { background: #0a2418; color: var(--green); border-color: #1a5c3a; }
-    .tag.red   { background: #250a0a; color: var(--red);   border-color: #5c1a1a; }
-    .tag.yellow { background: #251d08; color: var(--yellow); border-color: #5c4a10; }
-    .tag.blue  { background: #0d1530; color: var(--accent); border-color: #2a3870; }
+    .tag.blue   { border-color: #2a3870; color: #7090f5; background: #131826; }
+    .tag.green  { border-color: #0d3822; color: var(--green); background: #0a1a11; }
+    .tag.yellow { border-color: #3a2d00; color: var(--yellow); background: #1a1400; }
+    .tag.red    { border-color: #3a1010; color: var(--red); background: #180a0a; }
 
-    .tags { margin: 0.5rem 0 1rem; }
+    /* ── Timeline ── */
+    .timeline { position: relative; padding-left: 28px; margin: 20px 0 28px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px; top: 8px; bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 22px;
+    }
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -24px;
+      top: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+    }
+    .tl-date {
+      font-size: 0.73rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .tl-title { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .tl-body  { font-size: 0.91rem; color: #9ba3bc; }
+
+    /* ── Architecture diagram ── */
+    .arch-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 20px 22px;
+      margin: 20px 0;
+      font-size: 0.85rem;
+      font-family: 'Cascadia Code', monospace;
+      color: #9ba3bc;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+    }
 
     /* ── Spectrum bar ── */
     .spectrum {
       display: flex;
       align-items: stretch;
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
-      margin: 1.2rem 0;
-      font-size: 0.8rem;
+      margin: 20px 0 28px;
+      border: 1px solid var(--border);
+      font-size: 0.76rem;
       font-weight: 600;
+      text-align: center;
     }
     .spectrum-item {
       flex: 1;
-      padding: 0.65rem 0.5rem;
-      text-align: center;
-      border-right: 1px solid var(--border);
+      padding: 10px 6px;
+      line-height: 1.3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
-    .spectrum-item:last-child { border-right: none; }
-    .spectrum-item .label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-    .spectrum-item .sublabel { font-size: 0.7rem; font-weight: 400; color: var(--muted); margin-top: 0.2rem; }
-    .sp-1 { background: #1a1d27; color: var(--muted); }
-    .sp-2 { background: #1a2a1a; color: #5dba7a; }
-    .sp-3 { background: #1a2400; color: var(--yellow); }
-    .sp-4 { background: #1f1020; color: #b07de8; }
-    .sp-5 { background: #201010; color: var(--red); }
+    .spectrum-item .label { font-size: 0.68rem; color: rgba(255,255,255,0.5); font-weight: 400; }
+    .s1 { background: #1a2b1a; color: var(--green); }
+    .s2 { background: #1a2320; color: #50c89a; }
+    .s3 { background: #1e2318; color: #8bca50; }
+    .s4 { background: #2a2418; color: var(--yellow); }
+    .s5 { background: #2a1f14; color: #f0882a; }
+    .s6 { background: #2a1414; color: var(--red); }
 
-    /* ── Divider ── */
-    hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 2.5rem 0;
+    /* ── Limitation list ── */
+    .limit-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
     }
-
-    /* ── Escape section ── */
-    .cve-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--red);
-      border-radius: 6px;
-      padding: 0.9rem 1.1rem;
-      margin: 0.9rem 0;
-    }
-    .cve-card .cve-id {
-      font-size: 0.78rem;
+    .limit-item:last-child { border-bottom: none; }
+    .limit-badge {
+      flex-shrink: 0;
+      font-size: 0.7rem;
       font-weight: 700;
-      color: var(--red);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 0.3rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      height: fit-content;
+      margin-top: 2px;
     }
-    .cve-card p { margin-bottom: 0; font-size: 0.9rem; }
-    .cve-card .immune {
-      font-size: 0.8rem;
-      color: var(--green);
-      margin-top: 0.4rem;
-    }
+    .lb-bug   { background: #200f0f; color: var(--red); }
+    .lb-limit { background: #1f1a00; color: var(--yellow); }
+    .lb-note  { background: #131826; color: var(--accent); }
+    .limit-text { font-size: 0.9rem; color: #9ba3bc; }
+    .limit-text strong { color: var(--text); }
 
-    /* ── Footer ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem 2rem;
-      font-size: 0.78rem;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 600px) {
-      main { padding: 1.5rem 1rem 3rem; }
-      header { padding: 1rem 1rem; }
-      header h1 { font-size: 1.4rem; }
-      .compare-table { font-size: 0.75rem; }
-      .compare-table th, .compare-table td { padding: 0.45rem 0.5rem; }
-    }
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+    .sources { font-size: 0.83rem; color: var(--muted); }
+    .sources li { margin-bottom: 4px; }
+    .sources a { color: var(--muted); }
+    .sources a:hover { color: var(--accent); }
   </style>
 </head>
 <body>
 
 <header>
-  <a href="index.html" class="back-link">&#8592; Back to Research Index</a>
-  <div class="meta-line">March 31, 2026 &nbsp;·&nbsp; <span>INFRASTRUCTURE</span></div>
-  <h1>Docker Containers vs Sandboxes</h1>
-  <p class="lede">
-    A deep dive into isolation technologies: Docker, gVisor, Firecracker, Kata Containers, WASM,
-    and OS-level policy sandboxes — understanding the isolation spectrum, the real security
-    implications of shared kernels, and when to reach for each tool.
-  </p>
+  <a href="index.html" class="back">← Open Research</a>
+  <div class="meta">April 1, 2026 &nbsp;·&nbsp; Infrastructure &nbsp;·&nbsp; AI Tooling</div>
+  <h1>Docker Sandboxes — AI Agent Isolation Deep Dive</h1>
+  <p class="lede">Docker's new Sandbox product is not a container hardening feature — it's a purpose-built
+  microVM system for running AI coding agents like Claude Code, Codex, and Gemini CLI without letting them
+  touch your host machine. Here's how it works, how it compares to plain containers, and how to use it.</p>
 </header>
 
 <main>
 
-  <!-- ════════════════════════════════════════════════
-       1. OPENING CALLOUT — THE CORE CONFUSION
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">The Core Confusion: "Sandbox" Is an Overloaded Term</h2>
+  <!-- ── Correction callout ── -->
+  <div class="callout red">
+    <strong>Note — this document replaces an earlier version.</strong> The original document compared generic
+    container isolation technologies (gVisor, seccomp, Firecracker) without knowing Docker had shipped a
+    specific product called <strong>Docker Sandboxes</strong> in late 2025. The new version covers the actual product.
+    General container hardening is still covered in the comparison section for context.
+  </div>
+
+  <!-- ── What is Docker Sandboxes? ── -->
+  <h2 class="section-title">What is Docker Sandboxes?</h2>
+
+  <p>Docker Sandboxes is a purpose-built product for one specific problem: <strong>you want to run an AI
+  coding agent against your codebase, but you don't want it to be able to touch anything outside that project
+  directory.</strong> Not your SSH keys. Not your AWS credentials. Not your other Docker containers. Not your
+  host filesystem.</p>
+
+  <p>It is <strong>not</strong> a way to run containers more securely in general. It is not a replacement for
+  Kubernetes security policies or Docker Compose hardening. It's specifically an agent execution environment.</p>
 
   <div class="callout">
-    <div class="callout-title">Key Mental Model</div>
-    <p>
-      Containers <em>are</em> a form of sandboxing — they isolate processes using Linux namespaces
-      and cgroups. But when engineers say "sandbox," they often mean something with deeper isolation
-      guarantees than a container provides. The question is never <em>sandbox vs container</em>; it
-      is always <em>which point on the isolation spectrum do you need?</em>
-    </p>
+    <strong>The core problem it solves:</strong> AI agents need to run arbitrary code, install packages,
+    build Docker images, and spin up containers to test their work. Every existing approach was broken:
+    mounting the Docker socket exposes the full host daemon; Docker-in-Docker requires privileged mode which
+    also escapes isolation; regular containers share the host kernel so a kernel CVE is a host escape.
+    Docker Sandboxes solves all three by giving each agent its own private VM with its own Docker daemon.
   </div>
 
-  <p>
-    "Sandbox" means different things in different contexts. A browser sandbox (V8 Isolate) is
-    vastly different from a gVisor sandbox, which is vastly different from a Firecracker microVM.
-    What they share is the intent: constrain what untrusted code can do. The mechanisms —
-    and therefore the security guarantees — differ enormously.
-  </p>
+  <p>Docker's own claim: <em>"Docker Sandboxes is the only sandboxing solution that allows coding agents
+  to build and run Docker containers while remaining isolated from the host system."</em></p>
 
-  <p>
-    Isolation exists on a spectrum. Moving right means stronger isolation and higher overhead:
-  </p>
+  <!-- ── Timeline ── -->
+  <h2 class="section-title">Timeline</h2>
 
-  <div class="spectrum">
-    <div class="spectrum-item sp-1">
-      <div class="label">OS Process</div>
-      <div class="sublabel">ulimit only</div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-date">November 6, 2025</div>
+      <div class="tl-title">Docker Desktop 4.50 — MCP Precursor</div>
+      <div class="tl-body">Experimental MCP (Model Context Protocol) integration ships. The sandbox concept
+      is being prototyped internally.</div>
     </div>
-    <div class="spectrum-item sp-2">
-      <div class="label">Container</div>
-      <div class="sublabel">namespaces + cgroups</div>
+    <div class="tl-item">
+      <div class="tl-date">November 25, 2025</div>
+      <div class="tl-title">First Public Announcement</div>
+      <div class="tl-body">"A New Approach for Coding Agent Safety" — experimental preview using container-based
+      (not yet microVM) isolation inside Docker Desktop's existing Linux VM.</div>
     </div>
-    <div class="spectrum-item sp-3">
-      <div class="label">gVisor</div>
-      <div class="sublabel">syscall interception</div>
+    <div class="tl-item">
+      <div class="tl-date">December 2025</div>
+      <div class="tl-title">AWS re:Invent Demo</div>
+      <div class="tl-body">Docker demonstrates Sandboxes running Kiro (AWS's coding agent) at re:Invent.
+      Generates significant developer interest.</div>
     </div>
-    <div class="spectrum-item sp-4">
-      <div class="label">Kata / Firecracker</div>
-      <div class="sublabel">per-container VM kernel</div>
+    <div class="tl-item">
+      <div class="tl-date">January 26, 2026 — Docker Desktop 4.58</div>
+      <div class="tl-title">microVM Architecture Ships</div>
+      <div class="tl-body">Full microVM isolation (not just containers) available on macOS and Windows.
+      The <code>docker sandbox</code> CLI command is introduced. Supported agents: Claude Code,
+      Codex, Copilot, Gemini, Kiro, OpenCode.</div>
     </div>
-    <div class="spectrum-item sp-5">
-      <div class="label">Full VM</div>
-      <div class="sublabel">separate hardware emulation</div>
+    <div class="tl-item">
+      <div class="tl-date">February 9, 2026 — Docker Desktop 4.60</div>
+      <div class="tl-title">Shell Mode + Multi-workspace Mounts</div>
+      <div class="tl-body">Blank shell sandbox (no agent), ability to mount multiple workspace directories,
+      improved agent system prompts, Gemini API key injection fixes.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">February 18, 2026 — Docker Desktop 4.61</div>
+      <div class="tl-title">Automated Image Caching + WSL 2 + Experimental Linux</div>
+      <div class="tl-body">No more re-downloading images on every run. WSL 2 backend support added.
+      Experimental Linux support (container-based, single user UID 1000 only).</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">March 31, 2026</div>
+      <div class="tl-title">sbx CLI + "YOLO Mode" Launch</div>
+      <div class="tl-body">Standalone <code>sbx</code> CLI ships — no Docker Desktop required.
+      Install via Homebrew or winget. Linux support added. Blog post frames this as
+      "run agents in YOLO mode, safely."</div>
     </div>
   </div>
 
-  <p>
-    Every step to the right reduces the attack surface but increases startup latency and resource
-    overhead. The right choice depends on who is running the code, what the blast radius of an
-    escape is, and what your performance budget allows.
-  </p>
+  <!-- ── Architecture ── -->
+  <h2 class="section-title">How It Works — Architecture</h2>
 
-  <!-- ════════════════════════════════════════════════
-       2. WHAT IS A CONTAINER?
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">What Is a Container? (Docker, OCI)</h2>
+  <p>Each sandbox is a <strong>microVM</strong> with a complete private environment:</p>
 
-  <p>
-    A container is not a virtual machine. It is a collection of Linux kernel features that create
-    the <em>illusion</em> of an isolated environment while sharing the host's kernel. Docker and
-    the OCI (Open Container Initiative) runtime spec standardise how these features are assembled.
-  </p>
+  <div class="arch-box">
+┌────────────────────────────────────────────────────────────┐
+│                        YOUR HOST                           │
+│                                                            │
+│   ~/.docker/sandboxes/sandboxd.sock  ←── sandboxd daemon  │
+│                                                            │
+│   ┌──────────────────────────────────────────────────┐     │
+│   │              microVM  (per sandbox)              │     │
+│   │                                                  │     │
+│   │   Your project dir (mounted at same path)        │     │
+│   │   /Users/you/project  ←→  VirtioFS passthrough   │     │
+│   │                                                  │     │
+│   │   Private Docker daemon (own socket)             │     │
+│   │   ~/.docker/sandboxes/vm/&lt;n&gt;/docker.sock        │     │
+│   │                                                  │     │
+│   │   AI Coding Agent (Claude Code, Codex, etc.)     │     │
+│   │   └── Builds images, runs containers safely      │     │
+│   │                                                  │     │
+│   └─────────────────┬────────────────────────────────┘     │
+│                     │ HTTP/HTTPS only                       │
+│                     ▼                                       │
+│   Network Proxy  host.docker.internal:3128                  │
+│   ├── Enforces allow/deny domain lists                      │
+│   ├── Injects API keys (agent never possesses them)         │
+│   ├── Blocks: raw TCP/UDP, cloud metadata endpoints         │
+│   └── Blocks: private networks, localhost                   │
+│                                                            │
+└────────────────────────────────────────────────────────────┘</div>
 
-  <h3>Linux Namespaces — the Isolation Primitive</h3>
-  <p>
-    Namespaces partition kernel resources so that one set of processes sees one set of resources
-    and another set of processes sees a different set. Docker uses six namespaces:
-  </p>
+  <p><strong>Key design decisions:</strong></p>
   <ul>
-    <li><strong>pid</strong> — process tree isolation; container PID 1 appears as init inside, but has a different PID on the host</li>
-    <li><strong>net</strong> — separate network stack: interfaces, routes, iptables rules, sockets</li>
-    <li><strong>mnt</strong> — private mount table; the container's filesystem view</li>
-    <li><strong>uts</strong> — independent hostname and domain name (UTS = UNIX Time-sharing System)</li>
-    <li><strong>ipc</strong> — isolated System V IPC and POSIX message queues</li>
-    <li><strong>user</strong> — UID/GID remapping; UID 0 inside maps to unprivileged UID outside (when enabled)</li>
+    <li><strong>Private Docker daemon</strong> — the agent can use Docker freely, but it only sees containers
+    inside its own VM. Your host containers are completely invisible.</li>
+    <li><strong>Same absolute path</strong> — your project at <code>/Users/you/project</code> appears at
+    <code>/Users/you/project</code> inside the VM too. No path translation needed in the agent's prompts.</li>
+    <li><strong>API keys never enter the VM</strong> — the network proxy intercepts outbound calls to
+    Anthropic/OpenAI/etc. and injects credentials there. Even if the agent is compromised or the VM is
+    breached, it cannot exfiltrate your keys.</li>
+    <li><strong>State persists</strong> — unlike containers, sandboxes survive until you explicitly remove them.
+    Installed packages are still there when you restart.</li>
   </ul>
 
-  <div class="callout warn">
-    <div class="callout-title">Critical Point</div>
-    <p>
-      Namespaces do <em>not</em> prevent syscalls. A process inside a container can still call
-      <code>open(2)</code>, <code>mmap(2)</code>, <code>clone(2)</code>, or any other syscall.
-      Namespaces only change what the kernel returns — not whether the syscall is allowed.
-      This is the fundamental distinction from a gVisor or VM sandbox.
-    </p>
-  </div>
+  <h2 class="section-title">Hypervisor Technology</h2>
 
-  <h3>cgroups — Resource Governance</h3>
-  <p>
-    Control Groups (cgroups v2) enforce resource limits. Docker translates <code>--memory</code>,
-    <code>--cpus</code>, and <code>--blkio-weight</code> flags into cgroup entries under
-    <code>/sys/fs/cgroup/</code>. A container hitting its memory limit gets OOM-killed by the
-    kernel; it cannot steal memory from other containers. However, cgroups are about
-    <em>fairness and limits</em>, not security isolation — they don't prevent a container from
-    making privilege-escalation syscalls.
-  </p>
+  <p>Docker does not publicly name the underlying microVM technology. From platform behavior and the
+  reverse engineering done by Rivet (see sources), each platform uses its native hypervisor:</p>
 
-  <h3>Union Filesystems (overlay2)</h3>
-  <p>
-    Docker images are built from immutable layers stacked with OverlayFS. Each image layer is
-    a directory diff. At runtime, a thin writable layer sits on top (copy-on-write). This makes
-    images share common base layers on disk and allows containers to start without copying gigabytes
-    of data. The container sees a merged view but writes only to its own layer.
-  </p>
-
-  <h3>The Key Security Implication: Shared Host Kernel</h3>
-
-  <div class="callout danger">
-    <div class="callout-title">The Single Biggest Security Fact About Containers</div>
-    <p>
-      Every Docker container on a host shares the same Linux kernel. If a container exploits a
-      kernel vulnerability — a buffer overflow in a syscall handler, a race condition in
-      <code>io_uring</code>, a privilege escalation via a kernel data structure — it can escape
-      to the host and own every other container on the machine. There is no kernel-level boundary
-      between containers; only namespace and cgroup accounting enforced <em>by</em> that kernel.
-    </p>
-  </div>
-
-  <h3>Performance Characteristics</h3>
-  <ul>
-    <li><strong>Startup time:</strong> ~50–150ms for a typical container (image already pulled)</li>
-    <li><strong>CPU overhead:</strong> &lt;1% vs bare metal for most workloads (namespace lookups are negligible)</li>
-    <li><strong>Memory overhead:</strong> ~1–5 MB per container daemon bookkeeping; no hypervisor tax</li>
-    <li><strong>I/O:</strong> overlay2 adds one extra copy-on-write on first write per file; subsequent writes are native speed</li>
-  </ul>
-
-  <!-- ════════════════════════════════════════════════
-       3. THE SANDBOX LANDSCAPE
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">The Sandbox Landscape — Five Categories</h2>
-
-  <!-- A: gVisor -->
-  <h3>A. Kernel-Intercepting Sandboxes — gVisor (runsc)</h3>
-  <div class="tags">
-    <span class="tag blue">Google</span>
-    <span class="tag">Open Source</span>
-    <span class="tag green">Recommended for untrusted code</span>
-  </div>
-
-  <p>
-    gVisor is Google's answer to the shared-kernel problem. Instead of letting container processes
-    talk directly to the host kernel, gVisor inserts a userspace Go binary called <strong>the
-    Sentry</strong> that intercepts every Linux syscall the container makes.
-  </p>
-
-  <p>
-    The Sentry is a Linux kernel implemented in Go — it understands <code>open(2)</code>,
-    <code>read(2)</code>, <code>fork(2)</code>, etc., and re-implements them in userspace. The
-    container process thinks it's talking to a real Linux kernel. In reality, the Sentry handles
-    the call and only makes a <em>tiny</em> set of carefully audited syscalls down to the actual
-    host kernel. This dramatically shrinks the host kernel's attack surface from hundreds of
-    syscalls to a handful.
-  </p>
-
-  <p>gVisor runs in two modes:</p>
-  <ul>
-    <li>
-      <strong>ptrace mode</strong> — uses <code>PTRACE_SYSCALL</code> to intercept calls. Works
-      on any Linux machine. Slower (~2–5x overhead for syscall-heavy workloads).
-    </li>
-    <li>
-      <strong>KVM mode</strong> — the Sentry runs inside a KVM virtual machine, with hardware
-      assistance for syscall interception. Faster (~20–30% overhead), requires KVM device.
-    </li>
-  </ul>
-
-  <div class="callout">
-    <div class="callout-title">Real-World Deployment</div>
-    <p>
-      Google Cloud Run and GKE Sandbox use gVisor as the default runtime for all user workloads.
-      Every Cloud Run container you deploy is isolated by gVisor's Sentry, not bare runc.
-      This is how Google safely multi-tenants millions of customer containers on shared hosts.
-    </p>
-  </div>
-
-  <p><strong>Trade-offs:</strong></p>
-  <ul>
-    <li>~20–30% CPU overhead (KVM mode) to ~2–5x overhead (ptrace mode) for syscall-intensive code</li>
-    <li>Some syscalls are not yet implemented — applications using <code>io_uring</code>, obscure ioctls, or newer kernel features may fail</li>
-    <li>Compatibility testing required before production adoption</li>
-  </ul>
-
-  <!-- B: Kata / Firecracker -->
-  <h3>B. VM-Based Containers — Kata Containers / Firecracker</h3>
-  <div class="tags">
-    <span class="tag">AWS</span>
-    <span class="tag">OpenInfra Foundation</span>
-    <span class="tag green">Strongest container-compat isolation</span>
-  </div>
-
-  <p>
-    Rather than intercepting syscalls, Kata Containers give each container (or pod) its own
-    lightweight virtual machine with its own kernel. The container runtime (containerd or CRI-O)
-    launches a minimal VM using QEMU, AWS Firecracker, or Cloud Hypervisor, boots a stripped-down
-    Linux kernel inside it, and then starts the container inside that VM.
-  </p>
-
-  <p>
-    <strong>Firecracker</strong> (developed by AWS for Lambda and Fargate) is purpose-built for
-    this use case. It is a minimal VMM (Virtual Machine Monitor) written in Rust that exposes
-    only a small set of emulated devices (virtio-net, virtio-block, serial). This tiny surface
-    area means:
-  </p>
-  <ul>
-    <li>Boot time: ~125ms for a Firecracker microVM (vs ~1–2s for QEMU)</li>
-    <li>Memory overhead: &lt;5 MB per microVM for the VMM itself</li>
-    <li>True kernel isolation: a CVE in the host kernel does not affect code running inside the VM kernel</li>
-  </ul>
-
-  <div class="callout">
-    <div class="callout-title">Who Uses This</div>
-    <p>
-      AWS Lambda runs every function invocation inside a Firecracker microVM. AWS Fargate uses
-      Firecracker for ECS/EKS workloads. Fly.io runs customer VMs on Firecracker. This is the
-      technology enabling true multi-tenant serverless compute where customer A's kernel panic
-      cannot affect customer B.
-    </p>
-  </div>
-
-  <p><strong>Trade-offs:</strong></p>
-  <ul>
-    <li>~125ms cold start vs ~50ms for containers (still fast enough for serverless)</li>
-    <li>Higher baseline memory than containers (one kernel + VMM per workload)</li>
-    <li>Requires KVM hardware support — no nested virtualisation in most cloud instances unless explicitly enabled</li>
-  </ul>
-
-  <!-- C: seccomp / AppArmor / SELinux -->
-  <h3>C. OS-Level Policy Sandboxes — seccomp, AppArmor, SELinux</h3>
-  <div class="tags">
-    <span class="tag blue">Built into Linux</span>
-    <span class="tag">Works inside containers</span>
-  </div>
-
-  <p>
-    These are not separate runtimes — they are Linux kernel security mechanisms that restrict what
-    a process (including a container process) is allowed to do. Docker applies them by default,
-    and they can be tightened significantly.
-  </p>
-
-  <p><strong>seccomp (Secure Computing Mode)</strong> — a kernel feature that installs a
-    BPF filter on the syscall path. Every syscall is checked against the filter before execution.
-    Docker's default seccomp profile blocks ~44 syscalls including <code>ptrace</code>,
-    <code>kexec_load</code>, <code>perf_event_open</code>, <code>bpf</code>, and others that
-    have historically been used in container escapes. You can tighten this to an allowlist of
-    only the syscalls your application actually needs.
-  </p>
-
-  <p><strong>AppArmor</strong> — a Linux Security Module that enforces path-based mandatory
-    access control. Docker's default AppArmor profile (<code>docker-default</code>) restricts
-    mount operations, denies access to <code>/proc/sysrq-trigger</code>, and limits certain
-    capabilities. Custom profiles can lock down file paths, network access, and capability use.
-  </p>
-
-  <p><strong>SELinux</strong> — uses security labels (contexts) on files, processes, and sockets.
-    Mandatory access control enforced by the kernel's security framework. Common in RHEL/Fedora
-    environments. Container runtimes assign an <code>svirt_lxc_net_t</code> type to container
-    processes, constraining what they can access on the host.
-  </p>
-
-  <div class="callout">
-    <div class="callout-title">Important Nuance</div>
-    <p>
-      seccomp, AppArmor, and SELinux work <em>inside</em> the shared-kernel model. They reduce
-      the syscall surface available to a container, but they do not eliminate the host kernel
-      exposure entirely. A zero-day in a syscall that is <em>on</em> the allowlist can still
-      result in a host escape. They are defence-in-depth, not isolation boundaries.
-    </p>
-  </div>
-
-  <!-- D: WASM / V8 Isolates / Deno -->
-  <h3>D. Language/Runtime Sandboxes — WASM, V8 Isolates, Deno</h3>
-  <div class="tags">
-    <span class="tag">Cloudflare Workers</span>
-    <span class="tag">Fastly Compute</span>
-    <span class="tag green">~0ms startup</span>
-  </div>
-
-  <p>
-    These sandboxes operate at the language/runtime level rather than the OS level. They do not
-    use namespaces or VMs — they sandbox at the instruction level.
-  </p>
-
-  <p><strong>WebAssembly (WASM)</strong> — a binary instruction format that runs in a
-    capability-based sandbox. WASM programs cannot make syscalls at all; the runtime (Wasmtime,
-    WasmEdge, browser engine) mediates all I/O through explicit imports. WASI (WebAssembly System
-    Interface) defines a capability model: you must explicitly grant access to directories, sockets,
-    and clocks. Deny-by-default, with explicitly granted permissions.
-  </p>
-
-  <p><strong>V8 Isolates</strong> (used by Cloudflare Workers) — V8 runs JavaScript inside
-    isolated heaps called "Isolates". Each Worker gets its own Isolate with no shared memory.
-    A single OS process can host thousands of Isolates simultaneously. Startup time is ~0ms
-    for warm Isolates, ~1–5ms for cold. The trade-off: JavaScript only (or languages compiled
-    to JS/WASM), and the V8 security model assumes bugs in V8 itself are fixed promptly.
-  </p>
-
-  <p><strong>Deno</strong> — a JavaScript/TypeScript runtime built on V8 with an explicit
-    permission system. Network access, file system access, and environment variable access
-    are all denied by default and must be granted with flags like <code>--allow-net=api.example.com</code>
-    and <code>--allow-read=/tmp</code>. This makes the permission model auditable at launch time.
-  </p>
-
-  <p><strong>Trade-offs:</strong> language-specific (or requires compiling to WASM/JS),
-    not general-purpose, cannot run arbitrary Linux binaries.</p>
-
-  <!-- E: Full VM -->
-  <h3>E. Hypervisor / Full VM — QEMU, VirtualBox, KVM</h3>
-  <div class="tags">
-    <span class="tag red">Highest overhead</span>
-    <span class="tag green">Strongest isolation</span>
-  </div>
-
-  <p>
-    Traditional virtual machines emulate complete hardware — CPU, memory, disk controllers,
-    network cards. Each VM boots its own kernel and userspace OS from scratch. The hypervisor
-    (QEMU/KVM, VirtualBox, VMware ESXi, Hyper-V) manages resource allocation and hardware
-    emulation. The attack surface from a guest to the host is the hypervisor itself — a much
-    smaller and more audited codebase than an entire Linux kernel.
-  </p>
-  <ul>
-    <li>Startup: 5–30 seconds (full OS boot)</li>
-    <li>Memory: 256 MB–several GB per VM (full OS stack)</li>
-    <li>Isolation: complete kernel + userspace separation</li>
-    <li>Use case: different OS (Windows on Linux host), maximum compliance requirements, legacy software</li>
-  </ul>
-
-  <!-- ════════════════════════════════════════════════
-       4. SECURITY COMPARISON TABLE
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">Security Comparison Deep-Dive</h2>
-
-  <p>
-    The following table compares technologies across the dimensions that matter most for
-    security architecture decisions. Risk assessments assume a competent attacker with
-    knowledge of public CVEs.
-  </p>
-
-  <div style="overflow-x:auto;">
   <table class="compare-table">
     <thead>
-      <tr>
-        <th>Technology</th>
-        <th>Kernel Shared</th>
-        <th>Syscall Exposure</th>
-        <th>Escape Risk</th>
-        <th>CVE Isolation</th>
-        <th>Startup</th>
-        <th>Mem Overhead</th>
-        <th>Best Use Case</th>
-      </tr>
+      <tr><th>Platform</th><th>Technology</th><th>Status</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td>Docker (default)</td>
-        <td class="bad">Yes</td>
-        <td class="warn">~300 allowed</td>
-        <td class="warn">Medium</td>
-        <td class="bad">None</td>
-        <td class="good">~100ms</td>
-        <td class="good">~5 MB</td>
-        <td>Trusted internal services</td>
+        <td>macOS (Apple Silicon + Intel)</td>
+        <td>Apple <code>Virtualization.framework</code></td>
+        <td class="good">Fully supported</td>
       </tr>
       <tr>
-        <td>Docker + gVisor</td>
-        <td class="warn">Partial*</td>
-        <td class="good">~50 host syscalls</td>
-        <td class="good">Low</td>
-        <td class="warn">Partial</td>
-        <td class="good">~150ms</td>
-        <td class="warn">~20 MB</td>
-        <td>Untrusted 3rd-party code</td>
+        <td>Windows 11 x86_64</td>
+        <td>Hyper-V (Windows Hypervisor Platform)</td>
+        <td class="good">Fully supported — requires Hyper-V enabled</td>
       </tr>
       <tr>
-        <td>Docker + seccomp strict</td>
-        <td class="bad">Yes</td>
-        <td class="good">~60 allowed</td>
-        <td class="warn">Low–Med</td>
-        <td class="bad">None</td>
-        <td class="good">~100ms</td>
-        <td class="good">~5 MB</td>
-        <td>Prod services, defence in depth</td>
+        <td>WSL 2</td>
+        <td>Container-based (WSL 2 backend)</td>
+        <td class="warn">Supported — added in Desktop 4.61</td>
       </tr>
       <tr>
-        <td>Kata / Firecracker</td>
-        <td class="good">No</td>
-        <td class="good">Host unexposed</td>
-        <td class="good">Very Low</td>
-        <td class="good">Full</td>
-        <td class="warn">~125–300ms</td>
-        <td class="warn">~50–128 MB</td>
-        <td>User code execution, serverless</td>
+        <td>Linux</td>
+        <td>Container-based only (no VM)</td>
+        <td class="warn">Experimental — single user (UID 1000) only</td>
       </tr>
       <tr>
-        <td>VM (QEMU/KVM)</td>
-        <td class="good">No</td>
-        <td class="good">None</td>
-        <td class="good">Very Low</td>
-        <td class="good">Full</td>
-        <td class="bad">5–30s</td>
-        <td class="bad">256 MB+</td>
-        <td>Different OS, compliance</td>
-      </tr>
-      <tr>
-        <td>WASM (Wasmtime)</td>
-        <td class="good">No syscalls</td>
-        <td class="good">Capability only</td>
-        <td class="good">Very Low</td>
-        <td class="good">Full</td>
-        <td class="good">~1ms</td>
-        <td class="good">~2 MB</td>
-        <td>Plugins, edge compute</td>
-      </tr>
-      <tr>
-        <td>V8 Isolate</td>
-        <td class="warn">Process shared</td>
-        <td class="good">None (JS sandbox)</td>
-        <td class="good">Low</td>
-        <td class="warn">V8 bugs only</td>
-        <td class="good">~0–5ms</td>
-        <td class="good">~1–3 MB</td>
-        <td>Serverless JS, edge workers</td>
+        <td>WSL 1 / native Linux Docker</td>
+        <td>N/A</td>
+        <td class="bad">Not supported</td>
       </tr>
     </tbody>
   </table>
+
+  <!-- ── Docker Sandbox vs Container ── -->
+  <h2 class="section-title">Docker Sandbox vs. Docker Container — Full Comparison</h2>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th>Feature</th><th>docker run (container)</th><th>docker sandbox / sbx (microVM)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Kernel isolation</td>
+        <td class="bad">Shared with host — kernel CVEs are escape vectors</td>
+        <td class="good">Own kernel — hypervisor boundary</td>
+      </tr>
+      <tr>
+        <td>Docker-in-Docker</td>
+        <td class="bad">Requires --privileged or Docker socket (host escape risk)</td>
+        <td class="good">Fully supported — private daemon, no risk</td>
+      </tr>
+      <tr>
+        <td>Visibility to host Docker</td>
+        <td class="bad">docker ps shows all host containers</td>
+        <td class="good">Completely invisible to host daemon</td>
+      </tr>
+      <tr>
+        <td>Filesystem access</td>
+        <td class="warn">Configurable bind mounts — easy to accidentally over-expose</td>
+        <td class="good">Only designated workspace directory synced</td>
+      </tr>
+      <tr>
+        <td>API credential handling</td>
+        <td class="bad">Manual env var injection — key lives in container env</td>
+        <td class="good">Proxy injection — key never enters VM</td>
+      </tr>
+      <tr>
+        <td>Network control</td>
+        <td class="warn">Manual iptables / network policies</td>
+        <td class="good">Built-in HTTP/HTTPS proxy with allow/deny lists and 3 preset modes</td>
+      </tr>
+      <tr>
+        <td>State persistence</td>
+        <td class="warn">Lost on exit unless volume; ephemeral by design</td>
+        <td class="good">Persists until explicitly removed</td>
+      </tr>
+      <tr>
+        <td>Startup time</td>
+        <td class="good">~100ms</td>
+        <td class="warn">Seconds (first run), seconds with cached image</td>
+      </tr>
+      <tr>
+        <td>Resource overhead</td>
+        <td class="good">~1% above bare metal</td>
+        <td class="warn">Full VM + daemon overhead per sandbox</td>
+      </tr>
+      <tr>
+        <td>Appears in docker ps</td>
+        <td>Yes</td>
+        <td>No — use <code>docker sandbox ls</code> or <code>sbx ls</code></td>
+      </tr>
+      <tr>
+        <td>AI agent integration</td>
+        <td class="bad">Manual wiring required</td>
+        <td class="good">Built-in: claude, codex, copilot, gemini, kiro, opencode, shell</td>
+      </tr>
+      <tr>
+        <td>Requires Docker Desktop</td>
+        <td>Yes (for GUI) or Docker Engine</td>
+        <td>No — standalone <code>sbx</code> CLI available</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── Isolation spectrum ── -->
+  <h2 class="section-title">The Isolation Spectrum — Where Sandboxes Fit</h2>
+
+  <p>Understanding <em>how strong</em> the isolation is relative to other approaches:</p>
+
+  <div class="spectrum">
+    <div class="spectrum-item s1">
+      <div>OS Process</div>
+      <div class="label">weakest</div>
+    </div>
+    <div class="spectrum-item s2">
+      <div>Container (default)</div>
+      <div class="label">namespaces only</div>
+    </div>
+    <div class="spectrum-item s3">
+      <div>Container + seccomp</div>
+      <div class="label">+ syscall filter</div>
+    </div>
+    <div class="spectrum-item s4">
+      <div>Docker Sandbox</div>
+      <div class="label">microVM + proxy</div>
+    </div>
+    <div class="spectrum-item s5">
+      <div>Kata/Firecracker</div>
+      <div class="label">VM per container</div>
+    </div>
+    <div class="spectrum-item s6">
+      <div>Full VM (QEMU)</div>
+      <div class="label">strongest</div>
+    </div>
   </div>
-  <p style="font-size:0.78rem; color:var(--muted);">
-    * gVisor's Sentry does make a small set of host syscalls; the host kernel exposure is
-    dramatically reduced but not eliminated. KVM mode further reduces this.
-  </p>
 
-  <!-- ════════════════════════════════════════════════
-       5. DECISION MATRIX — WHEN TO USE WHAT
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">When to Use What — Decision Matrix</h2>
+  <p>Docker Sandboxes sits at the fourth level. Stronger than any container-based approach.
+  Not quite as strong as a fully bare-metal-level VM (no hardware passthrough, more restricted
+  I/O model), but the trade-off is justified: it runs in seconds, works on your laptop,
+  and integrates directly with the coding agents you're already using.</p>
 
-  <h3>Use Plain Docker When</h3>
-  <ul>
-    <li>Running <strong>internal services you trust</strong> — your own application code, written by your team</li>
-    <li><strong>Development environments</strong> — fast iteration matters more than maximum isolation</li>
-    <li><strong>CI/CD build runners</strong> where the code being built is from your own repositories</li>
-    <li><strong>Performance is critical</strong> and you cannot accept even a 20% CPU overhead</li>
-    <li>Multi-tenant where all tenants are <strong>your own team</strong> (not external customers)</li>
-  </ul>
+  <!-- ── Network policies ── -->
+  <h2 class="section-title">Network Policies</h2>
 
-  <h3>Use Docker + Strict seccomp/AppArmor When</h3>
-  <ul>
-    <li><strong>Production workloads</strong> — defence in depth costs almost nothing in performance</li>
-    <li>You want 95% of Docker convenience with a meaningfully better security posture</li>
-    <li><strong>Network-exposed services</strong> — reduces the syscall surface an exploited app can leverage</li>
-    <li>You need to demonstrate security controls for audit purposes without changing your runtime</li>
-  </ul>
+  <p>One of the most important features — and least visible. The network proxy runs on your host
+  and all sandbox outbound traffic routes through it. You pick a policy mode when you first set up:</p>
 
-  <h3>Use gVisor (runsc) When</h3>
-  <ul>
-    <li>Running <strong>untrusted or third-party code</strong> — npm packages, user-submitted Dockerfiles</li>
-    <li><strong>Multi-tenant SaaS</strong> where one customer's container could attack another</li>
-    <li>You need <strong>Linux ABI compatibility</strong> (gVisor implements the Linux syscall interface) but stronger isolation than containers</li>
-    <li>You are already on <strong>Google Cloud Run or GKE</strong> — gVisor is the default there</li>
-    <li>Compatibility with your workload has been validated (test first — some apps break)</li>
-  </ul>
+  <table class="compare-table">
+    <thead>
+      <tr><th>Mode</th><th>Default behavior</th><th>Best for</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Open</strong></td>
+        <td>All traffic allowed</td>
+        <td>Trusted code, maximum flexibility</td>
+      </tr>
+      <tr>
+        <td><strong>Balanced</strong> (default)</td>
+        <td>Default deny, pre-allowed: GitHub, npm, PyPI, crates.io, AI APIs, common CDNs</td>
+        <td>Most developers — good trade-off</td>
+      </tr>
+      <tr>
+        <td><strong>Locked Down</strong></td>
+        <td>All traffic blocked unless explicitly allowed</td>
+        <td>Maximum security, untrusted agents</td>
+      </tr>
+    </tbody>
+  </table>
 
-  <h3>Use Kata Containers / Firecracker When</h3>
-  <ul>
-    <li>Running <strong>truly untrusted code</strong> — user uploads, arbitrary code execution services</li>
-    <li>Building a <strong>serverless functions platform</strong> (AWS Lambda model)</li>
-    <li>A <strong>kernel vulnerability would be catastrophic</strong> — financial systems, health data</li>
-    <li><strong>Compliance requirements</strong> (PCI DSS, HIPAA, FedRAMP) explicitly require VM-level isolation between workloads</li>
-    <li>You can accept ~125–300ms cold start overhead</li>
-  </ul>
-
-  <h3>Use WASM When</h3>
-  <ul>
-    <li>Building a <strong>plugin system or extension point</strong> — WASM is the new DLL</li>
-    <li><strong>Edge compute</strong> (Cloudflare Workers, Fastly Compute) where ~0ms startup and small binary size matter</li>
-    <li><strong>Language-agnostic sandboxing</strong> — compile Rust, Go, C, Python, etc. to WASM</li>
-    <li>You need <strong>deterministic, reproducible execution</strong> (WASM is well-specified)</li>
-    <li>The workload is computationally intensive but does not need arbitrary OS access</li>
-  </ul>
-
-  <h3>Use Plain VMs When</h3>
-  <ul>
-    <li><strong>Legacy software</strong> that cannot be containerised (requires specific kernel version, specific drivers)</li>
-    <li><strong>Different OS entirely</strong> — running Windows on a Linux host</li>
-    <li><strong>Maximum isolation</strong> with full OS auditing, snapshotting, and rollback</li>
-    <li>The 30-second boot time is acceptable (batch jobs, long-running workloads)</li>
-  </ul>
-
-  <!-- ════════════════════════════════════════════════
-       6. PRACTICAL EXAMPLES — RUNNABLE COMMANDS
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">Practical Examples — Runnable Commands</h2>
-
-  <div class="callout">
-    <div class="callout-title">Note</div>
-    <p>
-      All commands below are copy-paste ready. Commands marked with
-      <code># host</code> run on the Docker host; commands inside blocks without that marker
-      run inside the container. Tested on Ubuntu 22.04/24.04.
-    </p>
-  </div>
-
-  <!-- Example 1: Docker baseline -->
-  <h3>Example 1 — Docker Baseline: Inspect Isolation</h3>
-  <pre><code><span class="cm"># Run a container and inspect its isolation</span>
-docker run --rm -it ubuntu:24.04 bash
-
-<span class="cm"># Inside the container — check your namespaces</span>
-ls -la /proc/self/ns/
-<span class="cm"># You'll see: cgroup, ipc, mnt, net, pid, pid_for_children, time, uts, user</span>
-
-<span class="cm"># Check if memory limit is set (requires cgroups v2)</span>
-cat /sys/fs/cgroup/memory.max
-<span class="cm"># "max" means unlimited; set a limit with: docker run --memory=512m ...</span>
-
-<span class="cm"># Verify you can't see host processes</span>
-ps aux
-<span class="cm"># Only container processes visible — pid namespace at work</span>
-
-<span class="cm"># Try to mount — should be denied (CAP_SYS_ADMIN not granted by default)</span>
-mount -t proc proc /tmp/proc
-<span class="cm"># mount: /tmp/proc: permission denied.</span>
-
-<span class="cm"># Check capabilities (should be a reduced set)</span>
-cat /proc/self/status | grep CapEff
-<span class="cm"># Decode: capsh --decode=&lt;hex&gt;</span></code></pre>
-
-  <!-- Example 2: Strict seccomp -->
-  <h3>Example 2 — Docker with a Strict seccomp Profile</h3>
-  <p>
-    Create <code>strict-seccomp.json</code> — an allowlist profile that blocks
-    <code>ptrace</code>, <code>process_vm_readv</code>, <code>process_vm_writev</code>,
-    <code>kexec_load</code>, <code>perf_event_open</code>, and <code>bpf</code>:
-  </p>
-  <pre><code>{
-  "defaultAction": "SCMP_ACT_ERRNO",
-  "architectures": ["SCMP_ARCH_X86_64", "SCMP_ARCH_X86", "SCMP_ARCH_X32"],
-  "syscalls": [
-    {
-      "names": [
-        "accept", "accept4", "access", "arch_prctl", "bind", "brk",
-        "capget", "capset", "chdir", "chmod", "chown", "clock_getres",
-        "clock_gettime", "clock_nanosleep", "close", "connect",
-        "copy_file_range", "creat", "dup", "dup2", "dup3",
-        "epoll_create", "epoll_create1", "epoll_ctl", "epoll_pwait",
-        "epoll_wait", "eventfd", "eventfd2", "execve", "execveat",
-        "exit", "exit_group", "faccessat", "fadvise64", "fallocate",
-        "fanotify_mark", "fchdir", "fchmod", "fchmodat", "fchown",
-        "fchownat", "fcntl", "fdatasync", "fgetxattr", "flistxattr",
-        "flock", "fork", "fremovexattr", "fsetxattr", "fstat",
-        "fstatfs", "fsync", "ftruncate", "futex", "getcpu",
-        "getcwd", "getdents", "getdents64", "getegid", "geteuid",
-        "getgid", "getgroups", "getitimer", "getpeername", "getpgid",
-        "getpgrp", "getpid", "getppid", "getpriority", "getrandom",
-        "getrlimit", "getrusage", "getsid", "getsockname", "getsockopt",
-        "gettid", "gettimeofday", "getuid", "getxattr", "inotify_add_watch",
-        "inotify_init", "inotify_init1", "inotify_rm_watch", "ioctl",
-        "kill", "lchown", "lgetxattr", "link", "linkat", "listen",
-        "listxattr", "llistxattr", "lremovexattr", "lseek", "lsetxattr",
-        "lstat", "madvise", "memfd_create", "mkdir", "mkdirat",
-        "mknod", "mknodat", "mlock", "mlock2", "mlockall", "mmap",
-        "mprotect", "mq_getsetattr", "mq_notify", "mq_open",
-        "mq_timedreceive", "mq_timedsend", "mq_unlink", "mremap",
-        "msgctl", "msgget", "msgrcv", "msgsnd", "msync", "munlock",
-        "munlockall", "munmap", "nanosleep", "newfstatat", "open",
-        "openat", "pause", "pipe", "pipe2", "poll", "ppoll",
-        "prctl", "pread64", "preadv", "preadv2", "prlimit64",
-        "pwrite64", "pwritev", "pwritev2", "read", "readahead",
-        "readlink", "readlinkat", "readv", "recv", "recvfrom",
-        "recvmmsg", "recvmsg", "rename", "renameat", "renameat2",
-        "restart_syscall", "rmdir", "rt_sigaction", "rt_sigpending",
-        "rt_sigprocmask", "rt_sigqueueinfo", "rt_sigreturn",
-        "rt_sigsuspend", "rt_sigtimedwait", "rt_tgsigqueueinfo",
-        "sched_getaffinity", "sched_getattr", "sched_getparam",
-        "sched_getscheduler", "sched_get_priority_max",
-        "sched_get_priority_min", "sched_setaffinity", "sched_setattr",
-        "sched_setparam", "sched_setscheduler", "sched_yield",
-        "seccomp", "select", "semctl", "semget", "semop", "semtimedop",
-        "send", "sendfile", "sendmmsg", "sendmsg", "sendto",
-        "setfsgid", "setfsuid", "setgid", "setgroups", "setitimer",
-        "setpgid", "setpriority", "setregid", "setresgid", "setresuid",
-        "setreuid", "setrlimit", "setsid", "setsockopt", "setuid",
-        "setxattr", "shmat", "shmctl", "shmdt", "shmget",
-        "shutdown", "sigaltstack", "signalfd", "signalfd4",
-        "sigreturn", "socket", "socketcall", "socketpair",
-        "splice", "stat", "statfs", "statx", "symlink", "symlinkat",
-        "sync", "sync_file_range", "syncfs", "tee", "tgkill",
-        "time", "timer_create", "timer_delete", "timerfd_create",
-        "timerfd_gettime", "timerfd_settime", "timer_getoverrun",
-        "timer_gettime", "timer_settime", "times", "tkill",
-        "truncate", "ugetrlimit", "umask", "uname", "unlink",
-        "unlinkat", "utime", "utimensat", "utimes", "vfork",
-        "vmsplice", "wait4", "waitid", "waitpid", "write", "writev"
-      ],
-      "action": "SCMP_ACT_ALLOW"
-    }
-  ]
-}</code></pre>
-
-  <pre><code><span class="cm"># Apply the profile — strace should fail (uses ptrace, which is NOT in allowlist)</span>
-docker run --rm -it \
-  --security-opt seccomp=strict-seccomp.json \
-  ubuntu:24.04 \
-  strace ls
-<span class="cm"># strace: ptrace(PTRACE_TRACEME, ...): Operation not permitted</span>
-
-<span class="cm"># A normal command works fine</span>
-docker run --rm \
-  --security-opt seccomp=strict-seccomp.json \
-  ubuntu:24.04 \
-  ls /etc
-<span class="cm"># Works normally — ls only needs open, read, write, getdents64</span></code></pre>
-
-  <!-- Example 3: Hardened Docker -->
-  <h3>Example 3 — Maximally Hardened Docker Container</h3>
-  <pre><code><span class="cm"># Drop ALL Linux capabilities, add back only what nginx needs</span>
-docker run --rm -it \
-  --cap-drop=ALL \
-  --cap-add=NET_BIND_SERVICE \
-  --read-only \
-  --tmpfs /tmp:size=50m,mode=1777 \
-  --tmpfs /var/cache/nginx:size=50m \
-  --tmpfs /var/run:size=10m \
-  --no-new-privileges \
-  --security-opt no-new-privileges:true \
-  --security-opt apparmor=docker-default \
-  --user 101:101 \
-  nginx:alpine
-
-<span class="cm"># What each flag does:
-# --cap-drop=ALL            Remove all 38 Linux capabilities
-# --cap-add=NET_BIND_SERVICE Allow binding to ports &lt;1024 (needed for :80)
-# --read-only               Root filesystem is immutable
-# --tmpfs ...               Writable in-memory mounts for runtime files
-# --no-new-privileges       Prevent setuid binaries from gaining capabilities
-# --user 101:101            Run as non-root (nginx user in alpine image)</span></code></pre>
-
-  <!-- Example 4: gVisor -->
-  <h3>Example 4 — Install and Run gVisor (runsc)</h3>
-  <pre><code><span class="cm"># ── Install gVisor on Ubuntu/Debian ──</span>
-(
-  set -e
-  ARCH=$(uname -m)
-  URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
-  wget ${URL}/runsc ${URL}/runsc.sha512
-  sha512sum -c runsc.sha512
-  rm -f runsc.sha512
-  chmod a+rx runsc
-  sudo mv runsc /usr/local/bin
-)
-
-<span class="cm"># ── Register runsc as a Docker runtime ──</span>
-sudo tee /etc/docker/daemon.json &lt;&lt; 'EOF'
-{
-  "runtimes": {
-    "runsc": {
-      "path": "/usr/local/bin/runsc"
-    }
-  }
-}
-EOF
-sudo systemctl reload docker
-
-<span class="cm"># ── Run a container with gVisor ──</span>
-docker run --runtime=runsc --rm -it ubuntu:24.04 bash
-
-<span class="cm"># ── Verify gVisor is intercepting syscalls ──</span>
-docker run --runtime=runsc --rm ubuntu:24.04 \
-  sh -c "cat /proc/version"
-<span class="cm"># Output: Linux version 4.4.0 #1 SMP Sun Jan 10 15:06:54 PST 2016 (GVisor)
-# Key: "GVisor" in the kernel version string — you're talking to the Sentry, not the real kernel</span>
-
-<span class="cm"># ── Compare: same command with regular runc ──</span>
-docker run --runtime=runc --rm ubuntu:24.04 \
-  sh -c "cat /proc/version"
-<span class="cm"># Output: Linux version 6.8.0-51-generic (buildd@...) ...
-# This is the real host kernel version</span>
-
-<span class="cm"># ── gVisor syscall interception demo ──</span>
-<span class="cm"># Try kexec_load (blocked even if not in seccomp profile, since Sentry never forwards it)</span>
-docker run --runtime=runsc --rm ubuntu:24.04 \
-  sh -c "python3 -c \"import ctypes; ctypes.CDLL(None).syscall(246, 0, 0, 0, 0)\""
-<span class="cm"># EPERM — gVisor's Sentry returns permission denied; host kernel never sees it</span></code></pre>
-
-  <!-- Example 5: Firecracker -->
-  <h3>Example 5 — Firecracker microVM Setup</h3>
-  <pre><code><span class="cm"># ── Check KVM availability ──</span>
-ls /dev/kvm &amp;&amp; echo "KVM available" || echo "KVM not available"
-<span class="cm"># Firecracker requires /dev/kvm — check cloud provider docs for nested virt support</span>
-
-<span class="cm"># ── Install Firecracker ──</span>
-ARCH="$(uname -m)"
-release_url="https://github.com/firecracker-microvm/firecracker/releases"
-latest=$(basename $(curl -fsSLI -o /dev/null -w %{url_effective} ${release_url}/latest))
-curl -L ${release_url}/download/${latest}/firecracker-${latest}-${ARCH}.tgz \
-  | tar -xz
-sudo mv release-${latest}-$(uname -m)/firecracker-${latest}-${ARCH} /usr/local/bin/firecracker
-sudo chmod +x /usr/local/bin/firecracker
-firecracker --version
-
-<span class="cm"># ── Download quickstart demo images (x86_64) ──</span>
-curl -fsSL -o hello-vmlinux.bin \
-  https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin
-curl -fsSL -o hello-rootfs.ext4 \
-  https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/rootfs/bionic.rootfs.ext4
-
-<span class="cm"># ── Start Firecracker API socket ──</span>
-rm -f /tmp/firecracker.socket
-firecracker --api-sock /tmp/firecracker.socket &amp;
-
-<span class="cm"># ── Configure the microVM via REST API ──</span>
-<span class="cm"># Set kernel</span>
-curl -s -X PUT \
-  --unix-socket /tmp/firecracker.socket \
-  http://localhost/boot-source \
-  -H "Content-Type: application/json" \
-  -d '{
-    "kernel_image_path": "./hello-vmlinux.bin",
-    "boot_args": "console=ttyS0 reboot=k panic=1 pci=off"
-  }'
-
-<span class="cm"># Set rootfs</span>
-curl -s -X PUT \
-  --unix-socket /tmp/firecracker.socket \
-  http://localhost/drives/rootfs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "drive_id": "rootfs",
-    "path_on_host": "./hello-rootfs.ext4",
-    "is_root_device": true,
-    "is_read_only": false
-  }'
-
-<span class="cm"># Set machine config (1 vCPU, 256 MB RAM)</span>
-curl -s -X PUT \
-  --unix-socket /tmp/firecracker.socket \
-  http://localhost/machine-config \
-  -H "Content-Type: application/json" \
-  -d '{"vcpu_count": 1, "mem_size_mib": 256}'
-
-<span class="cm"># Boot it</span>
-curl -s -X PUT \
-  --unix-socket /tmp/firecracker.socket \
-  http://localhost/actions \
-  -H "Content-Type: application/json" \
-  -d '{"action_type": "InstanceStart"}'
-<span class="cm"># MicroVM boots in ~125ms — serial console output appears on stdout</span></code></pre>
-
-  <!-- Example 6: WASM -->
-  <h3>Example 6 — WASM Sandbox with Wasmtime</h3>
-  <pre><code><span class="cm"># ── Install wasmtime ──</span>
-curl https://wasmtime.dev/install.sh -sSf | bash
-source ~/.bashrc   <span class="cm"># or restart shell</span>
-wasmtime --version
-
-<span class="cm"># ── Write a test program ──</span>
-cat &gt; sandbox_test.rs &lt;&lt; 'EOF'
-use std::fs;
-use std::io::Read;
-
-fn main() {
-    println!("Hello from WASM sandbox!");
-
-    // Attempt to read a file — only works if --dir is granted
-    match fs::read_to_string("/etc/hostname") {
-        Ok(content) =&gt; println!("Host: {}", content.trim()),
-        Err(e) =&gt; println!("File access denied: {} (expected in sandbox)", e),
-    }
-}
-EOF
-
-<span class="cm"># ── Compile to WASM (requires Rust + wasm32-wasip1 target) ──</span>
-rustup target add wasm32-wasip1
-rustc --target wasm32-wasip1 sandbox_test.rs -o sandbox_test.wasm
-
-<span class="cm"># ── Run WITHOUT any filesystem access (default sandbox) ──</span>
-wasmtime sandbox_test.wasm
-<span class="cm"># Output:
-# Hello from WASM sandbox!
-# File access denied: failed to find a pre-opened file descriptor (expected in sandbox)</span>
-
-<span class="cm"># ── Run WITH /etc granted (explicit capability) ──</span>
-wasmtime --dir /etc sandbox_test.wasm
-<span class="cm"># Output:
-# Hello from WASM sandbox!
-# Host: my-server-hostname</span>
-
-<span class="cm"># ── No network by default either ──</span>
-cat &gt; net_test.wat &lt;&lt; 'EOF'
-(module
-  (import "wasi_snapshot_preview1" "sock_accept" (func $sock_accept (param i32 i32 i32) (result i32)))
-  (func (export "_start"))
-)
-EOF
-wasmtime net_test.wat
-<span class="cm"># Missing import or capability denied — network is gated behind explicit WASI permissions</span></code></pre>
-
-  <!-- Example 7: Python process sandbox -->
-  <h3>Example 7 — Python Process Sandbox with Resource Limits</h3>
-  <pre><code class="language-python">#!/usr/bin/env python3
-"""Simple process-level sandbox using resource limits + Linux namespaces."""
-import subprocess
-import tempfile
-import os
-
-def run_sandboxed(code: str, timeout: int = 5) -&gt; dict:
-    """
-    Run untrusted Python code in a subprocess with:
-    - Memory limit: 64 MB (RLIMIT_AS)
-    - CPU time limit: 2 seconds (RLIMIT_CPU)
-    - Max open files: 10 (RLIMIT_NOFILE)
-    - Network namespace isolation (unshare --net)
-    - PID namespace isolation (unshare --pid --fork)
-    - Mount namespace isolation (unshare --mount)
-    """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-        f.write(code)
-        script = f.name
-
-    try:
-        result = subprocess.run(
-            [
-                # Linux namespace isolation — requires CAP_SYS_ADMIN or user namespaces
-                "unshare", "--net", "--pid", "--mount", "--fork",
-                "python3", "-c",
-                f"""
-import resource, sys
-
-# Memory: 64 MB — process killed if it tries to allocate more
-resource.setrlimit(resource.RLIMIT_AS, (64 * 1024 * 1024, 64 * 1024 * 1024))
-
-# CPU: 2 seconds — SIGXCPU sent when exceeded
-resource.setrlimit(resource.RLIMIT_CPU, (2, 2))
-
-# Max open file descriptors: 10
-resource.setrlimit(resource.RLIMIT_NOFILE, (10, 10))
-
-# Max child processes: 0 (no fork bombing)
-resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
-
-# Max file size that can be written: 1 MB
-resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
-
-exec(open({repr(script)}).read())
-"""
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return {
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "returncode": result.returncode
-        }
-    except subprocess.TimeoutExpired:
-        return {"error": "Timeout exceeded", "stdout": "", "stderr": ""}
-    except PermissionError as e:
-        return {"error": f"unshare failed (need user namespaces): {e}", "stdout": "", "stderr": ""}
-    finally:
-        os.unlink(script)
-
-
-# ── Test cases ──
-if __name__ == "__main__":
-    print("=== Normal code ===")
-    print(run_sandboxed('print("Hello from sandbox!")'))
-
-    print("\n=== Network access (blocked — unshare --net creates lo-only namespace) ===")
-    print(run_sandboxed('import urllib.request; urllib.request.urlopen("http://example.com")'))
-
-    print("\n=== Fork bomb (RLIMIT_NPROC = 0 prevents any child processes) ===")
-    print(run_sandboxed('import os\nwhile True: os.fork()'))
-
-    print("\n=== CPU exhaustion (killed after 2 CPU seconds) ===")
-    print(run_sandboxed('while True: pass', timeout=4))
-
-    print("\n=== Memory exhaustion (fails at 64 MB) ===")
-    print(run_sandboxed('x = " " * (100 * 1024 * 1024)'))</code></pre>
+  <p>Always blocked regardless of policy: raw TCP/UDP (only HTTP/HTTPS proxied), private networks
+  (10.x, 172.16.x, 192.168.x), cloud metadata services (169.254.169.254), and
+  host <code>localhost</code>.</p>
 
   <div class="callout warn">
-    <div class="callout-title">Security Warning</div>
-    <p>
-      This Python sandbox approach is educational. For production use of untrusted code execution,
-      use Kata Containers or Firecracker. <code>unshare</code> requires either root or user
-      namespaces enabled (<code>kernel.unprivileged_userns_clone=1</code>), and resource limits
-      can be bypassed by sufficiently motivated attackers with kernel exploits. This is a
-      defence-in-depth layer, not a complete isolation boundary.
-    </p>
+    <strong>Important limitation:</strong> The network proxy cannot prevent data exfiltration to
+    <em>allowed</em> domains. If GitHub is on the allow-list, the agent could theoretically push
+    sensitive files to a GitHub repo. Sandboxes prevent filesystem and host system compromise —
+    they don't govern whether the agent's <em>decisions</em> are appropriate.
   </div>
 
-  <!-- Example 8: Kata Containers -->
-  <h3>Example 8 — Kata Containers with containerd</h3>
-  <pre><code><span class="cm"># ── Check hardware virtualisation support ──</span>
-grep -E 'vmx|svm' /proc/cpuinfo | head -1
-<span class="cm"># vmx = Intel VT-x, svm = AMD-V. Required for Kata.</span>
-ls /dev/kvm &amp;&amp; echo "KVM available"
+  <!-- ── CLI reference ── -->
+  <h2 class="section-title">CLI Reference — Both Interfaces</h2>
 
-<span class="cm"># ── Install Kata Containers (Ubuntu 22.04/24.04) ──</span>
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/kata-containers/main/utils/kata-manager.sh) install-packages"
+  <p>Two separate tools exist. <strong><code>sbx</code></strong> is the standalone CLI (no Docker Desktop
+  required, ships as of March 31, 2026). <strong><code>docker sandbox</code></strong> is the Docker Desktop
+  plugin (requires Desktop 4.58+).</p>
 
-<span class="cm"># Or via snap (simpler, slightly older version):</span>
-sudo snap install kata-containers --classic
+  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Install sbx</h3>
+  <pre><code><span class="comment"># macOS</span>
+brew install docker/tap/sbx
 
-<span class="cm"># ── Configure containerd to use Kata as a shimv2 runtime ──</span>
-sudo mkdir -p /etc/containerd
-sudo tee /etc/containerd/config.toml &lt;&lt; 'EOF'
-version = 2
-[plugins."io.containerd.grpc.v1.cri"]
-  [plugins."io.containerd.grpc.v1.cri".containerd]
-    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
-      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
-        runtime_type = "io.containerd.runc.v2"
-      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata]
-        runtime_type = "io.containerd.kata.v2"
-        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata.options]
-          ConfigPath = "/opt/kata/share/defaults/kata-containers/configuration.toml"
-EOF
-sudo systemctl restart containerd
+<span class="comment"># Windows</span>
+winget install -h Docker.sbx
 
-<span class="cm"># ── Run with Kata via nerdctl ──</span>
-nerdctl run --runtime=io.containerd.run.v1.kata --rm -it ubuntu:24.04 \
-  sh -c "uname -r"
-<span class="cm"># Shows a different kernel version than the host — it IS a different kernel:
-# 5.15.0-kata-containers (or similar stripped Kata kernel)
-# Compare with runc: uname -r returns the host kernel</span>
+<span class="comment"># Authenticate (uses Docker OAuth)</span>
+sbx login</code></pre>
 
-<span class="cm"># ── Verify it's running as a real VM ──</span>
-nerdctl run --runtime=io.containerd.run.v1.kata --rm ubuntu:24.04 \
-  sh -c "dmesg | head -5"
-<span class="cm"># Shows the VM kernel boot messages — completely separate from host dmesg</span>
+  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Core workflow</h3>
+  <pre><code><span class="comment"># Create a sandbox and launch Claude Code in your project</span>
+sbx run claude ~/my-project
 
-<span class="cm"># ── With Kubernetes (RuntimeClass) ──</span>
-kubectl apply -f - &lt;&lt; 'EOF'
-apiVersion: node.k8s.io/v1
-kind: RuntimeClass
-metadata:
-  name: kata
-handler: kata
-EOF
+<span class="comment"># With an initial task prompt</span>
+sbx run claude ~/my-project -- <span class="str">"Fix all TypeScript errors in src/"</span>
 
-<span class="cm"># Then in your pod spec:</span>
-<span class="cm"># spec:</span>
-<span class="cm">#   runtimeClassName: kata</span>
-<span class="cm">#   containers: [...]</span></code></pre>
+<span class="comment"># Pass flags to the agent (e.g. --continue last session)</span>
+sbx run claude ~/my-project -- --continue
 
-  <!-- ════════════════════════════════════════════════
-       7. ESCAPE TECHNIQUES AND WHY THEY MATTER
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">Container Escape Techniques — Why Isolation Level Matters</h2>
+<span class="comment"># List all your sandboxes</span>
+sbx ls
 
+<span class="comment"># Open an interactive shell inside a running sandbox</span>
+sbx exec my-sandbox -it bash
+
+<span class="comment"># Stop a sandbox (state preserved, can restart)</span>
+sbx stop my-sandbox
+
+<span class="comment"># Delete a sandbox (removes VM, NOT your project files)</span>
+sbx rm my-sandbox
+
+<span class="comment"># Nuke everything</span>
+sbx reset</code></pre>
+
+  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Network and secrets</h3>
+  <pre><code><span class="comment"># Store an API key securely (never goes inside the VM)</span>
+sbx secret set -g anthropic     <span class="comment"># prompts for ANTHROPIC_API_KEY</span>
+sbx secret set -g openai        <span class="comment"># prompts for OPENAI_API_KEY</span>
+
+<span class="comment"># View what network requests were blocked</span>
+sbx policy log my-sandbox
+
+<span class="comment"># Allow an additional domain</span>
+sbx policy allow network my-sandbox --domain example.com
+
+<span class="comment"># Bypass proxy for a host (certificate pinning workaround)</span>
+sbx policy --bypass-host api.example.com
+
+<span class="comment"># Expose a port from sandbox to host (e.g. dev server)</span>
+sbx ports my-sandbox --publish 3000</code></pre>
+
+  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">docker sandbox equivalents (Docker Desktop plugin)</h3>
+  <pre><code>docker sandbox create claude ~/my-project
+docker sandbox run &lt;sandbox-name&gt;
+docker sandbox exec &lt;sandbox-name&gt;
+docker sandbox ls
+docker sandbox rm &lt;sandbox-name&gt;
+docker sandbox stop &lt;sandbox-name&gt;
+docker sandbox inspect &lt;sandbox-name&gt;
+docker sandbox network
+docker sandbox reset
+docker sandbox version</code></pre>
+
+  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Supported agents</h3>
   <p>
-    Understanding real escape techniques illustrates concretely why the isolation level you choose
-    has security consequences. Each of these was a real-world vulnerability; some are patched, some
-    are configuration anti-patterns that still exist in production today.
+    <span class="tag blue">claude</span>
+    <span class="tag blue">codex</span>
+    <span class="tag blue">copilot</span>
+    <span class="tag blue">gemini</span>
+    <span class="tag blue">kiro</span>
+    <span class="tag blue">opencode</span>
+    <span class="tag blue">docker-agent</span>
+    <span class="tag">shell</span>
   </p>
+  <p>The <code>shell</code> subcommand creates a blank microVM with no agent — useful for running
+  arbitrary isolated workloads or testing the environment itself.</p>
 
-  <div class="cve-card">
-    <div class="cve-id">CVE-2019-5736 — runc Binary Overwrite</div>
-    <p>
-      A malicious container could overwrite the host's <code>runc</code> binary by exploiting a
-      race condition in how runc opens <code>/proc/self/exe</code>. On the next
-      <code>docker exec</code>, the attacker's code ran as root on the host. Affected every
-      runc-based container runtime (Docker, containerd, CRI-O, Podman at the time).
-    </p>
-    <p class="immune">
-      Not exploitable with gVisor (Sentry implements <code>/proc/self/exe</code> in userspace)
-      or Kata/Firecracker (host runc is never invoked inside the guest VM).
-    </p>
+  <!-- ── Examples you can run ── -->
+  <h2 class="section-title">Examples You Can Run Right Now</h2>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">1. Verify the sandbox is isolated from your host Docker</h3>
+  <pre><code><span class="comment"># On your host, start a recognizable container</span>
+docker run -d --name sentinel nginx:alpine
+
+<span class="comment"># Create a blank sandbox (shell mode = no agent, just an isolated shell)</span>
+sbx run shell ~/any-empty-dir
+
+<span class="comment"># Inside the sandbox, try to see host containers:</span>
+docker ps
+<span class="comment"># ✓ Result: empty — your 'sentinel' container is completely invisible</span>
+
+<span class="comment"># Try to reach the host Docker daemon:</span>
+ls ~/.docker/sandboxes/
+<span class="comment"># ✓ Result: not accessible — different filesystem</span>
+
+<span class="comment"># Verify you have your OWN Docker daemon:</span>
+docker info | grep "Docker Root Dir"
+<span class="comment"># ✓ Shows a path inside the VM, not /var/lib/docker on your host</span>
+
+<span class="comment"># Clean up</span>
+docker stop sentinel &amp;&amp; docker rm sentinel</code></pre>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">2. Test file sync (project visible at same path)</h3>
+  <pre><code><span class="comment"># Create a test project</span>
+mkdir ~/sbx-test &amp;&amp; echo "hello from host" &gt; ~/sbx-test/probe.txt
+
+<span class="comment"># Launch a shell sandbox on it</span>
+sbx run shell ~/sbx-test
+
+<span class="comment"># Inside the sandbox:</span>
+cat ~/sbx-test/probe.txt          <span class="comment"># ✓ "hello from host" — same absolute path</span>
+echo "hello from sandbox" &gt;&gt; ~/sbx-test/probe.txt
+
+<span class="comment"># Back on your host (changes sync immediately):</span>
+cat ~/sbx-test/probe.txt          <span class="comment"># ✓ Shows both lines</span></code></pre>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">3. Test network policies</h3>
+  <pre><code><span class="comment"># Inside the sandbox shell:</span>
+curl -s https://api.github.com/zen     <span class="comment"># ✓ Allowed in Balanced mode</span>
+curl -s https://registry.npmjs.org/    <span class="comment"># ✓ Allowed</span>
+curl -s https://169.254.169.254/       <span class="comment"># ✗ Always blocked (AWS metadata)</span>
+curl -s http://192.168.1.1/            <span class="comment"># ✗ Blocked — private network</span>
+
+<span class="comment"># On your host, watch what was blocked:</span>
+sbx policy log my-sandbox</code></pre>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">4. Run Docker-in-Docker safely</h3>
+  <pre><code><span class="comment"># Inside the sandbox — build and run a container (your own private daemon):</span>
+cat &gt; Dockerfile &lt;&lt; 'EOF'
+FROM alpine:latest
+CMD ["echo", "I am a container inside a sandbox"]
+EOF
+
+docker build -t inner-test .
+docker run --rm inner-test
+<span class="comment"># ✓ Works! And none of this appears on your host's docker ps</span></code></pre>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">5. Run Claude Code on a real project</h3>
+  <pre><code><span class="comment"># Store your API key once (never goes in the VM)</span>
+sbx secret set -g anthropic
+
+<span class="comment"># Run Claude Code against your project</span>
+sbx run claude ~/my-project
+
+<span class="comment"># With a specific task</span>
+sbx run claude ~/my-project -- <span class="str">"Add unit tests for all public functions in src/parser.rs"</span>
+
+<span class="comment"># The agent can:</span>
+<span class="comment">#   ✓ Read and write files in ~/my-project</span>
+<span class="comment">#   ✓ Run cargo build, npm install, pip install, etc.</span>
+<span class="comment">#   ✓ Build and run Docker containers</span>
+<span class="comment">#   ✗ See your host Docker containers</span>
+<span class="comment">#   ✗ Access ~/.ssh, ~/.aws, or any other host directory</span>
+<span class="comment">#   ✗ Access cloud metadata endpoints</span>
+<span class="comment">#   ✗ Make raw TCP connections</span></code></pre>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">6. Inspect the sandbox internals (Rivet reverse-engineering approach)</h3>
+  <pre><code><span class="comment"># The sandboxd daemon exposes an HTTP API on its unix socket</span>
+<span class="comment"># List all VMs:</span>
+curl --unix-socket ~/.docker/sandboxes/sandboxd.sock \
+  http://localhost/vm
+
+<span class="comment"># Each VM has its own Docker socket:</span>
+ls ~/.docker/sandboxes/vm/
+
+<span class="comment"># You can use the sandbox's private Docker daemon directly:</span>
+DOCKER_HOST=unix://$HOME/.docker/sandboxes/vm/&lt;n&gt;/docker.sock \
+  docker ps -a</code></pre>
+
+  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">7. Locked-down sandbox for maximum safety</h3>
+  <pre><code><span class="comment"># Create a sandbox then enforce strict network policy</span>
+sbx create shell ~/untrusted-project
+
+<span class="comment"># Lock it down — deny everything by default</span>
+sbx policy set my-sandbox --mode locked-down
+
+<span class="comment"># Only allow what your project actually needs:</span>
+sbx policy allow network my-sandbox --domain api.anthropic.com
+sbx policy allow network my-sandbox --domain github.com
+
+<span class="comment"># Now run it</span>
+sbx run my-sandbox</code></pre>
+
+  <!-- ── Known limitations ── -->
+  <h2 class="section-title">Known Limitations &amp; Bugs</h2>
+
+  <div class="limit-item">
+    <span class="limit-badge lb-limit">LIMIT</span>
+    <div class="limit-text"><strong>Linux is experimental and single-user only.</strong> Uses container-based isolation
+    (not a real microVM) and only works for UID 1000. Not suitable for multi-user servers or CI environments.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-limit">LIMIT</span>
+    <div class="limit-text"><strong>No raw TCP/UDP outbound.</strong> Only HTTP/HTTPS is proxied. Breaks anything
+    that needs raw socket connections: ADB (Android), custom game servers, MQTT, etc.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-limit">LIMIT</span>
+    <div class="limit-text"><strong>One sandbox per workspace directory.</strong> You can't run two sandboxes
+    against the same project path simultaneously. Remove the old one first.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-limit">LIMIT</span>
+    <div class="limit-text"><strong>Agent governance is not included.</strong> The sandbox prevents filesystem
+    and kernel escapes, but it can't stop the agent from making inappropriate <em>authorized</em> decisions —
+    e.g., deleting files it shouldn't, merging PRs, overwriting configs. That's a separate problem.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-bug">BUG</span>
+    <div class="limit-text"><strong>Clock drift after sleep/wake.</strong> The VM clock drifts when your
+    laptop sleeps, causing HTTPS certificate errors. Fix: <code>sbx stop &lt;name&gt;</code> then
+    <code>sbx run &lt;name&gt;</code>.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-bug">BUG</span>
+    <div class="limit-text"><strong>Stale git worktrees on removal.</strong> After <code>sbx rm</code>,
+    git worktrees may remain. Manual cleanup: <code>git worktree remove .sbx/&lt;name&gt;</code>
+    and <code>git branch -D &lt;branch&gt;</code>.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-bug">BUG</span>
+    <div class="limit-text"><strong>Windows: multiple sandbox crashes.</strong> Launching too many simultaneously
+    can crash. Fix: kill all <code>docker.openvmm.exe</code> processes and restart.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-bug">BUG</span>
+    <div class="limit-text"><strong>Windows MSI upgrade bug.</strong> The MSI installer cannot update
+    existing installs of 4.59+. You must fully uninstall first (which deletes all sandbox data).</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-note">NOTE</span>
+    <div class="limit-text"><strong>Certificate pinning services break.</strong> Some APIs use certificate pinning
+    and reject the proxy's MITM cert. Workaround: <code>sbx policy --bypass-host &lt;domain&gt;</code>.</div>
+  </div>
+  <div class="limit-item">
+    <span class="limit-badge lb-note">NOTE</span>
+    <div class="limit-text"><strong>OrbStack incompatibility.</strong> <code>docker sandbox</code> doesn't work
+    with OrbStack as the Docker backend (OrbStack feature request #2295 is open).</div>
   </div>
 
-  <div class="cve-card">
-    <div class="cve-id">CVE-2022-0847 — Dirty Pipe (Linux Kernel)</div>
-    <p>
-      A kernel bug in pipe buffer handling allowed unprivileged users to overwrite arbitrary
-      read-only file-backed page cache entries — including <code>/etc/passwd</code> and
-      SUID binaries. Container processes could exploit this to write to host files, escaping
-      into the host filesystem with root privileges. Affected Linux 5.8–5.16.11.
-    </p>
-    <p class="immune">
-      Kata Containers and Firecracker were completely immune — the vulnerable host kernel was
-      never directly exposed to container processes. Plain Docker containers on affected kernel
-      versions were exploitable regardless of seccomp profile.
-    </p>
+  <!-- ── What Docker Sandboxes is NOT ── -->
+  <h2 class="section-title">What Docker Sandboxes Is NOT</h2>
+
+  <div class="callout warn">
+    <strong>Common misconception:</strong> Docker Sandboxes is not a general-purpose container security
+    hardening feature. It won't make your web server containers more secure. It won't help you
+    run untrusted third-party images safely in production. It won't replace Kubernetes security policies.
   </div>
 
-  <div class="cve-card">
-    <div class="cve-id">Configuration: --privileged Flag</div>
-    <p>
-      Running <code>docker run --privileged</code> grants the container <em>all 38 Linux
-      capabilities</em>, full access to every device on the host, and the ability to remount
-      the root filesystem. This is essentially no isolation — a process inside can trivially
-      mount the host filesystem and <code>chroot</code> into it:
-    </p>
-    <pre style="background:#0a0c12; margin:0.5rem 0 0; padding:0.6rem 0.8rem; font-size:0.78rem; border-radius:4px;"><code>mount /dev/sda1 /mnt/host &amp;&amp; chroot /mnt/host
-# Now you have a root shell on the host OS</code></pre>
-    <p style="margin-top:0.5rem; margin-bottom:0;">Never use <code>--privileged</code> in production. If you think you need it, you almost certainly need a specific capability instead.</p>
-  </div>
+  <p>For those use cases, the right tools are still:</p>
+  <ul>
+    <li><strong>seccomp profiles</strong> — filter syscalls inside containers</li>
+    <li><strong>AppArmor / SELinux</strong> — mandatory access control policies</li>
+    <li><strong>gVisor (<code>runsc</code>)</strong> — intercept all syscalls in userspace, used by Google Cloud Run</li>
+    <li><strong>Kata Containers / Firecracker</strong> — VM-per-container, used by AWS Lambda and Fly.io</li>
+    <li><strong>rootless containers</strong> — run Docker daemon and containers without root</li>
+  </ul>
 
-  <div class="cve-card">
-    <div class="cve-id">Configuration: Mounted Docker Socket</div>
-    <p>
-      Mounting the Docker daemon socket into a container:
-      <code>docker run -v /var/run/docker.sock:/var/run/docker.sock</code>
-      gives that container full control over the Docker daemon — which runs as root on the host.
-      Any process inside can run:
-    </p>
-    <pre style="background:#0a0c12; margin:0.5rem 0 0; padding:0.6rem 0.8rem; font-size:0.78rem; border-radius:4px;"><code>docker run -v /:/host --rm -it ubuntu chroot /host
-# Instant root shell on the host — complete escape</code></pre>
-    <p style="margin-top:0.5rem; margin-bottom:0;">This is a trivial escape and is extremely common in CI/CD pipelines that mount the socket for "Docker-in-Docker." Use rootless Docker, Buildah, or Kaniko instead.</p>
-  </div>
+  <p>Docker Sandboxes solves exactly one problem very well: <em>safely running AI coding agents against your
+  codebase.</em> That's it.</p>
 
-  <div class="callout">
-    <div class="callout-title">The Pattern</div>
-    <p>
-      Notice that CVE-2019-5736 is a container runtime bug, Dirty Pipe is a kernel bug, and the
-      last two are configuration mistakes. <strong>gVisor</strong> helps with runtime bugs (the
-      Sentry is the runtime, not runc). <strong>Kata/Firecracker</strong> helps with both runtime
-      bugs <em>and</em> kernel bugs (different kernel per VM). Neither helps with configuration
-      mistakes — those require operational discipline.
-    </p>
-  </div>
+  <!-- ── Quick reference ── -->
+  <h2 class="section-title">Quick Reference — What to Use When</h2>
 
-  <!-- ════════════════════════════════════════════════
-       8. QUICK-REFERENCE DECISION TABLE
-  ════════════════════════════════════════════════ -->
-  <h2 class="section-title">Quick-Reference Decision Table</h2>
-
-  <div style="overflow-x:auto;">
-  <table class="decision-table">
+  <table class="compare-table">
     <thead>
-      <tr>
-        <th>Scenario</th>
-        <th>Recommended</th>
-        <th>Why</th>
-      </tr>
+      <tr><th>Scenario</th><th>Use</th><th>Why</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td>Development environment</td>
-        <td>Docker default</td>
-        <td>Speed and convenience; trust level is your own code</td>
+        <td>Running Claude Code / Codex on my project</td>
+        <td class="good">Docker Sandbox (<code>sbx</code>)</td>
+        <td>Exactly what it's built for</td>
       </tr>
       <tr>
-        <td>Trusted internal microservices</td>
-        <td>Docker + seccomp</td>
-        <td>Defence in depth at near-zero overhead; reduces blast radius of app-layer exploits</td>
+        <td>CI/CD pipeline running tests</td>
+        <td class="good">docker run (containers)</td>
+        <td>Speed matters, code is your own</td>
       </tr>
       <tr>
-        <td>npm install / build pipelines</td>
-        <td>Docker + gVisor</td>
-        <td>Typosquatted packages execute arbitrary code; gVisor limits kernel exposure</td>
+        <td>Production microservices</td>
+        <td class="good">docker run + seccomp + AppArmor</td>
+        <td>Defense-in-depth at low overhead</td>
       </tr>
       <tr>
-        <td>User-submitted code execution</td>
-        <td>Kata / Firecracker</td>
-        <td>Full VM isolation; kernel CVEs don't cross VM boundary</td>
+        <td>Running user-submitted code</td>
+        <td class="good">gVisor or Kata/Firecracker</td>
+        <td>Truly untrusted execution needs VM-level isolation</td>
       </tr>
       <tr>
-        <td>Serverless functions (scale to zero)</td>
-        <td>Firecracker / WASM</td>
-        <td>125ms cold start (Firecracker) or ~1ms (WASM) with strong isolation</td>
+        <td>Serverless functions at scale</td>
+        <td class="good">Firecracker (AWS Lambda model)</td>
+        <td>~125ms boot, minimal memory overhead per VM</td>
       </tr>
       <tr>
-        <td>Browser / app plugin system</td>
-        <td>WASM / V8 Isolates</td>
-        <td>~0ms init, capability-based, language-sandboxed, no OS exposure</td>
+        <td>Plugin / extension system</td>
+        <td class="good">WASM / V8 Isolates</td>
+        <td>~0ms startup, language-sandboxed, no OS needed</td>
       </tr>
       <tr>
-        <td>Compliance (PCI DSS / HIPAA)</td>
-        <td>Kata + AppArmor</td>
-        <td>Auditable VM-level separation; satisfies requirements for workload isolation</td>
+        <td>Dev environment for experimenting</td>
+        <td class="good">docker run (default)</td>
+        <td>Maximum speed and compatibility</td>
       </tr>
       <tr>
-        <td>Legacy Windows app on Linux host</td>
-        <td>Full VM (QEMU/KVM)</td>
-        <td>Different OS kernel required; containers cannot run a Windows kernel</td>
-      </tr>
-      <tr>
-        <td>Edge compute (CDN nodes)</td>
-        <td>V8 Isolates / WASM</td>
-        <td>Thousands of tenants per process; ~0ms tenant switch; no cold start</td>
-      </tr>
-      <tr>
-        <td>CI runner accepting PRs from forks</td>
-        <td>gVisor or Kata</td>
-        <td>Fork PRs contain attacker-controlled code; shared-kernel containers are insufficient</td>
+        <td>Running a different OS (Windows on Linux)</td>
+        <td class="good">Full VM (QEMU/KVM)</td>
+        <td>Different kernel required</td>
       </tr>
     </tbody>
   </table>
-  </div>
 
-  <hr />
+  <hr/>
 
-  <h2 class="section-title">Summary</h2>
+  <!-- ── Sources ── -->
+  <h2 class="section-title" style="margin-top:0;">Sources</h2>
 
-  <p>
-    Containers are excellent tools for packaging and running trusted software. Their shared-kernel
-    architecture gives them near-native performance and sub-second startup, but it means every
-    container on a host is one kernel vulnerability away from a host escape. For the majority of
-    internal workloads where you trust the code, this is an acceptable trade-off.
-  </p>
-
-  <p>
-    The sandbox landscape provides a range of options for when that trade-off is not acceptable.
-    gVisor adds a userspace kernel interception layer that dramatically reduces the attack surface
-    with modest overhead. Kata Containers and Firecracker provide true VM-level isolation with
-    startup times that are competitive with containers for most workloads. WASM provides
-    capability-based isolation with essentially zero overhead for language-compatible workloads.
-  </p>
-
-  <div class="callout">
-    <div class="callout-title">The Rule of Thumb</div>
-    <p>
-      The less you trust the code running in your containers, the further right on the isolation
-      spectrum you should be. Internal services: Docker with seccomp. Third-party packages or
-      build pipelines: gVisor. User-submitted or arbitrary code execution: Kata or Firecracker.
-      No rule applies universally — measure the blast radius of an escape, then choose the
-      isolation boundary that makes that blast radius acceptable.
-    </p>
-  </div>
-
-  <div class="tags" style="margin-top:2rem;">
-    <span class="tag blue">Docker</span>
-    <span class="tag blue">Security</span>
-    <span class="tag blue">Infrastructure</span>
-    <span class="tag blue">Sandboxing</span>
-    <span class="tag">gVisor</span>
-    <span class="tag">Firecracker</span>
-    <span class="tag">Kata Containers</span>
-    <span class="tag">WebAssembly</span>
-    <span class="tag">seccomp</span>
-    <span class="tag">AppArmor</span>
-    <span class="tag">Linux Namespaces</span>
-    <span class="tag">cgroups</span>
-  </div>
+  <ul class="sources">
+    <li><a href="https://www.docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/">docker.com — First announcement: "A New Approach for Coding Agent Safety" (Nov 25, 2025)</a></li>
+    <li><a href="https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/">docker.com — microVM launch: "Run Claude Code and Other Coding Agents Unsupervised, But Safely" (Jan 30, 2026)</a></li>
+    <li><a href="https://www.docker.com/blog/docker-sandboxes-run-agents-in-yolo-mode-safely/">docker.com — sbx CLI launch: "Run Agents in YOLO Mode, Safely" (Mar 31, 2026)</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/">docs.docker.com — Docker Sandboxes overview</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/architecture/">docs.docker.com — Architecture</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/network-policies/">docs.docker.com — Network policies</a></li>
+    <li><a href="https://docs.docker.com/reference/cli/sbx/">docs.docker.com — sbx CLI reference</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/troubleshooting/">docs.docker.com — Troubleshooting</a></li>
+    <li><a href="https://www.rivet.dev/blog/2026-02-04-we-reverse-engineered-docker-sandbox-undocumented-microvm-api/">rivet.dev — Reverse engineering of sandboxd internal API</a></li>
+    <li><a href="https://arcade.dev/blog/docker-sandboxes-arent-enough-for-agent-safety">arcade.dev — "Docker Sandboxes Aren't Enough for Agent Safety" (critical analysis)</a></li>
+    <li><a href="https://blog.hartleybrody.com/docker-sandbox/">blog.hartleybrody.com — Personal hands-on review</a></li>
+    <li><a href="https://github.com/docker/sbx-releases">github.com/docker/sbx-releases — sbx CLI releases and changelog</a></li>
+    <li><a href="https://github.com/orbstack/orbstack/issues/2295">github.com — OrbStack compatibility request</a></li>
+    <li><a href="https://github.com/containers/podman/issues/28291">github.com — Podman feature request citing Docker Sandboxes</a></li>
+    <li><a href="https://news.ycombinator.com/item?id=47185250">news.ycombinator.com — HN discussion: how developers sandbox AI agents</a></li>
+  </ul>
 
 </main>
-
-<footer>
-  &copy; 2026 &nbsp;·&nbsp; Docker Containers vs Sandboxes &nbsp;·&nbsp; Infrastructure Research
-</footer>
-
 </body>
 </html>
