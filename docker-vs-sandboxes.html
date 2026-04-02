@@ -287,16 +287,16 @@
   </ul>
 
   <h3>What Docker Sandboxes Uses Instead</h3>
-  <p>Docker Sandboxes uses the host OS's native hypervisor — <strong>not Firecracker, not gVisor</strong>:</p>
+  <p>Docker Sandboxes uses <strong>Firecracker microVMs</strong> on top of the host OS's native hypervisor. Firecracker is AWS's open-source VMM written in Rust (~83,000 lines), originally designed for AWS Lambda and Fargate. It boots in ~125ms with less than 5 MiB of memory overhead per VM — faster and lighter than any traditional VM while providing true hardware isolation.</p>
 
   <table>
     <thead>
-      <tr><th>OS</th><th>Hypervisor</th><th>Notes</th></tr>
+      <tr><th>OS</th><th>Hypervisor Layer</th><th>Notes</th></tr>
     </thead>
     <tbody>
-      <tr><td>macOS (Apple Silicon)</td><td>Apple Virtualization.framework</td><td>Same framework Apple uses for their own "Containerization" feature (WWDC 2025)</td></tr>
-      <tr><td>Windows 11</td><td>Windows Hypervisor Platform (Hyper-V)</td><td>Must be enabled; see OS support section</td></tr>
-      <tr><td>Linux (experimental)</td><td>KVM via Docker Desktop's Linux VM</td><td>Single-user (UID 1000) only as of Feb 2026</td></tr>
+      <tr><td>macOS (Apple Silicon)</td><td>Firecracker + Apple Virtualization.framework</td><td>Uses Apple's native hypervisor (Hypervisor.framework under the hood)</td></tr>
+      <tr><td>Windows 11</td><td>Firecracker + Windows Hypervisor Platform (Hyper-V)</td><td>Must be enabled; see OS support section</td></tr>
+      <tr><td>Linux (experimental)</td><td>Firecracker + KVM</td><td>Single-user (UID 1000) only; Docker Desktop required</td></tr>
     </tbody>
   </table>
 
@@ -334,29 +334,24 @@
 
   <div class="timeline">
     <div class="tl-item">
-      <div class="tl-date">November 12, 2025</div>
-      <div class="tl-title">Docker Desktop 4.50 — Initial Experimental Launch</div>
-      <div class="tl-body">Container-based sandbox implementation. AI agents ran in privileged containers, not VMs. Introduced the concept but had weaker isolation guarantees.</div>
+      <div class="tl-date">Late 2025</div>
+      <div class="tl-title">Docker Desktop — Container-Based Prototype</div>
+      <div class="tl-body">Early experimental sandbox implementation using privileged containers (not VMs). Introduced the concept but had weaker isolation — agents still shared the host kernel. This version was superseded by the Firecracker redesign in 4.58.</div>
     </div>
     <div class="tl-item">
       <div class="tl-date">January 26, 2026</div>
-      <div class="tl-title">Docker Desktop 4.58 — MicroVM Redesign <span class="chip blue">Architecturally significant</span></div>
-      <div class="tl-body">Complete rewrite to use native OS hypervisors (Virtualization.framework on macOS, Hyper-V on Windows). This is the "real" production release. Introduced the <code>sbx</code> standalone CLI.</div>
+      <div class="tl-title">Docker Desktop 4.58 — Firecracker MicroVM Launch <span class="chip blue">Architecturally significant</span></div>
+      <div class="tl-body">Complete rewrite using Firecracker microVMs. Each sandbox gets a dedicated kernel, private Docker daemon, and hardware-level isolation. Introduced the <code>sbx</code> standalone CLI. Announced in blog post January 30, 2026.</div>
     </div>
     <div class="tl-item">
-      <div class="tl-date">February 9, 2026</div>
-      <div class="tl-title">Docker Desktop 4.60 — Policy and Stability</div>
-      <div class="tl-body">Network policy enforcement, Gemini API key injection, stability fixes. Balanced/Locked Down network modes added.</div>
-    </div>
-    <div class="tl-item">
-      <div class="tl-date">February 18, 2026</div>
-      <div class="tl-title">Docker Desktop 4.61 — Linux, WSL2, Shell Mode</div>
-      <div class="tl-body">Experimental Linux support (single-user, KVM-based). WSL2 support on Windows. Shell agent template (blank VM, no AI pre-installed). OpenCode agent added.</div>
+      <div class="tl-date">February 2, 2026</div>
+      <div class="tl-title">Docker Desktop 4.59 — Linux, WSL2, Shell Mode, Caching</div>
+      <div class="tl-body">Experimental Linux support (single-user, UID 1000, KVM-based). WSL2 support on Windows. Shell agent template (blank VM, no AI). OpenCode agent. Automated image caching for faster subsequent starts. Mount multiple workspaces.</div>
     </div>
     <div class="tl-item">
       <div class="tl-date">March 31, 2026</div>
-      <div class="tl-title">sbx CLI v0.21.0</div>
-      <div class="tl-body">Standalone CLI independent of Docker Desktop. <code>sbx rm --all</code> command. <code>sbx policy reset</code>. Kiro agent support. <code>.deb</code>/<code>.rpm</code> packages for Linux.</div>
+      <div class="tl-title">sbx CLI v0.21.0 — "YOLO Mode, Safely" Blog Post</div>
+      <div class="tl-body">Standalone CLI independent of Docker Desktop. <code>sbx rm --all</code>. <code>sbx policy reset</code>. Kiro agent support. <code>.deb</code>/<code>.rpm</code> packages for Linux. Docker publishes "Run Agents in YOLO Mode, Safely" blog post confirming Firecracker architecture.</div>
     </div>
   </div>
 
@@ -406,9 +401,25 @@
   <h3>Managing Sandboxes</h3>
   <pre><code><span class="cmd">sbx ls</span>                              <span class="comment"># List all sandboxes (NOT visible in docker ps)</span>
 <span class="cmd">sbx exec</span> &lt;name&gt; bash               <span class="comment"># Shell into a running sandbox</span>
-<span class="cmd">sbx rm</span> &lt;name&gt;                       <span class="comment"># Remove a specific sandbox</span>
+<span class="cmd">sbx stop</span> &lt;name&gt;                     <span class="comment"># Halt VM, preserve state</span>
+<span class="cmd">sbx rm</span> &lt;name&gt;                       <span class="comment"># Remove (destroys VM and all installed state)</span>
+<span class="cmd">sbx rm</span> sandbox1 sandbox2           <span class="comment"># Remove multiple sandboxes</span>
 <span class="cmd">sbx rm --all</span>                        <span class="comment"># Remove all sandboxes (v0.21.0+)</span>
-<span class="cmd">sbx version</span>                        <span class="comment"># Show CLI and daemon version</span></code></pre>
+<span class="cmd">sbx version</span>                        <span class="comment"># Show CLI and daemon version</span>
+
+<span class="comment"># Memory override (workaround for 4GB cap bug in docker sandbox)</span>
+<span class="cmd">sbx run</span> claude <span class="flag">--memory</span> 8g</code></pre>
+
+  <h3>Docker Desktop Extra Commands</h3>
+  <pre><code><span class="cmd">docker sandbox inspect</span> &lt;name&gt;      <span class="comment"># Detailed sandbox info</span>
+<span class="cmd">docker sandbox stop</span> &lt;name&gt;         <span class="comment"># Stop without removing</span>
+<span class="cmd">docker sandbox reset</span>               <span class="comment"># Remove ALL sandboxes and clean up state</span>
+
+<span class="comment"># Save a snapshot as a reusable template (becomes a Docker image)</span>
+<span class="cmd">docker sandbox run</span> shell           <span class="comment"># 1. start a blank sandbox</span>
+<span class="comment"># install tools inside...</span>
+<span class="cmd">docker sandbox save</span> my-java-env    <span class="comment"># 2. save as template</span>
+<span class="cmd">docker sandbox run -t</span> my-java-env claude  <span class="comment"># 3. reuse with any agent</span></code></pre>
 
   <h3>Port Management</h3>
   <pre><code><span class="cmd">sbx ports</span> &lt;name&gt;                           <span class="comment"># List all ports for a sandbox</span>
@@ -576,17 +587,23 @@
 
   <table>
     <thead>
-      <tr><th>Metric</th><th>Docker Container</th><th>Docker Sandbox</th></tr>
+      <tr><th>Metric</th><th>Docker Container</th><th>Docker Sandbox (Firecracker)</th></tr>
     </thead>
     <tbody>
-      <tr><td>Cold start time</td><td>&lt;1 second</td><td>5–15 seconds (first run; depends on image cache)</td></tr>
-      <tr><td>Warm start time</td><td>&lt;1 second</td><td>~3–5 seconds (image caching added in 4.61)</td></tr>
-      <tr><td>CPU overhead</td><td>Near-zero (&lt;1%)</td><td>Single-digit % (VM boundary crossing)</td></tr>
-      <tr><td>Memory overhead</td><td>~50–100 MiB per container</td><td>~100–200 MiB for hypervisor + own kernel</td></tr>
-      <tr><td>Filesystem I/O</td><td>Native or overlay FS</td><td>VM virtio-fs; slightly slower for heavy I/O</td></tr>
-      <tr><td>Network throughput</td><td>Native bridge/overlay</td><td>Proxied; minor overhead for policy enforcement</td></tr>
+      <tr><td>Cold start time</td><td>&lt;100ms</td><td>~125ms (Firecracker VM boot) + agent image pull</td></tr>
+      <tr><td>Warm start (cached)</td><td>&lt;100ms</td><td>28–300ms (snapshot/restore path; caching added 4.59)</td></tr>
+      <tr><td>VMM memory overhead</td><td>Near-zero</td><td>&lt;5 MiB (Firecracker VMM itself)</td></tr>
+      <tr><td>Per-sandbox total memory</td><td>~50–100 MiB per container</td><td>VM kernel + daemon: ~100–200 MiB additional</td></tr>
+      <tr><td>CPU overhead at runtime</td><td>Near-zero (&lt;1%)</td><td>Single-digit % (virtio / VM boundary)</td></tr>
+      <tr><td>Filesystem I/O</td><td>Native or overlay FS</td><td>virtio-fs; slightly slower for I/O-heavy workloads</td></tr>
+      <tr><td>Network</td><td>Native bridge/overlay</td><td>Proxied; minor overhead for policy enforcement</td></tr>
     </tbody>
   </table>
+
+  <div class="callout success">
+    <strong>Why Firecracker is fast enough</strong>
+    Firecracker was purpose-built for ephemeral workloads (AWS Lambda). Its 125ms boot and &lt;5 MiB overhead make it vastly faster and lighter than traditional VMs (which take seconds to boot and use hundreds of MiB). The performance gap between a Firecracker sandbox and a regular container is small enough to be irrelevant for AI agent workloads that run for minutes or hours.
+  </div>
 
   <div class="callout info">
     <strong>Caching note</strong>
@@ -608,10 +625,15 @@
       <tr><td>Nested virtualization</td><td>Cannot run sbx inside a VM</td><td>Run on bare metal host</td></tr>
       <tr><td>docker build local export</td><td><code>--output type=local</code> fails inside sandbox</td><td>Use <code>--output type=tar,dest=- . | tar xf -</code></td></tr>
       <tr><td>docker ps visibility</td><td>Sandboxes don't appear in <code>docker ps</code></td><td>Use <code>sbx ls</code> instead</td></tr>
+      <tr><td>No GPU passthrough</td><td>Firecracker microVM does not support VFIO GPU passthrough</td><td>Use regular containers or native host for GPU workloads</td></tr>
+      <tr><td>No nested virtualization</td><td>Cannot run KVM/Hyper-V inside a sandbox (no nested VMs)</td><td>None; by design</td></tr>
+      <tr><td>No Windows guest</td><td>MicroVMs only run Linux guests</td><td>None</td></tr>
+      <tr><td>4GB RAM cap (Docker Desktop)</td><td><code>docker sandbox</code> caps sandbox at ~3.8GB regardless of settings</td><td>Use standalone <code>sbx run --memory 8g</code> instead</td></tr>
+      <tr><td>Simultaneous sandboxes on Windows</td><td>Running multiple sandboxes simultaneously may cause crashes</td><td>Launch sandboxes sequentially on Windows</td></tr>
       <tr><td>Disk resize</td><td>Cannot resize VM disk after creation (Virtualization.framework)</td><td>Destroy and recreate with larger disk</td></tr>
-      <tr><td>VM clock drift</td><td>Sandbox clock can drift from host over time</td><td><code>sbx restart &lt;name&gt;</code> to resync</td></tr>
+      <tr><td>VM clock drift</td><td>Sandbox clock can drift from host over time</td><td><code>sbx stop</code> + <code>sbx run</code> to resync</td></tr>
       <tr><td>Windows Docker not default</td><td>Docker not installed by default in Windows sandbox</td><td>Use <code>-docker</code> template variant (slower startup)</td></tr>
-      <tr><td>MSI installer bug (4.59+)</td><td>MSI cannot update existing Docker Desktop 4.59+ installations</td><td>Uninstall first, then reinstall new version</td></tr>
+      <tr><td>Docker account required</td><td><code>sbx login</code> requires a free Docker account</td><td>Sign up at hub.docker.com (free)</td></tr>
     </tbody>
   </table>
 
@@ -726,9 +748,12 @@ docker run --rm test-image echo hello
       <tr><td>sbx CLI reference</td><td><a href="https://docs.docker.com/reference/cli/sbx/" target="_blank">docs.docker.com/reference/cli/sbx/</a></td></tr>
       <tr><td>sbx releases (GitHub)</td><td><a href="https://github.com/docker/sbx-releases" target="_blank">github.com/docker/sbx-releases</a></td></tr>
       <tr><td>Docker product page</td><td><a href="https://www.docker.com/products/docker-sandboxes/" target="_blank">docker.com/products/docker-sandboxes/</a></td></tr>
-      <tr><td>Blog: A New Approach for Coding Agent Safety</td><td><a href="https://www.docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/" target="_blank">docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/</a></td></tr>
-      <tr><td>Blog: Run Claude Code Safely</td><td><a href="https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/" target="_blank">docker.com/blog/…run-claude-code…safely/</a></td></tr>
+      <tr><td>Blog: Run Claude Code and More, Safely (Jan 30, 2026)</td><td><a href="https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/" target="_blank">docker.com/blog/…run-claude-code…safely/</a></td></tr>
+      <tr><td>Blog: Run Agents in YOLO Mode, Safely (Mar 31, 2026)</td><td><a href="https://www.docker.com/blog/docker-sandboxes-run-agents-in-yolo-mode-safely/" target="_blank">docker.com/blog/…run-agents-in-yolo-mode-safely/</a></td></tr>
       <tr><td>Docker Desktop release notes</td><td><a href="https://docs.docker.com/desktop/release-notes/" target="_blank">docs.docker.com/desktop/release-notes/</a></td></tr>
+      <tr><td>sbx runs command reference</td><td><a href="https://docs.docker.com/reference/cli/sbx/run/" target="_blank">docs.docker.com/reference/cli/sbx/run/</a></td></tr>
+      <tr><td>docker sandbox CLI reference</td><td><a href="https://docs.docker.com/reference/cli/docker/sandbox/" target="_blank">docs.docker.com/reference/cli/docker/sandbox/</a></td></tr>
+      <tr><td>GitHub issue: 4GB RAM cap</td><td><a href="https://github.com/docker/for-mac/issues/7860" target="_blank">github.com/docker/for-mac/issues/7860</a></td></tr>
     </tbody>
   </table>
 
