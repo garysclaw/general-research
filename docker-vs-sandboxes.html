@@ -6,948 +6,732 @@
   <title>Docker Sandboxes — AI Agent Isolation Deep Dive</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #16181f;
-      --border: #252830;
-      --text: #dde1ee;
-      --muted: #6b7080;
-      --accent: #6c8ef5;
-      --green: #3ecf8e;
-      --red: #f2545b;
-      --yellow: #f0b429;
-      --tag-bg: #1a1d27;
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --teal: #39d353;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      line-height: 1.75;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 0 1rem 4rem;
     }
-
-    header {
+    .page-header {
+      background: linear-gradient(135deg, #0d1117 0%, #1a2332 50%, #0d1117 100%);
       border-bottom: 1px solid var(--border);
-      padding: 28px 24px 24px;
-      max-width: 760px;
-      margin: 0 auto;
+      padding: 3rem 0 2rem;
+      margin: 0 -1rem 2.5rem;
+      text-align: center;
     }
-    .back {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-decoration: none;
-      margin-bottom: 18px;
-    }
-    .back:hover { color: var(--accent); }
-    .meta {
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(56, 139, 253, 0.15);
+      border: 1px solid rgba(56, 139, 253, 0.4);
+      color: var(--blue);
       font-size: 0.75rem;
-      color: var(--muted);
-      letter-spacing: 0.08em;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 12px;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
     }
-    header h1 {
-      font-size: 1.65rem;
+    h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
+    .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 650px; margin: 0 auto 1.5rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .meta span { margin: 0 0.5rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h2 {
+      font-size: 1.6rem;
       font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 12px;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--blue);
     }
-    .lede {
-      font-size: 1rem;
-      color: #9ba3bc;
-      max-width: 640px;
-    }
-
-    main {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 40px 24px 80px;
-    }
-
-    .callout {
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 10px;
-      background: var(--surface);
-      padding: 18px 20px;
-      margin: 24px 0;
-      font-size: 0.93rem;
-      color: #9ba3bc;
-    }
-    .callout.warn  { border-left-color: var(--yellow); }
-    .callout.green { border-left-color: var(--green); }
-    .callout.red   { border-left-color: var(--red); }
-    .callout strong { color: var(--text); }
-
-    .section-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin: 44px 0 16px;
-      padding-left: 12px;
-      border-left: 3px solid var(--accent);
-      color: var(--text);
-    }
-
-    p { margin-bottom: 14px; color: #c0c7dd; }
-    ul, ol { margin: 12px 0 14px 22px; color: #c0c7dd; }
-    li { margin-bottom: 6px; }
-    strong { color: var(--text); }
-    a { color: var(--accent); text-decoration: none; }
+    h3 { font-size: 1.15rem; font-weight: 600; margin: 1.75rem 0 0.75rem; color: var(--text); }
+    p { margin-bottom: 1rem; }
+    a { color: var(--blue); text-decoration: none; }
     a:hover { text-decoration: underline; }
-
-    /* ── Code ── */
-    pre {
-      background: #0a0c12;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 18px;
-      overflow-x: auto;
-      margin: 16px 0 20px;
-    }
     code {
-      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-      font-size: 0.82rem;
-      color: #c8d3f0;
-    }
-    p code, li code {
-      background: #1a1d27;
+      background: #1c2128;
       border: 1px solid var(--border);
       border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 0.83rem;
-      color: var(--accent);
+      padding: 0.15em 0.4em;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.88em;
+      color: #e6edf3;
     }
-    .comment { color: #4a5568; }
-    .cmd     { color: var(--green); }
-    .flag    { color: var(--yellow); }
-    .str     { color: #a8d8a8; }
-
-    /* ── Tables ── */
-    .compare-table {
+    pre {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #e6edf3;
+    }
+    pre .comment { color: #6e7681; }
+    pre .cmd { color: #79c0ff; }
+    pre .flag { color: #ffa657; }
+    pre .string { color: #a5d6ff; }
+    .callout {
+      border-left: 3px solid;
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      background: rgba(255,255,255,0.03);
+    }
+    .callout.info { border-color: var(--blue); }
+    .callout.warn { border-color: var(--yellow); }
+    .callout.success { border-color: var(--green); }
+    .callout.danger { border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .callout.info strong { color: var(--blue); }
+    .callout.warn strong { color: var(--yellow); }
+    .callout.success strong { color: var(--green); }
+    .callout.danger strong { color: var(--red); }
+    table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0 28px;
-      font-size: 0.88rem;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
     }
-    .compare-table th {
-      background: #1a1d27;
+    th {
+      background: #1c2128;
       color: var(--muted);
+      font-size: 0.78rem;
       font-weight: 600;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
       text-transform: uppercase;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
+      letter-spacing: 0.05em;
+      padding: 0.6rem 1rem;
       text-align: left;
+      border-bottom: 1px solid var(--border);
     }
-    .compare-table td {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      color: #c0c7dd;
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid #21262d;
       vertical-align: top;
     }
-    .compare-table tr:hover td { background: #14161c; }
-    .good { background: #0d2218; color: var(--green) !important; }
-    .warn { background: #1f1a00; color: var(--yellow) !important; }
-    .bad  { background: #200f0f; color: var(--red) !important; }
-    .neu  { background: #16181f; color: var(--muted) !important; }
-
-    /* ── Tags ── */
-    .tag {
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .chip {
       display: inline-block;
-      background: var(--tag-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 0.72rem;
-      padding: 2px 10px;
-      color: var(--muted);
-      margin: 2px 3px 2px 0;
-      letter-spacing: 0.04em;
+      padding: 0.2em 0.55em;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
     }
-    .tag.blue   { border-color: #2a3870; color: #7090f5; background: #131826; }
-    .tag.green  { border-color: #0d3822; color: var(--green); background: #0a1a11; }
-    .tag.yellow { border-color: #3a2d00; color: var(--yellow); background: #1a1400; }
-    .tag.red    { border-color: #3a1010; color: var(--red); background: #180a0a; }
-
-    /* ── Timeline ── */
-    .timeline { position: relative; padding-left: 28px; margin: 20px 0 28px; }
+    .chip.green { background: rgba(63,185,80,0.15); color: var(--green); }
+    .chip.yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+    .chip.red { background: rgba(248,81,73,0.15); color: var(--red); }
+    .chip.blue { background: rgba(88,166,255,0.15); color: var(--blue); }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card ul { padding-left: 1.25rem; color: var(--muted); }
+    .card ul li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .toc h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 0.75rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+    .timeline { position: relative; padding-left: 1.5rem; }
     .timeline::before {
       content: '';
       position: absolute;
-      left: 8px; top: 8px; bottom: 8px;
+      left: 0.35rem;
+      top: 0.5rem;
+      bottom: 0;
       width: 2px;
       background: var(--border);
     }
-    .tl-item {
-      position: relative;
-      margin-bottom: 22px;
-    }
+    .tl-item { position: relative; margin-bottom: 1.25rem; }
     .tl-item::before {
       content: '';
       position: absolute;
-      left: -24px;
-      top: 6px;
-      width: 8px;
-      height: 8px;
+      left: -1.23rem;
+      top: 0.45rem;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: var(--accent);
+      background: var(--blue);
       border: 2px solid var(--bg);
     }
-    .tl-date {
-      font-size: 0.73rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 2px;
+    .tl-date { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+    .tl-title { font-weight: 600; margin-bottom: 0.25rem; }
+    .tl-body { font-size: 0.9rem; color: var(--muted); }
+    .section-anchor { scroll-margin-top: 1.5rem; }
+    .os-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.25rem 0;
     }
-    .tl-title { font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .tl-body  { font-size: 0.91rem; color: #9ba3bc; }
-
-    /* ── Architecture diagram ── */
-    .arch-box {
-      border: 1px solid var(--border);
-      border-radius: 10px;
+    @media (max-width: 700px) { .os-grid { grid-template-columns: 1fr; } }
+    .os-card {
       background: var(--surface);
-      padding: 20px 22px;
-      margin: 20px 0;
-      font-size: 0.85rem;
-      font-family: 'Cascadia Code', monospace;
-      color: #9ba3bc;
-      line-height: 1.6;
-      overflow-x: auto;
-      white-space: pre;
-    }
-
-    /* ── Spectrum bar ── */
-    .spectrum {
-      display: flex;
-      align-items: stretch;
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 20px 0 28px;
       border: 1px solid var(--border);
-      font-size: 0.76rem;
-      font-weight: 600;
-      text-align: center;
+      border-radius: 8px;
+      padding: 1.25rem;
     }
-    .spectrum-item {
-      flex: 1;
-      padding: 10px 6px;
-      line-height: 1.3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-    .spectrum-item .label { font-size: 0.68rem; color: rgba(255,255,255,0.5); font-weight: 400; }
-    .s1 { background: #1a2b1a; color: var(--green); }
-    .s2 { background: #1a2320; color: #50c89a; }
-    .s3 { background: #1e2318; color: #8bca50; }
-    .s4 { background: #2a2418; color: var(--yellow); }
-    .s5 { background: #2a1f14; color: #f0882a; }
-    .s6 { background: #2a1414; color: var(--red); }
-
-    /* ── Limitation list ── */
-    .limit-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .limit-item:last-child { border-bottom: none; }
-    .limit-badge {
-      flex-shrink: 0;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 4px;
-      height: fit-content;
-      margin-top: 2px;
-    }
-    .lb-bug   { background: #200f0f; color: var(--red); }
-    .lb-limit { background: #1f1a00; color: var(--yellow); }
-    .lb-note  { background: #131826; color: var(--accent); }
-    .limit-text { font-size: 0.9rem; color: #9ba3bc; }
-    .limit-text strong { color: var(--text); }
-
-    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
-    .sources { font-size: 0.83rem; color: var(--muted); }
-    .sources li { margin-bottom: 4px; }
-    .sources a { color: var(--muted); }
-    .sources a:hover { color: var(--accent); }
+    .os-card .os-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .os-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .os-card .status { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .os-card ul { padding-left: 1rem; font-size: 0.85rem; color: var(--muted); }
+    .os-card ul li { margin-bottom: 0.3rem; }
   </style>
 </head>
 <body>
 
-<header>
-  <a href="index.html" class="back">← Open Research</a>
-  <div class="meta">April 1, 2026 &nbsp;·&nbsp; Infrastructure &nbsp;·&nbsp; AI Tooling</div>
-  <h1>Docker Sandboxes — AI Agent Isolation Deep Dive</h1>
-  <p class="lede">Docker's new Sandbox product is not a container hardening feature — it's a purpose-built
-  microVM system for running AI coding agents like Claude Code, Codex, and Gemini CLI without letting them
-  touch your host machine. Here's how it works, how it compares to plain containers, and how to use it.</p>
-</header>
+<div class="page-header">
+  <div class="container">
+    <div class="badge">Research · April 2026</div>
+    <h1>Docker Sandboxes</h1>
+    <p class="subtitle">How Docker's new microVM isolation feature works, when to use it over regular containers, and full CLI reference</p>
+    <p class="meta">
+      <span>garysclaw/general-research</span>
+      <span>·</span>
+      <span>Updated April 2026</span>
+    </p>
+  </div>
+</div>
 
-<main>
+<div class="container">
 
-  <!-- ── Correction callout ── -->
-  <div class="callout red">
-    <strong>Note — this document replaces an earlier version.</strong> The original document compared generic
-    container isolation technologies (gVisor, seccomp, Firecracker) without knowing Docker had shipped a
-    specific product called <strong>Docker Sandboxes</strong> in late 2025. The new version covers the actual product.
-    General container hardening is still covered in the comparison section for context.
+  <nav class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#what">What Is Docker Sandbox?</a></li>
+      <li><a href="#architecture">Architecture — MicroVM vs. Containers</a></li>
+      <li><a href="#timeline">Release Timeline</a></li>
+      <li><a href="#cli">CLI Reference</a></li>
+      <li><a href="#os-support">OS Support Matrix</a></li>
+      <li><a href="#when-to-use">When to Use Sandbox vs. Container</a></li>
+      <li><a href="#security">Security Model</a></li>
+      <li><a href="#performance">Performance</a></li>
+      <li><a href="#limitations">Limitations</a></li>
+      <li><a href="#examples">Hands-On Examples</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============================================================ -->
+  <h2 id="what" class="section-anchor">What Is Docker Sandbox?</h2>
+
+  <p>Docker Sandboxes is a feature from Docker (introduced late 2025, matured in early 2026) that runs AI coding agents in <strong>isolated microVM environments</strong>. It is fundamentally different from running an agent in a regular Docker container.</p>
+
+  <p>The core insight Docker acted on: AI agents like Claude Code, GitHub Copilot, and Google Gemini CLI need to be able to do dangerous things safely — install packages, rewrite files, spawn nested Docker builds — without touching your host system, your credentials, or your other projects. Containers share the host kernel and cannot safely host a nested Docker daemon. MicroVMs solve this at the hardware level.</p>
+
+  <div class="callout info">
+    <strong>One-sentence definition</strong>
+    A Docker Sandbox is a full virtual machine — with its own kernel, its own Docker daemon, and its own filesystem — that you can spin up in seconds, give to an AI agent to work in, then destroy when done.
   </div>
 
-  <!-- ── What is Docker Sandboxes? ── -->
-  <h2 class="section-title">What is Docker Sandboxes?</h2>
+  <p>Each sandbox:</p>
+  <ul style="padding-left:1.5rem; margin-bottom:1rem;">
+    <li>Has its own dedicated Linux kernel (not the host's)</li>
+    <li>Has its own private Docker daemon (agents can run <code>docker build</code>, <code>docker compose</code> without touching the host daemon)</li>
+    <li>Mounts your workspace directory at the same absolute path as on the host</li>
+    <li>Routes outbound network through a proxy that can enforce allow/deny lists</li>
+    <li>Is destroyed cleanly with a single command — workspace files persist, everything else is gone</li>
+  </ul>
 
-  <p>Docker Sandboxes is a purpose-built product for one specific problem: <strong>you want to run an AI
-  coding agent against your codebase, but you don't want it to be able to touch anything outside that project
-  directory.</strong> Not your SSH keys. Not your AWS credentials. Not your other Docker containers. Not your
-  host filesystem.</p>
 
-  <p>It is <strong>not</strong> a way to run containers more securely in general. It is not a replacement for
-  Kubernetes security policies or Docker Compose hardening. It's specifically an agent execution environment.</p>
+  <!-- ============================================================ -->
+  <h2 id="architecture" class="section-anchor">Architecture — MicroVM vs. Containers</h2>
 
-  <div class="callout">
-    <strong>The core problem it solves:</strong> AI agents need to run arbitrary code, install packages,
-    build Docker images, and spin up containers to test their work. Every existing approach was broken:
-    mounting the Docker socket exposes the full host daemon; Docker-in-Docker requires privileged mode which
-    also escapes isolation; regular containers share the host kernel so a kernel CVE is a host escape.
-    Docker Sandboxes solves all three by giving each agent its own private VM with its own Docker daemon.
+  <h3>Why Not Just Containers?</h3>
+  <p>Regular Docker containers share the host kernel. This means:</p>
+  <ul style="padding-left:1.5rem; margin-bottom:1rem;">
+    <li>An agent running in a container can see and interact with the host's Docker daemon if the socket is mounted</li>
+    <li>Docker-in-Docker either compromises isolation (privileged mode) or requires complex setup</li>
+    <li>Kernel-level exploits can escape the container to the host</li>
+    <li>Files like <code>~/.ssh</code> and <code>~/.aws</code> can leak if the agent explores bind mounts</li>
+  </ul>
+
+  <h3>What Docker Sandboxes Uses Instead</h3>
+  <p>Docker Sandboxes uses the host OS's native hypervisor — <strong>not Firecracker, not gVisor</strong>:</p>
+
+  <table>
+    <thead>
+      <tr><th>OS</th><th>Hypervisor</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>macOS (Apple Silicon)</td><td>Apple Virtualization.framework</td><td>Same framework Apple uses for their own "Containerization" feature (WWDC 2025)</td></tr>
+      <tr><td>Windows 11</td><td>Windows Hypervisor Platform (Hyper-V)</td><td>Must be enabled; see OS support section</td></tr>
+      <tr><td>Linux (experimental)</td><td>KVM via Docker Desktop's Linux VM</td><td>Single-user (UID 1000) only as of Feb 2026</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Sandbox Internals</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Inside each sandbox</h4>
+      <ul>
+        <li>Dedicated Linux kernel (not host's)</li>
+        <li>Private Docker daemon</li>
+        <li>Workspace mounted at identical host path</li>
+        <li>Isolated filesystem and network stack</li>
+        <li>Pre-installed AI agent (Claude, Codex, etc.)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>On the host</h4>
+      <ul>
+        <li>MicroVM managed by Docker Desktop</li>
+        <li>Outbound HTTP/HTTPS proxy for policy enforcement</li>
+        <li>Credential injection (API keys never enter sandbox filesystem)</li>
+        <li>Port forwarding for services the agent runs</li>
+      </ul>
+    </div>
   </div>
 
-  <p>Docker's own claim: <em>"Docker Sandboxes is the only sandboxing solution that allows coding agents
-  to build and run Docker containers while remaining isolated from the host system."</em></p>
+  <div class="callout success">
+    <strong>Key differentiator</strong>
+    Docker Sandboxes is the only solution that lets AI agents do full Docker-in-Docker operations while remaining completely isolated from the host Docker daemon. Regular container isolation cannot achieve this safely.
+  </div>
 
-  <!-- ── Timeline ── -->
-  <h2 class="section-title">Timeline</h2>
+
+  <!-- ============================================================ -->
+  <h2 id="timeline" class="section-anchor">Release Timeline</h2>
 
   <div class="timeline">
     <div class="tl-item">
-      <div class="tl-date">November 6, 2025</div>
-      <div class="tl-title">Docker Desktop 4.50 — MCP Precursor</div>
-      <div class="tl-body">Experimental MCP (Model Context Protocol) integration ships. The sandbox concept
-      is being prototyped internally.</div>
+      <div class="tl-date">November 12, 2025</div>
+      <div class="tl-title">Docker Desktop 4.50 — Initial Experimental Launch</div>
+      <div class="tl-body">Container-based sandbox implementation. AI agents ran in privileged containers, not VMs. Introduced the concept but had weaker isolation guarantees.</div>
     </div>
     <div class="tl-item">
-      <div class="tl-date">November 25, 2025</div>
-      <div class="tl-title">First Public Announcement</div>
-      <div class="tl-body">"A New Approach for Coding Agent Safety" — experimental preview using container-based
-      (not yet microVM) isolation inside Docker Desktop's existing Linux VM.</div>
+      <div class="tl-date">January 26, 2026</div>
+      <div class="tl-title">Docker Desktop 4.58 — MicroVM Redesign <span class="chip blue">Architecturally significant</span></div>
+      <div class="tl-body">Complete rewrite to use native OS hypervisors (Virtualization.framework on macOS, Hyper-V on Windows). This is the "real" production release. Introduced the <code>sbx</code> standalone CLI.</div>
     </div>
     <div class="tl-item">
-      <div class="tl-date">December 2025</div>
-      <div class="tl-title">AWS re:Invent Demo</div>
-      <div class="tl-body">Docker demonstrates Sandboxes running Kiro (AWS's coding agent) at re:Invent.
-      Generates significant developer interest.</div>
+      <div class="tl-date">February 9, 2026</div>
+      <div class="tl-title">Docker Desktop 4.60 — Policy and Stability</div>
+      <div class="tl-body">Network policy enforcement, Gemini API key injection, stability fixes. Balanced/Locked Down network modes added.</div>
     </div>
     <div class="tl-item">
-      <div class="tl-date">January 26, 2026 — Docker Desktop 4.58</div>
-      <div class="tl-title">microVM Architecture Ships</div>
-      <div class="tl-body">Full microVM isolation (not just containers) available on macOS and Windows.
-      The <code>docker sandbox</code> CLI command is introduced. Supported agents: Claude Code,
-      Codex, Copilot, Gemini, Kiro, OpenCode.</div>
-    </div>
-    <div class="tl-item">
-      <div class="tl-date">February 9, 2026 — Docker Desktop 4.60</div>
-      <div class="tl-title">Shell Mode + Multi-workspace Mounts</div>
-      <div class="tl-body">Blank shell sandbox (no agent), ability to mount multiple workspace directories,
-      improved agent system prompts, Gemini API key injection fixes.</div>
-    </div>
-    <div class="tl-item">
-      <div class="tl-date">February 18, 2026 — Docker Desktop 4.61</div>
-      <div class="tl-title">Automated Image Caching + WSL 2 + Experimental Linux</div>
-      <div class="tl-body">No more re-downloading images on every run. WSL 2 backend support added.
-      Experimental Linux support (container-based, single user UID 1000 only).</div>
+      <div class="tl-date">February 18, 2026</div>
+      <div class="tl-title">Docker Desktop 4.61 — Linux, WSL2, Shell Mode</div>
+      <div class="tl-body">Experimental Linux support (single-user, KVM-based). WSL2 support on Windows. Shell agent template (blank VM, no AI pre-installed). OpenCode agent added.</div>
     </div>
     <div class="tl-item">
       <div class="tl-date">March 31, 2026</div>
-      <div class="tl-title">sbx CLI + "YOLO Mode" Launch</div>
-      <div class="tl-body">Standalone <code>sbx</code> CLI ships — no Docker Desktop required.
-      Install via Homebrew or winget. Linux support added. Blog post frames this as
-      "run agents in YOLO mode, safely."</div>
+      <div class="tl-title">sbx CLI v0.21.0</div>
+      <div class="tl-body">Standalone CLI independent of Docker Desktop. <code>sbx rm --all</code> command. <code>sbx policy reset</code>. Kiro agent support. <code>.deb</code>/<code>.rpm</code> packages for Linux.</div>
     </div>
   </div>
 
-  <!-- ── Architecture ── -->
-  <h2 class="section-title">How It Works — Architecture</h2>
 
-  <p>Each sandbox is a <strong>microVM</strong> with a complete private environment:</p>
+  <!-- ============================================================ -->
+  <h2 id="cli" class="section-anchor">CLI Reference</h2>
 
-  <div class="arch-box">
-┌────────────────────────────────────────────────────────────┐
-│                        YOUR HOST                           │
-│                                                            │
-│   ~/.docker/sandboxes/sandboxd.sock  ←── sandboxd daemon  │
-│                                                            │
-│   ┌──────────────────────────────────────────────────┐     │
-│   │              microVM  (per sandbox)              │     │
-│   │                                                  │     │
-│   │   Your project dir (mounted at same path)        │     │
-│   │   /Users/you/project  ←→  VirtioFS passthrough   │     │
-│   │                                                  │     │
-│   │   Private Docker daemon (own socket)             │     │
-│   │   ~/.docker/sandboxes/vm/&lt;n&gt;/docker.sock        │     │
-│   │                                                  │     │
-│   │   AI Coding Agent (Claude Code, Codex, etc.)     │     │
-│   │   └── Builds images, runs containers safely      │     │
-│   │                                                  │     │
-│   └─────────────────┬────────────────────────────────┘     │
-│                     │ HTTP/HTTPS only                       │
-│                     ▼                                       │
-│   Network Proxy  host.docker.internal:3128                  │
-│   ├── Enforces allow/deny domain lists                      │
-│   ├── Injects API keys (agent never possesses them)         │
-│   ├── Blocks: raw TCP/UDP, cloud metadata endpoints         │
-│   └── Blocks: private networks, localhost                   │
-│                                                            │
-└────────────────────────────────────────────────────────────┘</div>
-
-  <p><strong>Key design decisions:</strong></p>
-  <ul>
-    <li><strong>Private Docker daemon</strong> — the agent can use Docker freely, but it only sees containers
-    inside its own VM. Your host containers are completely invisible.</li>
-    <li><strong>Same absolute path</strong> — your project at <code>/Users/you/project</code> appears at
-    <code>/Users/you/project</code> inside the VM too. No path translation needed in the agent's prompts.</li>
-    <li><strong>API keys never enter the VM</strong> — the network proxy intercepts outbound calls to
-    Anthropic/OpenAI/etc. and injects credentials there. Even if the agent is compromised or the VM is
-    breached, it cannot exfiltrate your keys.</li>
-    <li><strong>State persists</strong> — unlike containers, sandboxes survive until you explicitly remove them.
-    Installed packages are still there when you restart.</li>
+  <p>There are two CLI surfaces:</p>
+  <ul style="padding-left:1.5rem; margin-bottom:1rem;">
+    <li><strong><code>sbx</code></strong> — standalone CLI, more features, does not require Docker Desktop to be running</li>
+    <li><strong><code>docker sandbox</code></strong> — built-in to Docker Desktop, subset of commands</li>
   </ul>
 
-  <h2 class="section-title">Hypervisor Technology</h2>
+  <h3>Installing sbx</h3>
+  <pre><code><span class="comment"># macOS (Apple Silicon)</span>
+<span class="cmd">brew install</span> <span class="string">docker/tap/sbx</span>
 
-  <p>Docker does not publicly name the underlying microVM technology. From platform behavior and the
-  reverse engineering done by Rivet (see sources), each platform uses its native hypervisor:</p>
+<span class="comment"># Windows 11</span>
+<span class="cmd">winget install</span> <span class="flag">-h</span> <span class="string">Docker.sbx</span>
 
-  <table class="compare-table">
-    <thead>
-      <tr><th>Platform</th><th>Technology</th><th>Status</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>macOS (Apple Silicon + Intel)</td>
-        <td>Apple <code>Virtualization.framework</code></td>
-        <td class="good">Fully supported</td>
-      </tr>
-      <tr>
-        <td>Windows 11 x86_64</td>
-        <td>Hyper-V (Windows Hypervisor Platform)</td>
-        <td class="good">Fully supported — requires Hyper-V enabled</td>
-      </tr>
-      <tr>
-        <td>WSL 2</td>
-        <td>Container-based (WSL 2 backend)</td>
-        <td class="warn">Supported — added in Desktop 4.61</td>
-      </tr>
-      <tr>
-        <td>Linux</td>
-        <td>Container-based only (no VM)</td>
-        <td class="warn">Experimental — single user (UID 1000) only</td>
-      </tr>
-      <tr>
-        <td>WSL 1 / native Linux Docker</td>
-        <td>N/A</td>
-        <td class="bad">Not supported</td>
-      </tr>
-    </tbody>
-  </table>
+<span class="comment"># Linux (.deb / .rpm packages)</span>
+<span class="comment"># Download from: https://github.com/docker/sbx-releases</span></code></pre>
 
-  <!-- ── Docker Sandbox vs Container ── -->
-  <h2 class="section-title">Docker Sandbox vs. Docker Container — Full Comparison</h2>
+  <h3>Authentication</h3>
+  <pre><code><span class="cmd">sbx login</span>           <span class="comment"># Opens browser for Docker OAuth</span>
+                    <span class="comment"># Choose network policy: Open / Balanced / Locked Down</span></code></pre>
 
-  <table class="compare-table">
-    <thead>
-      <tr><th>Feature</th><th>docker run (container)</th><th>docker sandbox / sbx (microVM)</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Kernel isolation</td>
-        <td class="bad">Shared with host — kernel CVEs are escape vectors</td>
-        <td class="good">Own kernel — hypervisor boundary</td>
-      </tr>
-      <tr>
-        <td>Docker-in-Docker</td>
-        <td class="bad">Requires --privileged or Docker socket (host escape risk)</td>
-        <td class="good">Fully supported — private daemon, no risk</td>
-      </tr>
-      <tr>
-        <td>Visibility to host Docker</td>
-        <td class="bad">docker ps shows all host containers</td>
-        <td class="good">Completely invisible to host daemon</td>
-      </tr>
-      <tr>
-        <td>Filesystem access</td>
-        <td class="warn">Configurable bind mounts — easy to accidentally over-expose</td>
-        <td class="good">Only designated workspace directory synced</td>
-      </tr>
-      <tr>
-        <td>API credential handling</td>
-        <td class="bad">Manual env var injection — key lives in container env</td>
-        <td class="good">Proxy injection — key never enters VM</td>
-      </tr>
-      <tr>
-        <td>Network control</td>
-        <td class="warn">Manual iptables / network policies</td>
-        <td class="good">Built-in HTTP/HTTPS proxy with allow/deny lists and 3 preset modes</td>
-      </tr>
-      <tr>
-        <td>State persistence</td>
-        <td class="warn">Lost on exit unless volume; ephemeral by design</td>
-        <td class="good">Persists until explicitly removed</td>
-      </tr>
-      <tr>
-        <td>Startup time</td>
-        <td class="good">~100ms</td>
-        <td class="warn">Seconds (first run), seconds with cached image</td>
-      </tr>
-      <tr>
-        <td>Resource overhead</td>
-        <td class="good">~1% above bare metal</td>
-        <td class="warn">Full VM + daemon overhead per sandbox</td>
-      </tr>
-      <tr>
-        <td>Appears in docker ps</td>
-        <td>Yes</td>
-        <td>No — use <code>docker sandbox ls</code> or <code>sbx ls</code></td>
-      </tr>
-      <tr>
-        <td>AI agent integration</td>
-        <td class="bad">Manual wiring required</td>
-        <td class="good">Built-in: claude, codex, copilot, gemini, kiro, opencode, shell</td>
-      </tr>
-      <tr>
-        <td>Requires Docker Desktop</td>
-        <td>Yes (for GUI) or Docker Engine</td>
-        <td>No — standalone <code>sbx</code> CLI available</td>
-      </tr>
-    </tbody>
-  </table>
+  <h3>Creating and Running Sandboxes</h3>
+  <pre><code><span class="comment"># Create + immediately run (most common usage)</span>
+<span class="cmd">sbx run</span> claude                     <span class="comment"># Claude Code agent in current directory</span>
+<span class="cmd">sbx run</span> claude <span class="flag">--</span> --continue       <span class="comment"># Pass args to the agent (-- separates sbx args)</span>
+<span class="cmd">sbx run</span> codex                      <span class="comment"># OpenAI Codex agent</span>
+<span class="cmd">sbx run</span> gemini                     <span class="comment"># Google Gemini CLI agent</span>
+<span class="cmd">sbx run</span> copilot                    <span class="comment"># GitHub Copilot agent</span>
+<span class="cmd">sbx run</span> kiro                       <span class="comment"># Amazon Kiro agent</span>
+<span class="cmd">sbx run</span> opencode                   <span class="comment"># OpenCode agent</span>
+<span class="cmd">sbx run</span> shell                      <span class="comment"># Blank VM (no AI pre-installed)</span>
+<span class="cmd">sbx run</span> docker-agent               <span class="comment"># General Docker agent</span>
 
-  <!-- ── Isolation spectrum ── -->
-  <h2 class="section-title">The Isolation Spectrum — Where Sandboxes Fit</h2>
+<span class="comment"># Create without attaching (background)</span>
+<span class="cmd">sbx create</span> docker-agent .          <span class="comment"># Current directory</span>
+<span class="cmd">sbx create</span> docker-agent /my/proj   <span class="comment"># Specific path</span>
 
-  <p>Understanding <em>how strong</em> the isolation is relative to other approaches:</p>
+<span class="comment"># Attach to an existing sandbox</span>
+<span class="cmd">sbx run</span> my-sandbox-name</code></pre>
 
-  <div class="spectrum">
-    <div class="spectrum-item s1">
-      <div>OS Process</div>
-      <div class="label">weakest</div>
-    </div>
-    <div class="spectrum-item s2">
-      <div>Container (default)</div>
-      <div class="label">namespaces only</div>
-    </div>
-    <div class="spectrum-item s3">
-      <div>Container + seccomp</div>
-      <div class="label">+ syscall filter</div>
-    </div>
-    <div class="spectrum-item s4">
-      <div>Docker Sandbox</div>
-      <div class="label">microVM + proxy</div>
-    </div>
-    <div class="spectrum-item s5">
-      <div>Kata/Firecracker</div>
-      <div class="label">VM per container</div>
-    </div>
-    <div class="spectrum-item s6">
-      <div>Full VM (QEMU)</div>
-      <div class="label">strongest</div>
-    </div>
-  </div>
+  <h3>Managing Sandboxes</h3>
+  <pre><code><span class="cmd">sbx ls</span>                              <span class="comment"># List all sandboxes (NOT visible in docker ps)</span>
+<span class="cmd">sbx exec</span> &lt;name&gt; bash               <span class="comment"># Shell into a running sandbox</span>
+<span class="cmd">sbx rm</span> &lt;name&gt;                       <span class="comment"># Remove a specific sandbox</span>
+<span class="cmd">sbx rm --all</span>                        <span class="comment"># Remove all sandboxes (v0.21.0+)</span>
+<span class="cmd">sbx version</span>                        <span class="comment"># Show CLI and daemon version</span></code></pre>
 
-  <p>Docker Sandboxes sits at the fourth level. Stronger than any container-based approach.
-  Not quite as strong as a fully bare-metal-level VM (no hardware passthrough, more restricted
-  I/O model), but the trade-off is justified: it runs in seconds, works on your laptop,
-  and integrates directly with the coding agents you're already using.</p>
+  <h3>Port Management</h3>
+  <pre><code><span class="cmd">sbx ports</span> &lt;name&gt;                           <span class="comment"># List all ports for a sandbox</span>
+<span class="cmd">sbx ports</span> &lt;name&gt; <span class="flag">--publish</span> 8080           <span class="comment"># Publish port → ephemeral host port</span>
+<span class="cmd">sbx ports</span> &lt;name&gt; <span class="flag">--publish</span> 3000:8080      <span class="comment"># Publish with specific host port</span>
+<span class="cmd">sbx ports</span> &lt;name&gt; <span class="flag">--unpublish</span> 3000:8080   <span class="comment"># Unpublish a port</span></code></pre>
 
-  <!-- ── Network policies ── -->
-  <h2 class="section-title">Network Policies</h2>
+  <h3>Network Policy</h3>
+  <pre><code><span class="cmd">sbx policy log</span>                             <span class="comment"># View network access log</span>
+<span class="cmd">sbx policy allow</span> network <span class="string">"*.npmjs.org"</span>    <span class="comment"># Allow a domain</span>
+<span class="cmd">sbx policy allow</span> network <span class="string">"10.0.0.0/8"</span>    <span class="comment"># Allow a CIDR range</span>
+<span class="cmd">sbx policy allow</span> network <span class="string">"**"</span>            <span class="comment"># Allow all traffic (Open mode)</span>
+<span class="cmd">sbx policy reset</span>                          <span class="comment"># Restore default policy (v0.21.0+)</span></code></pre>
 
-  <p>One of the most important features — and least visible. The network proxy runs on your host
-  and all sandbox outbound traffic routes through it. You pick a policy mode when you first set up:</p>
-
-  <table class="compare-table">
-    <thead>
-      <tr><th>Mode</th><th>Default behavior</th><th>Best for</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>Open</strong></td>
-        <td>All traffic allowed</td>
-        <td>Trusted code, maximum flexibility</td>
-      </tr>
-      <tr>
-        <td><strong>Balanced</strong> (default)</td>
-        <td>Default deny, pre-allowed: GitHub, npm, PyPI, crates.io, AI APIs, common CDNs</td>
-        <td>Most developers — good trade-off</td>
-      </tr>
-      <tr>
-        <td><strong>Locked Down</strong></td>
-        <td>All traffic blocked unless explicitly allowed</td>
-        <td>Maximum security, untrusted agents</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p>Always blocked regardless of policy: raw TCP/UDP (only HTTP/HTTPS proxied), private networks
-  (10.x, 172.16.x, 192.168.x), cloud metadata services (169.254.169.254), and
-  host <code>localhost</code>.</p>
+  <h3>docker sandbox (built-in Docker Desktop commands)</h3>
+  <pre><code><span class="cmd">docker sandbox run</span> AGENT [PATH]
+<span class="cmd">docker sandbox ls</span>
+<span class="cmd">docker sandbox exec -it</span> &lt;name&gt; bash
+<span class="cmd">docker sandbox rm</span> &lt;name&gt;
+<span class="cmd">docker sandbox reset</span>                      <span class="comment"># Remove all sandboxes</span>
+<span class="cmd">docker sandbox network proxy</span> &lt;name&gt; <span class="flag">--policy</span> allow|deny
+<span class="cmd">docker sandbox network log</span></code></pre>
 
   <div class="callout warn">
-    <strong>Important limitation:</strong> The network proxy cannot prevent data exfiltration to
-    <em>allowed</em> domains. If GitHub is on the allow-list, the agent could theoretically push
-    sensitive files to a GitHub repo. Sandboxes prevent filesystem and host system compromise —
-    they don't govern whether the agent's <em>decisions</em> are appropriate.
+    <strong>Important</strong>
+    Sandboxes are VMs, not containers. They do <strong>not</strong> appear in <code>docker ps</code>. Use <code>sbx ls</code> or <code>docker sandbox ls</code> to see running sandboxes.
   </div>
 
-  <!-- ── CLI reference ── -->
-  <h2 class="section-title">CLI Reference — Both Interfaces</h2>
 
-  <p>Two separate tools exist. <strong><code>sbx</code></strong> is the standalone CLI (no Docker Desktop
-  required, ships as of March 31, 2026). <strong><code>docker sandbox</code></strong> is the Docker Desktop
-  plugin (requires Desktop 4.58+).</p>
+  <!-- ============================================================ -->
+  <h2 id="os-support" class="section-anchor">OS Support Matrix</h2>
 
-  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Install sbx</h3>
-  <pre><code><span class="comment"># macOS</span>
-brew install docker/tap/sbx
-
-<span class="comment"># Windows</span>
-winget install -h Docker.sbx
-
-<span class="comment"># Authenticate (uses Docker OAuth)</span>
-sbx login</code></pre>
-
-  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Core workflow</h3>
-  <pre><code><span class="comment"># Create a sandbox and launch Claude Code in your project</span>
-sbx run claude ~/my-project
-
-<span class="comment"># With an initial task prompt</span>
-sbx run claude ~/my-project -- <span class="str">"Fix all TypeScript errors in src/"</span>
-
-<span class="comment"># Pass flags to the agent (e.g. --continue last session)</span>
-sbx run claude ~/my-project -- --continue
-
-<span class="comment"># List all your sandboxes</span>
-sbx ls
-
-<span class="comment"># Open an interactive shell inside a running sandbox</span>
-sbx exec my-sandbox -it bash
-
-<span class="comment"># Stop a sandbox (state preserved, can restart)</span>
-sbx stop my-sandbox
-
-<span class="comment"># Delete a sandbox (removes VM, NOT your project files)</span>
-sbx rm my-sandbox
-
-<span class="comment"># Nuke everything</span>
-sbx reset</code></pre>
-
-  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Network and secrets</h3>
-  <pre><code><span class="comment"># Store an API key securely (never goes inside the VM)</span>
-sbx secret set -g anthropic     <span class="comment"># prompts for ANTHROPIC_API_KEY</span>
-sbx secret set -g openai        <span class="comment"># prompts for OPENAI_API_KEY</span>
-
-<span class="comment"># View what network requests were blocked</span>
-sbx policy log my-sandbox
-
-<span class="comment"># Allow an additional domain</span>
-sbx policy allow network my-sandbox --domain example.com
-
-<span class="comment"># Bypass proxy for a host (certificate pinning workaround)</span>
-sbx policy --bypass-host api.example.com
-
-<span class="comment"># Expose a port from sandbox to host (e.g. dev server)</span>
-sbx ports my-sandbox --publish 3000</code></pre>
-
-  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">docker sandbox equivalents (Docker Desktop plugin)</h3>
-  <pre><code>docker sandbox create claude ~/my-project
-docker sandbox run &lt;sandbox-name&gt;
-docker sandbox exec &lt;sandbox-name&gt;
-docker sandbox ls
-docker sandbox rm &lt;sandbox-name&gt;
-docker sandbox stop &lt;sandbox-name&gt;
-docker sandbox inspect &lt;sandbox-name&gt;
-docker sandbox network
-docker sandbox reset
-docker sandbox version</code></pre>
-
-  <h3 style="font-size:0.95rem; color:var(--muted); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.08em;">Supported agents</h3>
-  <p>
-    <span class="tag blue">claude</span>
-    <span class="tag blue">codex</span>
-    <span class="tag blue">copilot</span>
-    <span class="tag blue">gemini</span>
-    <span class="tag blue">kiro</span>
-    <span class="tag blue">opencode</span>
-    <span class="tag blue">docker-agent</span>
-    <span class="tag">shell</span>
-  </p>
-  <p>The <code>shell</code> subcommand creates a blank microVM with no agent — useful for running
-  arbitrary isolated workloads or testing the environment itself.</p>
-
-  <!-- ── Examples you can run ── -->
-  <h2 class="section-title">Examples You Can Run Right Now</h2>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">1. Verify the sandbox is isolated from your host Docker</h3>
-  <pre><code><span class="comment"># On your host, start a recognizable container</span>
-docker run -d --name sentinel nginx:alpine
-
-<span class="comment"># Create a blank sandbox (shell mode = no agent, just an isolated shell)</span>
-sbx run shell ~/any-empty-dir
-
-<span class="comment"># Inside the sandbox, try to see host containers:</span>
-docker ps
-<span class="comment"># ✓ Result: empty — your 'sentinel' container is completely invisible</span>
-
-<span class="comment"># Try to reach the host Docker daemon:</span>
-ls ~/.docker/sandboxes/
-<span class="comment"># ✓ Result: not accessible — different filesystem</span>
-
-<span class="comment"># Verify you have your OWN Docker daemon:</span>
-docker info | grep "Docker Root Dir"
-<span class="comment"># ✓ Shows a path inside the VM, not /var/lib/docker on your host</span>
-
-<span class="comment"># Clean up</span>
-docker stop sentinel &amp;&amp; docker rm sentinel</code></pre>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">2. Test file sync (project visible at same path)</h3>
-  <pre><code><span class="comment"># Create a test project</span>
-mkdir ~/sbx-test &amp;&amp; echo "hello from host" &gt; ~/sbx-test/probe.txt
-
-<span class="comment"># Launch a shell sandbox on it</span>
-sbx run shell ~/sbx-test
-
-<span class="comment"># Inside the sandbox:</span>
-cat ~/sbx-test/probe.txt          <span class="comment"># ✓ "hello from host" — same absolute path</span>
-echo "hello from sandbox" &gt;&gt; ~/sbx-test/probe.txt
-
-<span class="comment"># Back on your host (changes sync immediately):</span>
-cat ~/sbx-test/probe.txt          <span class="comment"># ✓ Shows both lines</span></code></pre>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">3. Test network policies</h3>
-  <pre><code><span class="comment"># Inside the sandbox shell:</span>
-curl -s https://api.github.com/zen     <span class="comment"># ✓ Allowed in Balanced mode</span>
-curl -s https://registry.npmjs.org/    <span class="comment"># ✓ Allowed</span>
-curl -s https://169.254.169.254/       <span class="comment"># ✗ Always blocked (AWS metadata)</span>
-curl -s http://192.168.1.1/            <span class="comment"># ✗ Blocked — private network</span>
-
-<span class="comment"># On your host, watch what was blocked:</span>
-sbx policy log my-sandbox</code></pre>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">4. Run Docker-in-Docker safely</h3>
-  <pre><code><span class="comment"># Inside the sandbox — build and run a container (your own private daemon):</span>
-cat &gt; Dockerfile &lt;&lt; 'EOF'
-FROM alpine:latest
-CMD ["echo", "I am a container inside a sandbox"]
-EOF
-
-docker build -t inner-test .
-docker run --rm inner-test
-<span class="comment"># ✓ Works! And none of this appears on your host's docker ps</span></code></pre>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">5. Run Claude Code on a real project</h3>
-  <pre><code><span class="comment"># Store your API key once (never goes in the VM)</span>
-sbx secret set -g anthropic
-
-<span class="comment"># Run Claude Code against your project</span>
-sbx run claude ~/my-project
-
-<span class="comment"># With a specific task</span>
-sbx run claude ~/my-project -- <span class="str">"Add unit tests for all public functions in src/parser.rs"</span>
-
-<span class="comment"># The agent can:</span>
-<span class="comment">#   ✓ Read and write files in ~/my-project</span>
-<span class="comment">#   ✓ Run cargo build, npm install, pip install, etc.</span>
-<span class="comment">#   ✓ Build and run Docker containers</span>
-<span class="comment">#   ✗ See your host Docker containers</span>
-<span class="comment">#   ✗ Access ~/.ssh, ~/.aws, or any other host directory</span>
-<span class="comment">#   ✗ Access cloud metadata endpoints</span>
-<span class="comment">#   ✗ Make raw TCP connections</span></code></pre>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">6. Inspect the sandbox internals (Rivet reverse-engineering approach)</h3>
-  <pre><code><span class="comment"># The sandboxd daemon exposes an HTTP API on its unix socket</span>
-<span class="comment"># List all VMs:</span>
-curl --unix-socket ~/.docker/sandboxes/sandboxd.sock \
-  http://localhost/vm
-
-<span class="comment"># Each VM has its own Docker socket:</span>
-ls ~/.docker/sandboxes/vm/
-
-<span class="comment"># You can use the sandbox's private Docker daemon directly:</span>
-DOCKER_HOST=unix://$HOME/.docker/sandboxes/vm/&lt;n&gt;/docker.sock \
-  docker ps -a</code></pre>
-
-  <h3 style="font-size:1rem; color:var(--text); margin:24px 0 10px;">7. Locked-down sandbox for maximum safety</h3>
-  <pre><code><span class="comment"># Create a sandbox then enforce strict network policy</span>
-sbx create shell ~/untrusted-project
-
-<span class="comment"># Lock it down — deny everything by default</span>
-sbx policy set my-sandbox --mode locked-down
-
-<span class="comment"># Only allow what your project actually needs:</span>
-sbx policy allow network my-sandbox --domain api.anthropic.com
-sbx policy allow network my-sandbox --domain github.com
-
-<span class="comment"># Now run it</span>
-sbx run my-sandbox</code></pre>
-
-  <!-- ── Known limitations ── -->
-  <h2 class="section-title">Known Limitations &amp; Bugs</h2>
-
-  <div class="limit-item">
-    <span class="limit-badge lb-limit">LIMIT</span>
-    <div class="limit-text"><strong>Linux is experimental and single-user only.</strong> Uses container-based isolation
-    (not a real microVM) and only works for UID 1000. Not suitable for multi-user servers or CI environments.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-limit">LIMIT</span>
-    <div class="limit-text"><strong>No raw TCP/UDP outbound.</strong> Only HTTP/HTTPS is proxied. Breaks anything
-    that needs raw socket connections: ADB (Android), custom game servers, MQTT, etc.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-limit">LIMIT</span>
-    <div class="limit-text"><strong>One sandbox per workspace directory.</strong> You can't run two sandboxes
-    against the same project path simultaneously. Remove the old one first.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-limit">LIMIT</span>
-    <div class="limit-text"><strong>Agent governance is not included.</strong> The sandbox prevents filesystem
-    and kernel escapes, but it can't stop the agent from making inappropriate <em>authorized</em> decisions —
-    e.g., deleting files it shouldn't, merging PRs, overwriting configs. That's a separate problem.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-bug">BUG</span>
-    <div class="limit-text"><strong>Clock drift after sleep/wake.</strong> The VM clock drifts when your
-    laptop sleeps, causing HTTPS certificate errors. Fix: <code>sbx stop &lt;name&gt;</code> then
-    <code>sbx run &lt;name&gt;</code>.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-bug">BUG</span>
-    <div class="limit-text"><strong>Stale git worktrees on removal.</strong> After <code>sbx rm</code>,
-    git worktrees may remain. Manual cleanup: <code>git worktree remove .sbx/&lt;name&gt;</code>
-    and <code>git branch -D &lt;branch&gt;</code>.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-bug">BUG</span>
-    <div class="limit-text"><strong>Windows: multiple sandbox crashes.</strong> Launching too many simultaneously
-    can crash. Fix: kill all <code>docker.openvmm.exe</code> processes and restart.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-bug">BUG</span>
-    <div class="limit-text"><strong>Windows MSI upgrade bug.</strong> The MSI installer cannot update
-    existing installs of 4.59+. You must fully uninstall first (which deletes all sandbox data).</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-note">NOTE</span>
-    <div class="limit-text"><strong>Certificate pinning services break.</strong> Some APIs use certificate pinning
-    and reject the proxy's MITM cert. Workaround: <code>sbx policy --bypass-host &lt;domain&gt;</code>.</div>
-  </div>
-  <div class="limit-item">
-    <span class="limit-badge lb-note">NOTE</span>
-    <div class="limit-text"><strong>OrbStack incompatibility.</strong> <code>docker sandbox</code> doesn't work
-    with OrbStack as the Docker backend (OrbStack feature request #2295 is open).</div>
+  <div class="os-grid">
+    <div class="os-card">
+      <div class="os-icon">🍎</div>
+      <h4>macOS</h4>
+      <div class="status"><span class="chip green">Supported</span></div>
+      <ul>
+        <li><strong>Apple Silicon</strong> (M1–M4): fully supported</li>
+        <li><strong>Intel Mac</strong>: unconfirmed; docs say "Apple Silicon" explicitly</li>
+        <li>Hypervisor: Apple Virtualization.framework</li>
+        <li>Docker Desktop 4.58+ required for <code>docker sandbox</code></li>
+        <li>Standalone <code>sbx</code> does not need Docker Desktop running</li>
+        <li>Install: <code>brew install docker/tap/sbx</code></li>
+      </ul>
+    </div>
+    <div class="os-card">
+      <div class="os-icon">🪟</div>
+      <h4>Windows</h4>
+      <div class="status"><span class="chip green">Supported</span></div>
+      <ul>
+        <li><strong>Windows 11</strong> x86_64 only</li>
+        <li><strong>ARM Windows</strong>: not supported</li>
+        <li>Requires: Windows Hypervisor Platform (not full Hyper-V — enable via PowerShell)</li>
+        <li>WSL2 supported since Docker Desktop 4.61</li>
+        <li>Docker not default in Windows sandbox — use <code>docker-agent</code> template</li>
+        <li>Install: <code>winget install -h Docker.sbx</code></li>
+      </ul>
+    </div>
+    <div class="os-card">
+      <div class="os-icon">🐧</div>
+      <h4>Linux</h4>
+      <div class="status"><span class="chip yellow">Experimental</span></div>
+      <ul>
+        <li>Since Docker Desktop 4.61 (Feb 18, 2026)</li>
+        <li>Single-user only (UID 1000)</li>
+        <li>Requires KVM support</li>
+        <li>Multi-user not yet supported</li>
+        <li>Nested virtualization not supported</li>
+        <li>Install: <code>.deb</code>/<code>.rpm</code> packages from <a href="https://github.com/docker/sbx-releases">sbx-releases</a></li>
+      </ul>
+    </div>
   </div>
 
-  <!-- ── What Docker Sandboxes is NOT ── -->
-  <h2 class="section-title">What Docker Sandboxes Is NOT</h2>
+  <h3>Enabling Windows Hypervisor Platform</h3>
+  <pre><code><span class="comment"># Run in elevated PowerShell (as Administrator)</span>
+<span class="cmd">Enable-WindowsOptionalFeature</span> <span class="flag">-Online -FeatureName</span> HypervisorPlatform
 
-  <div class="callout warn">
-    <strong>Common misconception:</strong> Docker Sandboxes is not a general-purpose container security
-    hardening feature. It won't make your web server containers more secure. It won't help you
-    run untrusted third-party images safely in production. It won't replace Kubernetes security policies.
+<span class="comment"># Verify it's enabled</span>
+<span class="cmd">Get-WindowsOptionalFeature</span> <span class="flag">-Online -FeatureName</span> HypervisorPlatform</code></pre>
+
+
+  <!-- ============================================================ -->
+  <h2 id="when-to-use" class="section-anchor">When to Use Sandbox vs. Container</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4 style="color: var(--purple);">✦ Use Docker Sandbox when…</h4>
+      <ul>
+        <li>Running AI coding agents autonomously (unattended)</li>
+        <li>The agent needs to run <code>docker build</code> / <code>docker compose</code> internally</li>
+        <li>You want the agent isolated from <code>~/.ssh</code>, <code>~/.aws</code>, and other projects</li>
+        <li>You want complete host isolation (cannot escape to host kernel)</li>
+        <li>You want disposable environments (reset in one command)</li>
+        <li>Running multiple agents simultaneously without shared state</li>
+        <li>Network policy control over what the agent can access</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--orange);">◆ Use Docker Container when…</h4>
+      <ul>
+        <li>Running trusted, well-understood workloads (web apps, databases)</li>
+        <li>Maximum density and performance are required</li>
+        <li>No nested Docker daemon needed</li>
+        <li>Long-lived, resource-constrained services</li>
+        <li>CI/CD pipelines with trusted code</li>
+        <li>Microservices and production workloads</li>
+        <li>You need <code>docker ps</code> visibility and standard tooling</li>
+      </ul>
+    </div>
   </div>
 
-  <p>For those use cases, the right tools are still:</p>
-  <ul>
-    <li><strong>seccomp profiles</strong> — filter syscalls inside containers</li>
-    <li><strong>AppArmor / SELinux</strong> — mandatory access control policies</li>
-    <li><strong>gVisor (<code>runsc</code>)</strong> — intercept all syscalls in userspace, used by Google Cloud Run</li>
-    <li><strong>Kata Containers / Firecracker</strong> — VM-per-container, used by AWS Lambda and Fly.io</li>
-    <li><strong>rootless containers</strong> — run Docker daemon and containers without root</li>
-  </ul>
+  <h3>Decision Flowchart</h3>
+  <pre><code>Is an AI agent making autonomous file or system changes?
+├── YES → Is it running trusted, bounded code?
+│         ├── YES → Container may be fine
+│         └── NO  → ✦ Use Docker Sandbox
+└── NO  → Does it need nested Docker capabilities?
+          ├── YES → ✦ Use Docker Sandbox
+          └── NO  → ◆ Use Docker Container</code></pre>
 
-  <p>Docker Sandboxes solves exactly one problem very well: <em>safely running AI coding agents against your
-  codebase.</em> That's it.</p>
 
-  <!-- ── Quick reference ── -->
-  <h2 class="section-title">Quick Reference — What to Use When</h2>
+  <!-- ============================================================ -->
+  <h2 id="security" class="section-anchor">Security Model</h2>
 
-  <table class="compare-table">
+  <h3>What Docker Sandbox Protects</h3>
+  <table>
     <thead>
-      <tr><th>Scenario</th><th>Use</th><th>Why</th></tr>
+      <tr><th>Protected Resource</th><th>How</th></tr>
     </thead>
     <tbody>
-      <tr>
-        <td>Running Claude Code / Codex on my project</td>
-        <td class="good">Docker Sandbox (<code>sbx</code>)</td>
-        <td>Exactly what it's built for</td>
-      </tr>
-      <tr>
-        <td>CI/CD pipeline running tests</td>
-        <td class="good">docker run (containers)</td>
-        <td>Speed matters, code is your own</td>
-      </tr>
-      <tr>
-        <td>Production microservices</td>
-        <td class="good">docker run + seccomp + AppArmor</td>
-        <td>Defense-in-depth at low overhead</td>
-      </tr>
-      <tr>
-        <td>Running user-submitted code</td>
-        <td class="good">gVisor or Kata/Firecracker</td>
-        <td>Truly untrusted execution needs VM-level isolation</td>
-      </tr>
-      <tr>
-        <td>Serverless functions at scale</td>
-        <td class="good">Firecracker (AWS Lambda model)</td>
-        <td>~125ms boot, minimal memory overhead per VM</td>
-      </tr>
-      <tr>
-        <td>Plugin / extension system</td>
-        <td class="good">WASM / V8 Isolates</td>
-        <td>~0ms startup, language-sandboxed, no OS needed</td>
-      </tr>
-      <tr>
-        <td>Dev environment for experimenting</td>
-        <td class="good">docker run (default)</td>
-        <td>Maximum speed and compatibility</td>
-      </tr>
-      <tr>
-        <td>Running a different OS (Windows on Linux)</td>
-        <td class="good">Full VM (QEMU/KVM)</td>
-        <td>Different kernel required</td>
-      </tr>
+      <tr><td>Host filesystem</td><td><code>~/.ssh</code>, <code>~/.aws</code>, and all files outside the workspace are invisible inside the sandbox</td></tr>
+      <tr><td>Host Docker daemon</td><td>Completely isolated — agent cannot see host containers, images, or volumes</td></tr>
+      <tr><td>System packages</td><td>Agent installs don't touch the host OS; destroyed when sandbox is removed</td></tr>
+      <tr><td>Cross-sandbox state</td><td>No shared images, layers, filesystems, or networks between sandboxes</td></tr>
+      <tr><td>Network traffic</td><td>Outbound filtered through configurable proxy (Balanced, Locked Down, Open modes)</td></tr>
+      <tr><td>API credentials</td><td>Keys stored on host; proxy injects into outbound API requests — never written inside sandbox</td></tr>
     </tbody>
   </table>
 
-  <hr/>
+  <h3>Network Policy Modes</h3>
+  <table>
+    <thead>
+      <tr><th>Mode</th><th>Behavior</th><th>Use Case</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="chip green">Open</span></td><td>Unrestricted internet access</td><td>Trusted agent, development, speed over security</td></tr>
+      <tr><td><span class="chip yellow">Balanced</span></td><td>Default-deny with common dev sites pre-allowed (npm, pypi, GitHub, etc.)</td><td>Default recommended mode for most users</td></tr>
+      <tr><td><span class="chip red">Locked Down</span></td><td>All traffic blocked unless explicitly permitted</td><td>Maximum security; add domains one by one</td></tr>
+    </tbody>
+  </table>
 
-  <!-- ── Sources ── -->
-  <h2 class="section-title" style="margin-top:0;">Sources</h2>
+  <div class="callout danger">
+    <strong>What Docker Sandbox Does NOT Protect</strong>
+    <ul style="padding-left:1.25rem; margin-top:0.5rem;">
+      <li><strong>Your workspace files</strong> — the agent has full read/write access to your mounted project. It can delete everything.</li>
+      <li><strong>API key usage</strong> — if the agent has your OpenAI/Anthropic key, it can call APIs as much as it wants within the sandbox</li>
+      <li><strong>Network exfiltration of workspace data</strong> — unless you use Locked Down mode, the agent can POST your code to external servers</li>
+    </ul>
+  </div>
 
-  <ul class="sources">
-    <li><a href="https://www.docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/">docker.com — First announcement: "A New Approach for Coding Agent Safety" (Nov 25, 2025)</a></li>
-    <li><a href="https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/">docker.com — microVM launch: "Run Claude Code and Other Coding Agents Unsupervised, But Safely" (Jan 30, 2026)</a></li>
-    <li><a href="https://www.docker.com/blog/docker-sandboxes-run-agents-in-yolo-mode-safely/">docker.com — sbx CLI launch: "Run Agents in YOLO Mode, Safely" (Mar 31, 2026)</a></li>
-    <li><a href="https://docs.docker.com/ai/sandboxes/">docs.docker.com — Docker Sandboxes overview</a></li>
-    <li><a href="https://docs.docker.com/ai/sandboxes/architecture/">docs.docker.com — Architecture</a></li>
-    <li><a href="https://docs.docker.com/ai/sandboxes/network-policies/">docs.docker.com — Network policies</a></li>
-    <li><a href="https://docs.docker.com/reference/cli/sbx/">docs.docker.com — sbx CLI reference</a></li>
-    <li><a href="https://docs.docker.com/ai/sandboxes/troubleshooting/">docs.docker.com — Troubleshooting</a></li>
-    <li><a href="https://www.rivet.dev/blog/2026-02-04-we-reverse-engineered-docker-sandbox-undocumented-microvm-api/">rivet.dev — Reverse engineering of sandboxd internal API</a></li>
-    <li><a href="https://arcade.dev/blog/docker-sandboxes-arent-enough-for-agent-safety">arcade.dev — "Docker Sandboxes Aren't Enough for Agent Safety" (critical analysis)</a></li>
-    <li><a href="https://blog.hartleybrody.com/docker-sandbox/">blog.hartleybrody.com — Personal hands-on review</a></li>
-    <li><a href="https://github.com/docker/sbx-releases">github.com/docker/sbx-releases — sbx CLI releases and changelog</a></li>
-    <li><a href="https://github.com/orbstack/orbstack/issues/2295">github.com — OrbStack compatibility request</a></li>
-    <li><a href="https://github.com/containers/podman/issues/28291">github.com — Podman feature request citing Docker Sandboxes</a></li>
-    <li><a href="https://news.ycombinator.com/item?id=47185250">news.ycombinator.com — HN discussion: how developers sandbox AI agents</a></li>
-  </ul>
 
-</main>
+  <!-- ============================================================ -->
+  <h2 id="performance" class="section-anchor">Performance</h2>
+
+  <table>
+    <thead>
+      <tr><th>Metric</th><th>Docker Container</th><th>Docker Sandbox</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Cold start time</td><td>&lt;1 second</td><td>5–15 seconds (first run; depends on image cache)</td></tr>
+      <tr><td>Warm start time</td><td>&lt;1 second</td><td>~3–5 seconds (image caching added in 4.61)</td></tr>
+      <tr><td>CPU overhead</td><td>Near-zero (&lt;1%)</td><td>Single-digit % (VM boundary crossing)</td></tr>
+      <tr><td>Memory overhead</td><td>~50–100 MiB per container</td><td>~100–200 MiB for hypervisor + own kernel</td></tr>
+      <tr><td>Filesystem I/O</td><td>Native or overlay FS</td><td>VM virtio-fs; slightly slower for heavy I/O</td></tr>
+      <tr><td>Network throughput</td><td>Native bridge/overlay</td><td>Proxied; minor overhead for policy enforcement</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>Caching note</strong>
+    Docker Desktop 4.61 added automated image caching for sandboxes. On subsequent <code>sbx run</code> calls for the same agent, the sandbox starts within seconds because the agent image is already cached.
+  </div>
+
+
+  <!-- ============================================================ -->
+  <h2 id="limitations" class="section-anchor">Limitations</h2>
+
+  <table>
+    <thead>
+      <tr><th>Limitation</th><th>Details</th><th>Workaround</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Intel Mac support</td><td>Not confirmed; docs say "Apple Silicon"</td><td>Use Apple Silicon Mac or Windows 11</td></tr>
+      <tr><td>ARM Windows</td><td>Not supported</td><td>None currently</td></tr>
+      <tr><td>Linux multi-user</td><td>Single-user (UID 1000) only</td><td>None; planned for future release</td></tr>
+      <tr><td>Nested virtualization</td><td>Cannot run sbx inside a VM</td><td>Run on bare metal host</td></tr>
+      <tr><td>docker build local export</td><td><code>--output type=local</code> fails inside sandbox</td><td>Use <code>--output type=tar,dest=- . | tar xf -</code></td></tr>
+      <tr><td>docker ps visibility</td><td>Sandboxes don't appear in <code>docker ps</code></td><td>Use <code>sbx ls</code> instead</td></tr>
+      <tr><td>Disk resize</td><td>Cannot resize VM disk after creation (Virtualization.framework)</td><td>Destroy and recreate with larger disk</td></tr>
+      <tr><td>VM clock drift</td><td>Sandbox clock can drift from host over time</td><td><code>sbx restart &lt;name&gt;</code> to resync</td></tr>
+      <tr><td>Windows Docker not default</td><td>Docker not installed by default in Windows sandbox</td><td>Use <code>-docker</code> template variant (slower startup)</td></tr>
+      <tr><td>MSI installer bug (4.59+)</td><td>MSI cannot update existing Docker Desktop 4.59+ installations</td><td>Uninstall first, then reinstall new version</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- ============================================================ -->
+  <h2 id="examples" class="section-anchor">Hands-On Examples</h2>
+
+  <h3>Example 1 — Run Claude Code on Your Project</h3>
+  <pre><code><span class="comment"># Install sbx</span>
+<span class="cmd">brew install</span> docker/tap/sbx   <span class="comment"># macOS</span>
+
+<span class="comment"># Authenticate (one-time)</span>
+<span class="cmd">sbx login</span>
+<span class="comment"># → opens browser, choose "Balanced" network policy</span>
+
+<span class="comment"># Navigate to your project</span>
+<span class="cmd">cd</span> ~/my-project
+
+<span class="comment"># Launch Claude Code in a sandbox</span>
+<span class="cmd">sbx run</span> claude
+<span class="comment"># → creates VM, mounts ~/my-project at the same path inside</span>
+<span class="comment"># → opens Claude Code interactive session</span>
+<span class="comment"># → your ~/.ssh and ~/.aws are NOT visible inside</span>
+
+<span class="comment"># When done, list and remove the sandbox</span>
+<span class="cmd">sbx ls</span>
+<span class="cmd">sbx rm</span> &lt;sandbox-name&gt;</code></pre>
+
+  <h3>Example 2 — Non-Interactive Agent with Port Forwarding</h3>
+  <pre><code><span class="comment"># Create sandbox, run agent to build a web app, expose the dev server</span>
+<span class="cmd">sbx create</span> claude /my/webapp
+
+<span class="comment"># See what's running</span>
+<span class="cmd">sbx ls</span>
+<span class="comment"># NAME             AGENT   STATUS    WORKSPACE</span>
+<span class="comment"># vibrant-panther  claude  running   /my/webapp</span>
+
+<span class="comment"># Publish the dev server port (agent started something on 3000)</span>
+<span class="cmd">sbx ports</span> vibrant-panther <span class="flag">--publish</span> 3000
+<span class="comment"># → http://localhost:49152  (ephemeral port)</span>
+
+<span class="comment"># Shell in to inspect</span>
+<span class="cmd">sbx exec</span> vibrant-panther bash
+
+<span class="comment"># Done — clean up everything</span>
+<span class="cmd">sbx rm</span> vibrant-panther</code></pre>
+
+  <h3>Example 3 — Blank Shell Sandbox for Experimentation</h3>
+  <pre><code><span class="comment"># Shell sandbox = blank VM, you install what you need</span>
+<span class="cmd">sbx run</span> shell
+
+<span class="comment"># Inside the sandbox VM</span>
+apt-get install -y nodejs npm
+npm install -g my-dangerous-package   <span class="comment"># safe — host is unaffected</span>
+docker build -t test-image .          <span class="comment"># nested Docker works</span>
+docker run --rm test-image echo hello
+
+<span class="comment"># Exit and destroy (Ctrl+D or exit)</span>
+<span class="comment"># Then on the host:</span>
+<span class="cmd">sbx rm --all</span>   <span class="comment"># clean slate</span></code></pre>
+
+  <h3>Example 4 — Locked Down Network for Sensitive Code</h3>
+  <pre><code><span class="comment"># Set locked-down policy before running</span>
+<span class="cmd">sbx login</span>   <span class="comment"># choose "Locked Down" during login</span>
+
+<span class="comment"># Or change policy after login</span>
+<span class="comment"># Start a sandbox</span>
+<span class="cmd">sbx run</span> claude
+
+<span class="comment"># In another terminal — allow only what the agent needs</span>
+<span class="cmd">sbx policy allow</span> network <span class="string">"*.anthropic.com"</span>
+<span class="cmd">sbx policy allow</span> network <span class="string">"*.npmjs.org"</span>
+<span class="cmd">sbx policy allow</span> network <span class="string">"*.pypi.org"</span>
+
+<span class="comment"># View what was accessed</span>
+<span class="cmd">sbx policy log</span>
+
+<span class="comment"># Reset to defaults</span>
+<span class="cmd">sbx policy reset</span></code></pre>
+
+  <h3>Example 5 — Windows 11 Setup</h3>
+  <pre><code><span class="comment"># Step 1: Enable hypervisor (elevated PowerShell)</span>
+<span class="cmd">Enable-WindowsOptionalFeature</span> <span class="flag">-Online -FeatureName</span> HypervisorPlatform
+<span class="comment"># Restart required</span>
+
+<span class="comment"># Step 2: Install Docker Desktop 4.58+</span>
+<span class="comment"># Download from https://www.docker.com/products/docker-desktop/</span>
+
+<span class="comment"># Step 3: Install sbx CLI</span>
+<span class="cmd">winget install</span> <span class="flag">-h</span> Docker.sbx
+
+<span class="comment"># Step 4: Login and run</span>
+<span class="cmd">sbx login</span>
+<span class="cmd">sbx run</span> claude
+
+<span class="comment"># From WSL2 (Windows 11, Docker Desktop 4.61+)</span>
+<span class="comment"># sbx is also accessible from inside WSL2 terminal</span></code></pre>
+
+
+  <!-- ============================================================ -->
+  <h2 id="sources" class="section-anchor">Sources</h2>
+
+  <table>
+    <thead>
+      <tr><th>Resource</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Docker Sandboxes overview</td><td><a href="https://docs.docker.com/ai/sandboxes/" target="_blank">docs.docker.com/ai/sandboxes/</a></td></tr>
+      <tr><td>Get started guide</td><td><a href="https://docs.docker.com/ai/sandboxes/get-started/" target="_blank">docs.docker.com/ai/sandboxes/get-started/</a></td></tr>
+      <tr><td>Architecture deep-dive</td><td><a href="https://docs.docker.com/ai/sandboxes/architecture/" target="_blank">docs.docker.com/ai/sandboxes/architecture/</a></td></tr>
+      <tr><td>Troubleshooting</td><td><a href="https://docs.docker.com/ai/sandboxes/troubleshooting/" target="_blank">docs.docker.com/ai/sandboxes/troubleshooting/</a></td></tr>
+      <tr><td>sbx CLI reference</td><td><a href="https://docs.docker.com/reference/cli/sbx/" target="_blank">docs.docker.com/reference/cli/sbx/</a></td></tr>
+      <tr><td>sbx releases (GitHub)</td><td><a href="https://github.com/docker/sbx-releases" target="_blank">github.com/docker/sbx-releases</a></td></tr>
+      <tr><td>Docker product page</td><td><a href="https://www.docker.com/products/docker-sandboxes/" target="_blank">docker.com/products/docker-sandboxes/</a></td></tr>
+      <tr><td>Blog: A New Approach for Coding Agent Safety</td><td><a href="https://www.docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/" target="_blank">docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/</a></td></tr>
+      <tr><td>Blog: Run Claude Code Safely</td><td><a href="https://www.docker.com/blog/docker-sandboxes-run-claude-code-and-other-coding-agents-unsupervised-but-safely/" target="_blank">docker.com/blog/…run-claude-code…safely/</a></td></tr>
+      <tr><td>Docker Desktop release notes</td><td><a href="https://docs.docker.com/desktop/release-notes/" target="_blank">docs.docker.com/desktop/release-notes/</a></td></tr>
+    </tbody>
+  </table>
+
+</div>
 </body>
 </html>
