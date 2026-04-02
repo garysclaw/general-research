@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>marimo vs. Jupyter — Notebooks, Reactivity, and the Multi-Language Question</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --teal: #39d353;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 0 1rem 4rem;
+    }
+    .page-header {
+      background: linear-gradient(135deg, #0d1117 0%, #1a2332 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 0 2rem;
+      margin: 0 -1rem 2.5rem;
+      text-align: center;
+    }
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(188, 140, 255, 0.15);
+      border: 1px solid rgba(188, 140, 255, 0.4);
+      color: var(--purple);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
+    .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 650px; margin: 0 auto 1.5rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .meta span { margin: 0 0.5rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 1.75rem 0 0.6rem;
+      color: var(--blue);
+    }
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.4rem;
+      color: var(--orange);
+    }
+    p { margin-bottom: 1rem; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+    li { margin-bottom: 0.3rem; }
+    strong { color: var(--text); font-weight: 600; }
+    code {
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.87em;
+      background: #1c2128;
+      border: 1px solid var(--border);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      color: var(--orange);
+    }
+    pre {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    pre code { background: none; border: none; padding: 0; font-size: inherit; color: var(--text); }
+    .comment { color: var(--muted); }
+    .kw { color: var(--purple); }
+    .fn { color: var(--blue); }
+    .str { color: var(--green); }
+    .dec { color: var(--orange); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #1c2128;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .win { color: var(--green); font-weight: 600; }
+    .lose { color: var(--red); }
+    .neutral { color: var(--yellow); }
+    .callout {
+      border-left: 3px solid;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      border-radius: 0 8px 8px 0;
+      background: rgba(255,255,255,0.03);
+    }
+    .callout.info { border-color: var(--blue); }
+    .callout.warning { border-color: var(--yellow); }
+    .callout.success { border-color: var(--green); }
+    .callout.danger { border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 0.4rem; }
+    .chip {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+    .chip.blue { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+    .chip.green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+    .chip.red { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+    .chip.purple { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+    .chip.yellow { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .toc h4 { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.75rem; }
+    .toc ol { margin: 0; padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.35rem; font-size: 0.9rem; }
+    .toc a { color: var(--muted); }
+    .toc a:hover { color: var(--blue); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0 1.5rem; }
+    .col-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .col-box h4 { margin-top: 0; }
+    .col-box.marimo h4 { color: var(--purple); }
+    .col-box.jupyter h4 { color: var(--orange); }
+    .arch-diagram {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--muted);
+      overflow-x: auto;
+    }
+    .arch-diagram .highlight { color: var(--blue); }
+    .arch-diagram .highlight2 { color: var(--purple); }
+    .arch-diagram .arrow { color: var(--teal); }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0 1.5rem; }
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .stat-num { font-size: 2rem; font-weight: 700; color: var(--purple); display: block; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+    .verdict-box {
+      background: rgba(188,140,255,0.07);
+      border: 1px solid rgba(188,140,255,0.3);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    .verdict-box h3 { color: var(--purple); margin-top: 0; border: none; }
+    .sources { margin-top: 2.5rem; }
+    .sources table td:first-child { font-size: 0.85rem; white-space: nowrap; }
+    .sources table td:last-child { font-size: 0.82rem; }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 650px) {
+      h1 { font-size: 1.7rem; }
+      .two-col { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="container">
+    <div class="badge">Research · Notebooks</div>
+    <h1>marimo vs. Jupyter</h1>
+    <p class="subtitle">Reactive notebooks, the DAG execution model, and whether marimo can ever support other languages the way Jupyter does.</p>
+    <div class="meta">
+      <span>April 2026</span>
+      <span>·</span>
+      <span>marimo v0.21.x · JupyterLab 4.x</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#executive-summary">Executive Summary</a></li>
+      <li><a href="#what-is-marimo">What is marimo? The Reactive Model</a></li>
+      <li><a href="#jupyter-architecture">Jupyter's Architecture and Language Agnosticism</a></li>
+      <li><a href="#comparison">Head-to-Head Comparison</a></li>
+      <li><a href="#multi-language">The Multi-Language Question</a></li>
+      <li><a href="#what-it-would-take">What It Would Take to Add R or Julia</a></li>
+      <li><a href="#ecosystem-analogues">Language-Specific Analogues: Pluto.jl</a></li>
+      <li><a href="#when-to-use">When to Use Which</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </div>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <h2 id="executive-summary">Executive Summary</h2>
+
+  <p>marimo (v0.21.x, acquired by CoreWeave October 2025) is a reactive Python notebook that replaces Jupyter's REPL model with a directed acyclic graph (DAG) of cell dependencies. The fundamental difference: Jupyter doesn't know how cells relate to each other — you run them in whatever order you want, and hidden state accumulates. marimo builds a dependency graph from Python ASTs and guarantees every re-run produces the same result in the same order.</p>
+
+  <p>Jupyter achieves language agnosticism through a language-neutral kernel protocol (ZeroMQ messaging). Over 40 language kernels exist — Julia, R, Haskell, Scala, Go, Rust. marimo is <strong>Python-only by architectural design</strong>, not oversight. The reactive DAG is built by parsing Python ASTs; there is no equivalent path for R or Julia. The marimo team has explicitly closed R support as <strong>"not planned"</strong> (GitHub Issue #6620). SQL is the one non-Python language with first-class support, via DuckDB.</p>
+
+  <p>The closest analogue to marimo in the Julia ecosystem is <strong>Pluto.jl</strong> — a reactive, DAG-based Julia notebook that directly inspired marimo's design. Multi-language reactive notebooks don't exist yet as a single product. The gap is architectural, not just a matter of effort.</p>
+
+  <div class="stat-grid">
+    <div class="stat-box">
+      <span class="stat-num">40+</span>
+      <div class="stat-label">Jupyter language kernels<br>(R, Julia, Scala, Go, Rust, …)</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num">1</span>
+      <div class="stat-label">marimo non-Python language<br>(SQL via DuckDB)</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num">4%</span>
+      <div class="stat-label">Jupyter notebooks on GitHub<br>that reproduce (Pimentel 2019)</div>
+    </div>
+  </div>
+
+
+  <!-- WHAT IS MARIMO -->
+  <h2 id="what-is-marimo">What is marimo? The Reactive Model</h2>
+
+  <p>marimo was publicly launched in January 2024 (second-highest Python ShowHN of all time), incubated at Stanford's SLAC National Accelerator Laboratory. It was acquired by CoreWeave on October 30, 2025. It is open-source, Apache 2.0-licensed, with 18,000+ GitHub stars and 180,000+ weekly PyPI downloads as of April 2026.</p>
+
+  <h3>The DAG Execution Model</h3>
+
+  <p>Every cell in a marimo notebook is a node in a dependency graph. Edges are defined by variable references: if cell B reads a variable defined in cell A, there is an edge A → B. marimo builds this graph at edit time using <strong>static analysis</strong> — running <code>ast.parse()</code> on every cell and extracting variable definitions and references without executing any code.</p>
+
+  <div class="arch-diagram">
+<span class="comment"># Cell 1 — defines `data`</span>
+<span class="highlight">data</span> = load_csv(<span class="str">"measurements.csv"</span>)
+
+<span class="comment"># Cell 2 — defines `filtered` (reads `data`)</span>
+<span class="highlight">filtered</span> = data[data[<span class="str">"value"</span>] > threshold.value]
+
+<span class="comment"># Cell 3 — reads `filtered`, defines `chart`</span>
+<span class="highlight">chart</span> = mo.ui.altair_chart(filtered.plot())
+
+<span class="arrow">─────────────────────────────────────────────</span>
+DAG edges: Cell 1 <span class="arrow">→</span> Cell 2 <span class="arrow">→</span> Cell 3
+
+When `threshold` slider changes:
+  <span class="arrow">→</span> Cell 2 re-runs (reads `threshold` + `data`)
+  <span class="arrow">→</span> Cell 3 re-runs (reads `filtered`)
+  <span class="arrow">→</span> Cell 1 does NOT re-run (no dependency on `threshold`)
+  </div>
+
+  <p>This produces two guarantees Jupyter cannot make:</p>
+  <ol>
+    <li><strong>Deterministic execution order.</strong> Cells always run in DAG-topological order, regardless of how the developer placed them on screen.</li>
+    <li><strong>No hidden state.</strong> Delete a cell and its variables are immediately removed from memory. The code visible on screen is always a complete description of program state.</li>
+  </ol>
+
+  <h3>Key Constraints (What marimo Forbids)</h3>
+
+  <p>The DAG model requires rules that Jupyter never enforces:</p>
+  <ul>
+    <li><strong>No variable redefinition across cells.</strong> If <code>x = 1</code> appears in two different cells, marimo raises a <code>MultipleDefinitionError</code>. Each global variable must have exactly one cell as its definition.</li>
+    <li><strong>No cycles.</strong> If cell A references cell B and cell B references cell A, marimo raises a <code>CycleError</code>. A DAG, by definition, has no cycles.</li>
+    <li><strong>Mutations are not tracked.</strong> <code>my_list.append(x)</code> modifies an object without creating a new binding; the static analyzer does not see this as a definition change. Only global variable reassignment (<code>my_list = [...]</code>) triggers reactivity.</li>
+    <li><strong>No IPython magic commands.</strong> <code>%timeit</code>, <code>%matplotlib inline</code>, <code>!pip install</code> — none of these work. marimo provides its own alternatives (<code>mo.cli</code>, built-in package manager).</li>
+  </ul>
+
+  <h3>Storage Format: Pure Python, Not JSON</h3>
+
+  <p>Jupyter stores notebooks as <code>.ipynb</code> — a JSON file containing cell source, outputs (including base64-encoded images), execution counts, and kernel metadata. This format is hostile to version control: <code>git diff</code> produces unreadable JSON noise, merge conflicts invalidate the JSON structure, and execution counts change on every run.</p>
+
+  <p>marimo stores notebooks as plain <code>.py</code> files. Each cell is a Python function decorated with <code>@app.cell</code>:</p>
+
+  <pre><code><span class="dec">@app.cell</span>
+<span class="kw">def</span> <span class="fn">__(mo):</span>
+    slider = mo.ui.slider(<span class="str">0</span>, <span class="str">100</span>, label=<span class="str">"Threshold"</span>)
+    <span class="kw">return</span> slider,
+
+<span class="dec">@app.cell</span>
+<span class="kw">def</span> <span class="fn">__(data, slider):</span>
+    filtered = data[data[<span class="str">"value"</span>] > slider.value]
+    <span class="kw">return</span> filtered,</code></pre>
+
+  <p>This file is executable as a Python script (<code>python notebook.py</code>), importable as a Python module, lintable with Ruff/Black, and produces clean, human-readable git diffs.</p>
+
+  <div class="callout info">
+    <strong>Trade-off on outputs</strong>
+    Because marimo does not embed outputs in the file, a shared notebook must be re-executed to see results. This is the intended workflow. For notebooks intended as static reports with pre-computed results (e.g., a snapshot shared with a non-technical stakeholder), Jupyter's output-embedded format has a genuine advantage.
+  </div>
+
+  <h3>Two Operational Modes</h3>
+
+  <div class="two-col">
+    <div class="col-box marimo">
+      <h4>Edit Mode — <code>marimo edit notebook.py</code></h4>
+      <p>Full development environment: reactive cell editor, variable explorer, dependency graph viewer, built-in AI assistant, package manager. Changes trigger automatic re-execution of downstream cells.</p>
+    </div>
+    <div class="col-box jupyter">
+      <h4>App Mode — <code>marimo run notebook.py</code></h4>
+      <p>Strips all code, exposes only outputs and <code>mo.ui</code> widgets to end users. The notebook becomes a read-only web application — no Voilà, Streamlit, or Dash required.</p>
+    </div>
+  </div>
+
+  <h3>WASM / Browser Execution</h3>
+
+  <p>marimo can run entirely in the browser via Pyodide (WebAssembly port of CPython). Export a notebook as a self-contained HTML file with <code>marimo export html-wasm notebook.py -o dist/</code> and deploy to any static host — GitHub Pages, Cloudflare Pages, S3 — with no Python server required. Cloudflare's <a href="https://notebooks.cloudflare.com" target="_blank">notebooks.cloudflare.com</a> is built on marimo.</p>
+
+  <p>WASM limitations: 2 GB memory cap, no multiprocessing, no compiled extension packages not in the Pyodide distribution, must be served over HTTP (not <code>file://</code>).</p>
+
+  <h3>SQL as a First-Class Language</h3>
+
+  <p>SQL is the one non-Python language with native marimo support. SQL cells are powered by DuckDB and support querying DataFrames, local files, and remote databases (PostgreSQL, MySQL, Snowflake, BigQuery, MotherDuck). The output of a SQL cell is a DataFrame that participates in the Python DAG like any other variable.</p>
+
+  <pre><code><span class="comment"># SQL cell (selected from cell type dropdown)</span>
+<span class="str">SELECT station_id, AVG(temperature) as avg_temp
+FROM monthly_readings
+WHERE year = 2025
+GROUP BY station_id
+ORDER BY avg_temp DESC</span>
+
+<span class="comment"># The result is automatically bound to a Python variable</span>
+<span class="comment"># named after the cell — other cells can reference it directly</span></code></pre>
+
+
+  <!-- JUPYTER ARCHITECTURE -->
+  <h2 id="jupyter-architecture">Jupyter's Architecture and Language Agnosticism</h2>
+
+  <p>Jupyter's ability to run 40+ languages is not a feature that was added later — it was an architectural decision made at the project's founding. The insight: separate all language-specific logic into a kernel process, and communicate between frontend and kernel via a language-neutral protocol.</p>
+
+  <h3>The Kernel Protocol (ZeroMQ)</h3>
+
+  <p>Every Jupyter kernel implements the <strong>Jupyter Messaging Protocol</strong> — a specification for JSON-formatted messages transmitted over <strong>ZeroMQ (ØMQ)</strong> sockets. The frontend and kernel are fully independent processes. They share nothing except this protocol.</p>
+
+  <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────┐
+│                    JupyterLab Frontend                  │
+│           (TypeScript/React, runs in browser)           │
+└──────────────┬─────────────────────────────┬────────────┘
+               │  <span class="arrow">ZeroMQ messaging</span>          │
+               │  (5 channels: Shell,         │
+               │   IOPub, stdin, Control,     │
+               │   Heartbeat)                 │
+┌──────────────▼──────────────┐   ┌──────────▼────────────┐
+│   <span class="highlight">Python Kernel (IPykernel)</span>   │   │  <span class="highlight2">Julia Kernel (IJulia)</span>  │
+│   executes Python code      │   │  executes Julia code  │
+│   sends outputs over IOPub  │   │  sends outputs        │
+└─────────────────────────────┘   └───────────────────────┘
+
+Any language that can implement this protocol gets full
+Jupyter support: completions, rich output, widgets, debugging.
+  </div>
+
+  <h3>Three Kernel Implementation Patterns</h3>
+
+  <table>
+    <thead>
+      <tr><th>Type</th><th>Description</th><th>Examples</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Native kernels</strong></td><td>Implement the full ZeroMQ protocol directly in the target language</td><td>IJulia (Julia), IRkernel (R), IHaskell (Haskell), kotlin-jupyter</td></tr>
+      <tr><td><strong>Wrapper kernels</strong></td><td>Reuse Python's IPykernel communications layer, add target-language execution logic on top</td><td><code>octave_kernel</code>, <code>bash_kernel</code>, MATLAB kernel</td></tr>
+      <tr><td><strong>Xeus kernels</strong></td><td>Use Xeus (C++ ZeroMQ framework) for protocol handling, add language-specific execution</td><td><code>xeus-cling</code> (C++), <code>xeus-lua</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Current Jupyter Ecosystem</h3>
+
+  <ul>
+    <li><strong>JupyterLab 4.x</strong> — The primary IDE interface. Multi-panel layout, full extension ecosystem, debugger, LSP integration, Git support.</li>
+    <li><strong>Jupyter Notebook v7</strong> — Rebuilt on JupyterLab internals. Single-document view for users who prefer it. Current stable: v7.5.5 (April 2026).</li>
+    <li><strong>JupyterHub</strong> — Multi-user server with pluggable authentication (OAuth, LDAP, PAM), environment spawning, per-user instances. The standard enterprise deployment layer.</li>
+    <li><strong>Cloud integrations</strong> — Google Colab, AWS SageMaker, Azure ML, Databricks, Deepnote all use the Jupyter protocol natively.</li>
+    <li><strong>Quarto</strong> — A document system that uses Jupyter as an execution engine, inheriting all kernel support (Python, R, Julia in one document).</li>
+  </ul>
+
+  <div class="callout success">
+    <strong>Why Jupyter's kernel protocol was visionary</strong>
+    By placing all language-specific logic in an isolated process communicating over a documented protocol, the Jupyter team made it possible for any language community to add Jupyter support independently. The Python team didn't need to build R support — the R community built IRkernel. This is why Jupyter achieved 40+ language kernels without the core team writing a single line of R, Julia, or Haskell.
+  </div>
+
+
+  <!-- COMPARISON -->
+  <h2 id="comparison">Head-to-Head Comparison</h2>
+
+  <table>
+    <thead>
+      <tr><th>Dimension</th><th>marimo</th><th>Jupyter</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Execution model</strong></td>
+        <td class="win">Reactive DAG — deterministic, automatic</td>
+        <td class="neutral">REPL — manual, order-dependent</td>
+      </tr>
+      <tr>
+        <td><strong>Reproducibility</strong></td>
+        <td class="win">Guaranteed by DAG (structural)</td>
+        <td class="lose">Not guaranteed — 4% reproduce (Pimentel 2019)</td>
+      </tr>
+      <tr>
+        <td><strong>Hidden state</strong></td>
+        <td class="win">Architecturally impossible</td>
+        <td class="lose">Common; requires manual restart to clear</td>
+      </tr>
+      <tr>
+        <td><strong>Language support</strong></td>
+        <td class="lose">Python + SQL only</td>
+        <td class="win">40+ languages via kernels</td>
+      </tr>
+      <tr>
+        <td><strong>File format</strong></td>
+        <td class="win">Plain <code>.py</code> — clean git diffs, importable</td>
+        <td class="lose"><code>.ipynb</code> JSON — merge conflicts, base64 blobs</td>
+      </tr>
+      <tr>
+        <td><strong>App deployment</strong></td>
+        <td class="win">Built-in (<code>marimo run</code> serves a web app)</td>
+        <td class="neutral">Requires Voilà, Panel, or Streamlit</td>
+      </tr>
+      <tr>
+        <td><strong>Static hosting</strong></td>
+        <td class="win">Native WASM export (<code>marimo export html-wasm</code>)</td>
+        <td class="neutral">Possible via Voilà + Pyodide (more complex)</td>
+      </tr>
+      <tr>
+        <td><strong>Interactive UI widgets</strong></td>
+        <td class="win">Built-in <code>mo.ui</code> — reactive to Python automatically</td>
+        <td class="neutral">ipywidgets (requires kernel, doesn't work in WASM easily)</td>
+      </tr>
+      <tr>
+        <td><strong>Git / version control</strong></td>
+        <td class="win">Works natively</td>
+        <td class="lose">Requires nbstripout / nbdime / jupytext workarounds</td>
+      </tr>
+      <tr>
+        <td><strong>Ecosystem maturity</strong></td>
+        <td class="lose">~2 years old, growing rapidly</td>
+        <td class="win">~10 years, thousands of extensions</td>
+      </tr>
+      <tr>
+        <td><strong>IDE integration</strong></td>
+        <td class="neutral">VS Code extension available (browser-embedded, some limitations)</td>
+        <td class="win">Native VS Code extension, mature and polished</td>
+      </tr>
+      <tr>
+        <td><strong>Enterprise deployment</strong></td>
+        <td class="neutral">JupyterHub compatible (<code>marimo-jupyter-extension</code>); CoreWeave cloud integration</td>
+        <td class="win">JupyterHub — 10 years of enterprise deployment experience</td>
+      </tr>
+      <tr>
+        <td><strong>Learning curve</strong></td>
+        <td class="neutral">Lower for newcomers; requires unlearning Jupyter habits</td>
+        <td class="win">Very low barrier to entry</td>
+      </tr>
+      <tr>
+        <td><strong>SQL support</strong></td>
+        <td class="win">Native DuckDB SQL cells</td>
+        <td class="neutral">Via extensions (ipython-sql, jupysql)</td>
+      </tr>
+      <tr>
+        <td><strong>Package management</strong></td>
+        <td class="win">Built-in; PEP 723 inline dependencies; uv/conda/pip</td>
+        <td class="neutral">External (pip magic <code>%pip install</code>, conda envs)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Reproducibility: The Numbers</h3>
+
+  <p>Two studies quantify Jupyter's reproducibility problem:</p>
+  <ul>
+    <li><strong>Pimentel et al. (2019)</strong>, NYU / Federal Fluminense University: Of ~1 million Jupyter notebooks on GitHub with valid execution histories, only 24% could be re-run successfully, and only <strong>4% reproduced the same results</strong>.</li>
+    <li><strong>JetBrains (2020)</strong>: More than <strong>36% of Jupyter notebooks on GitHub</strong> had invalid execution histories — cells run out of order.</li>
+  </ul>
+
+  <p>marimo is architecturally immune to both findings. There is no mechanism to run cells out of order. Deleting a cell removes its variables from memory. Nature journal highlighted marimo specifically for its reproducibility guarantees for computational scientists.</p>
+
+
+  <!-- MULTI-LANGUAGE QUESTION -->
+  <h2 id="multi-language">The Multi-Language Question</h2>
+
+  <h3>Short Answer: marimo Is Python-Only by Design, Not Accident</h3>
+
+  <p>This is not a gap in the backlog or a feature that wasn't prioritized yet. The marimo team has made this a <strong>conscious architectural choice</strong>.</p>
+
+  <div class="callout danger">
+    <strong>GitHub Issue #6620 — "R language support"</strong>
+    marimo team collaborator Trevor Manz closed this issue as <strong>"not planned"</strong> with the following response: <em>"marimo is tightly coupled to Python, which allows us to make marimo extra useful for Python developers."</em> The team's v1.0 roadmap (January 2025) contains no mention of multi-language support. The six roadmap goals are all Python-centric: SQL integration, PEP 723 dependencies, developer experience, sharing/embedding, scalability, and enterprise features.
+  </div>
+
+  <h3>The Architectural Reason</h3>
+
+  <p>marimo's reactive execution model depends on a specific technical mechanism that doesn't generalize to other languages without a complete redesign:</p>
+
+  <ol>
+    <li>Each cell's code is parsed with Python's <code>ast.parse()</code> to produce an Abstract Syntax Tree.</li>
+    <li>A custom <code>ScopedVisitor</code> traverses the AST to extract <strong>global variable definitions</strong> (what this cell creates) and <strong>references</strong> (what this cell reads).</li>
+    <li>A <code>DirectedGraph</code> uses this information to build the dependency edges between cells.</li>
+    <li>When a cell changes, only the cells downstream in this graph are re-executed.</li>
+  </ol>
+
+  <p>This mechanism is entirely Python-specific. There is no <code>ast.parse()</code> for R code, no <code>ScopedVisitor</code> for Julia. To achieve the same reactive DAG for R, you would need to write a full R static analyzer from scratch. To achieve it across multiple languages in one notebook, you would need inter-language variable bridging (passing a Python variable into an R cell, for example) — a fundamentally different and much harder problem.</p>
+
+  <div class="two-col">
+    <div class="col-box marimo">
+      <h4>marimo's approach (Python-first)</h4>
+      <p>Tight coupling to one language enables deep integration: static analysis for reactive DAG, pure-Python file format, scriptable and importable notebooks, PEP 723 dependency pinning. Language depth over language breadth.</p>
+    </div>
+    <div class="col-box jupyter">
+      <h4>Jupyter's approach (language-agnostic)</h4>
+      <p>Abstracting language specifics into the kernel process enables any language to participate. But this abstraction prevents the kind of deep analysis marimo uses for reactivity — Jupyter cannot build a DAG because it never sees inside cells.</p>
+    </div>
+  </div>
+
+  <h3>SQL: The Exception That Proves the Rule</h3>
+
+  <p>SQL is the one non-Python language marimo supports, and how it works reveals why other languages don't: SQL cells are <strong>syntactic sugar over Python</strong>. Under the hood, <code>mo.sql("SELECT * FROM df")</code> is a Python function call. The result is a Python DataFrame that participates in the Python DAG. The SQL parser only needs to identify which Python variable names appear in the SQL query — a much simpler analysis than building a full DAG for R or Julia code.</p>
+
+  <p>This approach can't be generalized to R or Julia. An R cell wouldn't just be calling an R function from Python — it would need its own execution environment, its own variable scope, its own static analyzer for reactivity, and a bridge to exchange values with Python cells.</p>
+
+
+  <!-- WHAT IT WOULD TAKE -->
+  <h2 id="what-it-would-take">What It Would Take to Add R or Julia to marimo</h2>
+
+  <p>For completeness, here is what the engineering work would require. This is not speculative — it follows directly from the architecture as documented.</p>
+
+  <table>
+    <thead>
+      <tr><th>Component</th><th>What's Needed</th><th>Difficulty</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Language-specific static analyzers</strong></td>
+        <td>A dependency extractor for R (e.g., using <code>rpy2</code> + R's <code>parse()</code> function, or a dedicated Rust-based R parser) and for Julia (using Julia's metaprogramming or <code>JuliaCall</code>). Each must extract variable definitions and references in the same format marimo's DAG uses.</td>
+        <td class="neutral">Hard</td>
+      </tr>
+      <tr>
+        <td><strong>Cross-language DAG</strong></td>
+        <td>If a Python variable is used in an R cell, the DAG edge must cross language boundaries. This requires either a common data representation or explicit type conversion at each crossing. Analogous to how <code>rpy2</code> converts between Python and R types — but integrated into the reactive runtime.</td>
+        <td class="lose">Very hard</td>
+      </tr>
+      <tr>
+        <td><strong>Multi-runtime dispatch in Kernel</strong></td>
+        <td>The <code>Kernel</code> class currently dispatches all cell execution to CPython via <code>exec()</code>. Multi-language support would require detecting which runtime to use per cell and dispatching to the appropriate interpreter (Rscript, Julia runtime).</td>
+        <td class="neutral">Hard</td>
+      </tr>
+      <tr>
+        <td><strong>UI element binding across languages</strong></td>
+        <td>Currently, <code>mo.ui.slider</code> is a Python object — its <code>.value</code> attribute is read by Python cells. Binding slider values to R or Julia variables would require a foreign-function interface layer on both sides.</td>
+        <td class="lose">Very hard</td>
+      </tr>
+      <tr>
+        <td><strong>File format changes</strong></td>
+        <td>The current <code>.py</code> format (Python functions decorated with <code>@app.cell</code>) cannot represent R or Julia cells. A new polyglot format would be needed — similar to Quarto's <code>.qmd</code> with <code>{python}</code> / <code>{r}</code> / <code>{julia}</code> blocks.</td>
+        <td class="neutral">Moderate</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <strong>Community-proposed workaround</strong>
+    GitHub Issue #6620 suggests a pragmatic workaround: keep Python as the primary engine, use <code>rpy2</code> to call R from within Python cells. R objects are accessed as Python variables via rpy2's conversion layer. This preserves the Python DAG while allowing R library code to run. It's not true "R cells" — R code lives inside Python string arguments — but it satisfies many use cases without requiring architectural changes.
+  </div>
+
+  <h3>Comparison: Adding a Language to Jupyter vs. marimo</h3>
+
+  <table>
+    <thead>
+      <tr><th>Task</th><th>Jupyter</th><th>marimo</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Add Julia support</td>
+        <td class="win">Implement Jupyter Messaging Protocol in Julia. IJulia already exists and works.</td>
+        <td class="lose">Write R/Julia AST parser, cross-language DAG, multi-runtime kernel dispatch, file format changes. Core architectural work.</td>
+      </tr>
+      <tr>
+        <td>Add R support</td>
+        <td class="win">IRkernel exists, maintained by the R community.</td>
+        <td class="lose">Same as above for Julia.</td>
+      </tr>
+      <tr>
+        <td>Add Bash support</td>
+        <td class="win"><code>bash_kernel</code> exists as a wrapper kernel.</td>
+        <td class="lose">Not possible without core changes.</td>
+      </tr>
+      <tr>
+        <td>Third-party language addition</td>
+        <td class="win">Protocol is documented; any developer can build a kernel independently.</td>
+        <td class="lose">No extension point exists; requires forking and modifying the core.</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- ECOSYSTEM ANALOGUES -->
+  <h2 id="ecosystem-analogues">Language-Specific Analogues: Pluto.jl</h2>
+
+  <p>The reactive notebook concept is not limited to Python. The Julia ecosystem has <strong>Pluto.jl</strong> — and importantly, Pluto.jl directly inspired marimo's design.</p>
+
+  <h3>Pluto.jl (Julia)</h3>
+
+  <p>Pluto.jl is a reactive, DAG-based notebook for Julia developed at MIT. Like marimo, it:</p>
+  <ul>
+    <li>Builds a dependency graph from cell code (using Julia's metaprogramming for AST analysis)</li>
+    <li>Automatically re-runs downstream cells when upstream variables change</li>
+    <li>Forbids variable redefinition across cells</li>
+    <li>Stores notebooks as plain <code>.jl</code> files (not JSON)</li>
+    <li>Supports running as interactive web applications</li>
+    <li>Provides built-in package reproducibility (exact package versions embedded in the file)</li>
+  </ul>
+
+  <p>The marimo team explicitly credits Pluto.jl as a design inspiration: <em>"Our inspiration comes from many places and projects, especially Pluto.jl, ObservableHQ, and Bret Victor's essays."</em></p>
+
+  <div class="callout info">
+    <strong>The key insight from Pluto.jl</strong>
+    Pluto.jl achieves the same reactive guarantees as marimo — but for Julia, not Python. It uses Julia's own metaprogramming facilities to parse cell ASTs and build the dependency graph. This demonstrates that the reactive model is language-achievable — but it requires language-native static analysis. There is no cross-language shortcut. The solution for Julia is Pluto.jl. The solution for Python is marimo. A single product that does both doesn't currently exist.
+  </div>
+
+  <h3>Analogue Landscape</h3>
+
+  <table>
+    <thead>
+      <tr><th>Language</th><th>Jupyter Kernel</th><th>Reactive Notebook Equivalent</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Python</strong></td><td>IPykernel (bundled)</td><td class="win">marimo (v0.21.x, production-ready)</td></tr>
+      <tr><td><strong>Julia</strong></td><td>IJulia (maintained by Julia community)</td><td class="win">Pluto.jl (MIT, directly inspired marimo)</td></tr>
+      <tr><td><strong>R</strong></td><td>IRkernel (maintained by R community)</td><td class="lose">None — no reactive R notebook equivalent exists as of April 2026</td></tr>
+      <tr><td><strong>Scala</strong></td><td>Almond (formerly Jupyter-Scala)</td><td class="lose">None</td></tr>
+      <tr><td><strong>Haskell</strong></td><td>IHaskell</td><td class="lose">None</td></tr>
+      <tr><td><strong>Go</strong></td><td>gophernotes</td><td class="lose">None</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>SoS (Script of Scripts)</strong> is worth noting: a Jupyter extension kernel that allows R, Python, Julia, and other languages in a single notebook with explicit variable sharing between cells. It achieves polyglot notebooks but through Jupyter's kernel protocol, with no reactive DAG — it's Jupyter with multi-language routing, not marimo-style reactivity.</p>
+
+
+  <!-- WHEN TO USE WHICH -->
+  <h2 id="when-to-use">When to Use Which</h2>
+
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Use marimo</th><th>Use Jupyter</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Python-only data science</td>
+        <td class="win">Reactive execution prevents hidden state bugs</td>
+        <td>Familiar and widely documented</td>
+      </tr>
+      <tr>
+        <td>Reproducible research (publication)</td>
+        <td class="win">Structural guarantee of execution order</td>
+        <td>Must use tools like nbval, nbparameterise</td>
+      </tr>
+      <tr>
+        <td>R analysis</td>
+        <td class="lose">Not supported</td>
+        <td class="win">IRkernel, native R experience</td>
+      </tr>
+      <tr>
+        <td>Julia scientific computing</td>
+        <td class="lose">Not supported</td>
+        <td class="win">IJulia kernel; alternatively use Pluto.jl</td>
+      </tr>
+      <tr>
+        <td>Mixed R + Python workflow</td>
+        <td class="neutral">Use rpy2 inside Python cells</td>
+        <td class="win">SoS kernel for true polyglot; or separate notebooks</td>
+      </tr>
+      <tr>
+        <td>Build and share interactive data apps</td>
+        <td class="win"><code>marimo run</code> serves the app natively</td>
+        <td>Requires Voilà or Panel</td>
+      </tr>
+      <tr>
+        <td>Static site / GitHub Pages deployment</td>
+        <td class="win">WASM export to self-contained HTML</td>
+        <td>More complex (Voilà + Pyodide)</td>
+      </tr>
+      <tr>
+        <td>Team collaboration on notebooks</td>
+        <td class="win">Clean git diffs, standard merge tools</td>
+        <td>Requires nbstripout / nbdime / jupytext</td>
+      </tr>
+      <tr>
+        <td>Enterprise multi-user deployment</td>
+        <td class="neutral">JupyterHub compatible via <code>marimo-jupyter-extension</code></td>
+        <td class="win">JupyterHub — 10 years of operational experience</td>
+      </tr>
+      <tr>
+        <td>Large existing Jupyter notebook codebase</td>
+        <td class="neutral">Migration guide available; out-of-order patterns need fixing</td>
+        <td class="win">No migration needed</td>
+      </tr>
+      <tr>
+        <td>CI/CD pipeline integration</td>
+        <td class="win">Plain <code>.py</code> files work with standard Python tooling</td>
+        <td>Requires nbval or nbmake for testing</td>
+      </tr>
+      <tr>
+        <td>SQL-heavy analytics</td>
+        <td class="win">Native DuckDB SQL cells, no extension needed</td>
+        <td>Via jupysql / ipython-sql extensions</td>
+      </tr>
+      <tr>
+        <td>Teaching / education</td>
+        <td class="neutral">Low barrier, reactive feedback good for learning</td>
+        <td class="win">Dominant in academic settings; more tutorials and courses available</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="verdict-box">
+    <h3>Bottom Line</h3>
+    <p><strong>Choose marimo</strong> if you work primarily in Python, value reproducibility and clean version control, want to turn notebooks into deployed apps without extra tooling, or find Jupyter's hidden state problems frustrating. The reactive model requires adjusting some habits but solves real problems structurally.</p>
+    <p style="margin-top:0.75rem;"><strong>Choose Jupyter</strong> if you work in R, Julia, or another non-Python language; if you need to interoperate with an existing JupyterHub deployment; if you have a large team with established Jupyter workflows; or if you rely on specific Jupyter extensions with no marimo equivalent.</p>
+    <p style="margin-top:0.75rem;"><strong>They are not directly substitutable</strong> for multi-language workloads. marimo is Python (+ SQL). Jupyter is everything. For pure-Python data science workflows starting fresh in 2026, marimo's architecture is the better foundation — but it requires accepting that R and Julia users on your team will need a different tool.</p>
+  </div>
+
+  <h3>Migrating from Jupyter to marimo</h3>
+
+  <p>marimo provides a migration command: <code>marimo convert notebook.ipynb -o notebook.py</code>. Things to watch for:</p>
+  <ul>
+    <li>Cells that share a variable name will fail with <code>MultipleDefinitionError</code>. Rename to unique names per cell.</li>
+    <li>IPython magic commands (<code>%timeit</code>, <code>!ls</code>) will fail. Replace with marimo equivalents or <code>subprocess.run()</code>.</li>
+    <li>Cells that depend on out-of-order execution must be restructured. The DAG enforces a consistent order.</li>
+    <li>Cell outputs are not preserved in the <code>.py</code> file — re-execute to see results.</li>
+  </ul>
+
+
+  <!-- SOURCES -->
+  <h2 id="sources" class="sources">Sources</h2>
+
+  <table>
+    <thead>
+      <tr><th>Resource</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>marimo official site</td><td><a href="https://marimo.io/" target="_blank">marimo.io</a></td></tr>
+      <tr><td>marimo documentation</td><td><a href="https://docs.marimo.io/" target="_blank">docs.marimo.io</a></td></tr>
+      <tr><td>marimo GitHub</td><td><a href="https://github.com/marimo-team/marimo" target="_blank">github.com/marimo-team/marimo</a></td></tr>
+      <tr><td>Reactivity guide</td><td><a href="https://docs.marimo.io/guides/reactivity/" target="_blank">docs.marimo.io/guides/reactivity/</a></td></tr>
+      <tr><td>SQL guide</td><td><a href="https://docs.marimo.io/guides/working_with_data/sql/" target="_blank">docs.marimo.io/guides/working_with_data/sql/</a></td></tr>
+      <tr><td>WASM export guide</td><td><a href="https://docs.marimo.io/guides/wasm/" target="_blank">docs.marimo.io/guides/wasm/</a></td></tr>
+      <tr><td>Migrate from Jupyter</td><td><a href="https://docs.marimo.io/guides/coming_from/jupyter/" target="_blank">docs.marimo.io/guides/coming_from/jupyter/</a></td></tr>
+      <tr><td>GitHub Issue #6620 — R support "not planned"</td><td><a href="https://github.com/marimo-team/marimo/issues/6620" target="_blank">github.com/marimo-team/marimo/issues/6620</a></td></tr>
+      <tr><td>marimo v1.0 roadmap</td><td><a href="https://marimo.io/blog/v1-roadmap" target="_blank">marimo.io/blog/v1-roadmap</a></td></tr>
+      <tr><td>Blog: Python notebooks as dataflow graphs</td><td><a href="https://marimo.io/blog/dataflow" target="_blank">marimo.io/blog/dataflow</a></td></tr>
+      <tr><td>Blog: Lessons learned reinventing the Python notebook</td><td><a href="https://marimo.io/blog/lessons-learned" target="_blank">marimo.io/blog/lessons-learned</a></td></tr>
+      <tr><td>Blog: Reinventing notebooks as reusable Python programs</td><td><a href="https://marimo.io/blog/python-not-json" target="_blank">marimo.io/blog/python-not-json</a></td></tr>
+      <tr><td>CoreWeave acquires Marimo (Oct 30, 2025)</td><td><a href="https://marimo.io/blog/joining-coreweave" target="_blank">marimo.io/blog/joining-coreweave</a></td></tr>
+      <tr><td>TechCrunch — CoreWeave / Marimo acquisition</td><td><a href="https://techcrunch.com/2025/10/31/ai-mania-tanks-coreweaves-core-scientific-acquisition-it-buys-python-notebook-marimo/" target="_blank">techcrunch.com/…/coreweave-acquires-marimo/</a></td></tr>
+      <tr><td>VS Code extension announcement</td><td><a href="https://marimo.io/blog/vscode" target="_blank">marimo.io/blog/vscode</a></td></tr>
+      <tr><td>marimo architecture (DeepWiki)</td><td><a href="https://deepwiki.com/marimo-team/marimo" target="_blank">deepwiki.com/marimo-team/marimo</a></td></tr>
+      <tr><td>Jupyter architecture docs</td><td><a href="https://docs.jupyter.org/en/stable/projects/architecture/content-architecture.html" target="_blank">docs.jupyter.org/…/content-architecture.html</a></td></tr>
+      <tr><td>JupyterLab documentation</td><td><a href="https://jupyterlab.readthedocs.io/en/stable/" target="_blank">jupyterlab.readthedocs.io</a></td></tr>
+      <tr><td>IJulia (Julia kernel)</td><td><a href="https://github.com/JuliaLang/IJulia.jl" target="_blank">github.com/JuliaLang/IJulia.jl</a></td></tr>
+      <tr><td>Pluto.jl (reactive Julia notebook)</td><td><a href="https://github.com/JuliaPluto/Pluto.jl" target="_blank">github.com/JuliaPluto/Pluto.jl</a></td></tr>
+      <tr><td>Julia community discussion on marimo vs Pluto.jl</td><td><a href="https://discourse.julialang.org/t/has-anyone-seen-marimo-a-new-python-focused-notebook-https-marimo-io-seems-to-have-many-ideas-from-pluto-jl/122170" target="_blank">discourse.julialang.org/…/122170</a></td></tr>
+      <tr><td>Pimentel et al. 2019 — Jupyter reproducibility study</td><td><a href="https://doi.org/10.1109/MSR.2019.00077" target="_blank">doi.org/10.1109/MSR.2019.00077</a></td></tr>
+      <tr><td>Talk Python To Me #501 — marimo</td><td><a href="https://talkpython.fm/episodes/show/501/marimo-reactive-notebooks-for-python" target="_blank">talkpython.fm/episodes/show/501/…</a></td></tr>
+      <tr><td>Jupyter vs marimo (2026 comparison)</td><td><a href="https://onlyutkarsh.com/posts/2026/jupyter-vs-marimo-notebooks/" target="_blank">onlyutkarsh.com/posts/2026/jupyter-vs-marimo-notebooks/</a></td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<footer>Open Research · April 2026 · marimo v0.21.x · JupyterLab 4.x</footer>
+
+</body>
+</html>
