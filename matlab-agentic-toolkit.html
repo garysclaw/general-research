@@ -692,30 +692,62 @@
   <!-- SECTION 8: FRAMEWORK COMPARISON -->
   <h2 id="framework-comparison">What Competing Frameworks Provide</h2>
 
-  <p>Python agentic frameworks have been evolving for 2+ years. Comparing what they provide reveals what maturity looks like — and what MATLAB is still missing.</p>
+  <p>Python agentic frameworks (LangGraph v1.0, AutoGen v0.4, OpenAI Agents SDK, CrewAI v1.1, smolagents, LlamaIndex Workflows 1.0) have been evolving for 2+ years. Comparing what they provide reveals what maturity looks like — and what MATLAB is still missing.</p>
 
   <table>
     <thead>
       <tr><th>Capability</th><th>LangGraph</th><th>AutoGen v0.4</th><th>OpenAI Agents SDK</th><th>CrewAI</th><th>MATLAB Agentic Toolkit</th></tr>
     </thead>
     <tbody>
-      <tr><td><strong>Tool/function calling abstraction</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Partial (via MCP)</td></tr>
-      <tr><td><strong>ReAct / chain-of-thought planning</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">Skills only (no runtime planner)</td></tr>
-      <tr><td><strong>Multi-agent orchestration</strong></td><td class="yes">✓ (graphs)</td><td class="yes">✓ (groupchat)</td><td class="yes">✓ (handoffs)</td><td class="yes">✓ (crews)</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Short-term memory (conversation history)</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Agent-managed</td></tr>
-      <tr><td><strong>Long-term memory (vector store)</strong></td><td class="partial">Via LangChain</td><td class="partial">Via extension</td><td class="no">External</td><td class="yes">✓ (built-in)</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Human-in-the-loop</strong></td><td class="yes">✓ (interrupt)</td><td class="yes">✓</td><td class="partial">Limited</td><td class="yes">✓</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Async / durable execution</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Limited</td><td class="partial">Limited</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Observability / tracing</strong></td><td class="yes">LangSmith</td><td class="partial">Basic</td><td class="partial">Limited</td><td class="yes">LangSmith</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Retry / error recovery</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Limited</td><td class="yes">✓</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Local / on-prem LLM</strong></td><td class="yes">Ollama, vLLM</td><td class="yes">✓</td><td class="no">Cloud only</td><td class="yes">✓</td><td class="partial">Via llms-with-tools; not in toolkit</td></tr>
-      <tr><td><strong>Agent testing / evaluation</strong></td><td class="yes">LangSmith evals</td><td class="partial">Limited</td><td class="no">Not built-in</td><td class="partial">Limited</td><td class="no">Not present</td></tr>
-      <tr><td><strong>Domain skills / expert knowledge</strong></td><td class="no">None built-in</td><td class="no">None built-in</td><td class="no">None built-in</td><td class="partial">Task templates</td><td class="yes">✓ (core strength)</td></tr>
-      <tr><td><strong>Engineering simulation tools</strong></td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="partial">MATLAB only; no Simulink</td></tr>
+      <tr><td><strong>Tool/function calling abstraction</strong></td><td class="yes">✓ @tool decorator, auto JSON schema</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Partial — manual openAIFunction, no auto-schema</td></tr>
+      <tr><td><strong>Agent loop class (ReAct/CoT)</strong></td><td class="yes">✓ create_react_agent</td><td class="yes">✓ AssistantAgent</td><td class="yes">✓</td><td class="yes">✓ Agent class</td><td class="no">None — manual while loop required</td></tr>
+      <tr><td><strong>Multi-agent orchestration</strong></td><td class="yes">✓ Supervisor / subgraph</td><td class="yes">✓ RoundRobin / Swarm / Selector</td><td class="yes">✓ Handoffs</td><td class="yes">✓ Hierarchical crews</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Short-term memory</strong></td><td class="yes">✓ Graph State</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">messageHistory in llms-with-matlab</td></tr>
+      <tr><td><strong>Long-term memory (vector store)</strong></td><td class="partial">Via LangChain vector stores</td><td class="partial">Via extension</td><td class="no">External</td><td class="yes">✓ 4-tier: ChromaDB + SQLite + entity + contextual</td><td class="no">Not present</td></tr>
+      <tr><td><strong>State persistence / session resume</strong></td><td class="yes">✓ Checkpointer (SQLite/Postgres)</td><td class="yes">✓ Save/restore</td><td class="partial">Limited</td><td class="partial">Limited</td><td class="no">Not present (manual .mat save possible)</td></tr>
+      <tr><td><strong>Human-in-the-loop</strong></td><td class="yes">✓ interrupt() + Command(resume)</td><td class="yes">✓ UserProxyAgent</td><td class="partial">Guardrails only</td><td class="yes">✓</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Streaming responses</strong></td><td class="yes">✓ 3 modes (values/updates/messages)</td><td class="yes">✓</td><td class="yes">✓ Runner.run_streamed()</td><td class="partial">Limited</td><td class="no">Not implemented — needs SSE client (Java)</td></tr>
+      <tr><td><strong>Structured output validation</strong></td><td class="yes">✓ Pydantic state schemas</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">No Pydantic equivalent; manual struct validation</td></tr>
+      <tr><td><strong>Async / durable execution</strong></td><td class="yes">✓ asyncio-native, checkpointer</td><td class="yes">✓ Async actor model</td><td class="partial">Limited</td><td class="partial">Limited</td><td class="no">parfeval available; not abstracted for agents</td></tr>
+      <tr><td><strong>Observability / tracing</strong></td><td class="yes">LangSmith + OpenTelemetry</td><td class="yes">Built-in OTel</td><td class="yes">Built-in tracing</td><td class="yes">LangSmith</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Retry / error recovery</strong></td><td class="yes">✓ Conditional edges, retry policy</td><td class="yes">✓</td><td class="partial">Limited</td><td class="yes">✓</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Local / on-prem LLM</strong></td><td class="yes">Ollama, vLLM, llama.cpp</td><td class="yes">✓</td><td class="no">Cloud only</td><td class="yes">✓</td><td class="partial">Via llms-with-tools Ollama; not first-class in toolkit</td></tr>
+      <tr><td><strong>RAG integration</strong></td><td class="partial">Via langchain-community</td><td class="partial">Via extension</td><td class="no">External</td><td class="yes">✓ Vector store tools built-in</td><td class="no">Basic examples only</td></tr>
+      <tr><td><strong>Agent testing / evaluation</strong></td><td class="yes">LangSmith evals + golden datasets</td><td class="partial">Limited</td><td class="no">Not built-in</td><td class="partial">Limited</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Domain skills / expert knowledge</strong></td><td class="no">None built-in</td><td class="no">None built-in</td><td class="no">None built-in</td><td class="partial">Task templates</td><td class="yes">✓ Core strength — 6 MATLAB skills</td></tr>
+      <tr><td><strong>Engineering simulation as tool</strong></td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="partial">MATLAB via eval; no Simulink-native tool</td></tr>
     </tbody>
   </table>
 
   <p>The MATLAB toolkit's unique strength — domain-expert skills baked into agent context — is something no Python framework provides. But it lacks virtually every runtime capability that mature Python frameworks treat as table stakes.</p>
+
+  <h3>Key Pattern Gaps Explained</h3>
+
+  <h4>Tool Auto-Schema Generation</h4>
+  <p>Every mature Python framework generates JSON tool schemas automatically from function signatures and docstrings. MATLAB's <code>arguments</code> blocks (R2019b+) contain type, size, and default value constraints that could serve the same purpose. A <code>toolFromMatlabFunction("fir1")</code> utility that introspects <code>arguments</code> blocks and auto-generates a JSON schema would eliminate the manual <code>openAIFunction</code> boilerplate required today. This would let any toolbox function become an LLM tool with zero configuration.</p>
+
+  <h4>Streaming (A Largely Unrecognized Gap)</h4>
+  <p>Streaming LLM responses — receiving token-by-token output rather than waiting for the full completion — is table stakes in Python frameworks (all major ones support it). <code>llms-with-matlab</code> does not implement streaming. MATLAB's <code>webread</code>/<code>webwrite</code> do not natively handle Server-Sent Events (SSE), which is how streaming APIs communicate. A streaming implementation requires <code>java.net.HttpURLConnection</code> with chunked transfer reading. This gap makes MATLAB agents feel slow and unresponsive for interactive use cases.</p>
+
+  <h4>The SimuAgent Research Reference</h4>
+  <p>Academic research confirms the Simulink gap. <strong>SimuAgent</strong> (arxiv:2601.05187, January 2026) is an LLM-based Simulink modeling assistant using a plan-execute architecture with RL-based fine-tuning. It sidesteps the Simulink binary format by representing models as structured Python dictionaries rather than <code>.slx</code> files. This is an active research area, not a solved problem — reinforcing that a MATLAB-native Simulink agent is both feasible and currently absent from the production toolkit landscape.</p>
+
+  <h3>What Python Frameworks Can't Do (MATLAB's Differentiators)</h3>
+
+  <p>The comparison isn't one-sided. There are engineering workflows where MATLAB has decisive advantages that no Python framework can replicate:</p>
+
+  <table>
+    <thead>
+      <tr><th>Domain</th><th>Why MATLAB Wins</th><th>Status in Toolkit</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Simulink modeling and simulation</strong></td><td>Python has no equivalent to Simulink's block-diagram simulation environment and solver suite</td><td class="no">Not implemented</td></tr>
+      <tr><td><strong>Control system design</strong></td><td>Control System Toolbox (<code>pidtune</code>, <code>looptune</code>, <code>margin</code>) is more complete than any Python control library</td><td class="no">No skill; no tool</td></tr>
+      <tr><td><strong>Signal processing</strong></td><td>Signal Processing Toolbox, DSP System Toolbox with streaming System Objects have no Python peer</td><td class="partial">Skills repo only</td></tr>
+      <tr><td><strong>Simulation-in-the-loop agent</strong></td><td>An iterative loop that calls <code>sim()</code>, interprets results in natural language, and adjusts parameters is uniquely MATLAB — the engineering equivalent of LlamaIndex's document RAG loops</td><td class="no">Not implemented</td></tr>
+      <tr><td><strong>Auto-schema from toolbox functions</strong></td><td>MATLAB's typed <code>arguments</code> blocks contain rich metadata (type, size, range, default) that can generate LLM tool schemas richer than Python type hints alone</td><td class="no">Not implemented</td></tr>
+    </tbody>
+  </table>
 
 
   <!-- SECTION 9: RECOMMENDATIONS -->
@@ -753,6 +785,16 @@
   <div class="add-row">
     <h4>Air-Gapped Configuration Guide</h4>
     <div class="add-detail">Add a <code>GETTING_STARTED_AIRGAPPED.md</code> covering: Ollama installation and MATLAB connection, Ollama model selection for code tasks (Qwen2.5-Coder, Deepseek-Coder-V2), disabling telemetry (<code>--disable-telemetry</code>), self-hosting options, and the MathWorks DGX Spark pattern. This unlocks the toolkit for its primary user base.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>toolFromMatlabFunction — Auto-Schema Generation</h4>
+    <div class="add-detail">A utility function (part of <code>llms-with-matlab</code> or a new MATLAB Agentic Toolkit MATLAB component) that introspects a MATLAB function's <code>arguments</code> block (R2019b+) and auto-generates a JSON tool schema. MATLAB's <code>arguments</code> blocks contain type, size, default, and validator constraints — richer than Python type hints. <code>toolFromMatlabFunction("fir1")</code> would expose any toolbox function as an LLM-callable tool with no boilerplate. This is the equivalent of LangGraph's <code>@tool</code> decorator.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Streaming Response Support (llms-with-matlab)</h4>
+    <div class="add-detail">Implement streaming LLM responses in <code>llms-with-matlab</code> using <code>java.net.HttpURLConnection</code> with chunked transfer reading. All major agent frameworks support token-by-token streaming. Without it, MATLAB agents wait for full completions before doing anything — making interactive agent loops feel laggy. For a SKILL.md addition, add a debugging-specific note: streaming output lets the agent show partial reasoning before the full response arrives, improving the perceived speed of agentic code review.</div>
   </div>
 
   <h3>Tier 2 — High Impact (Requires MCP Server Changes)</h3>
