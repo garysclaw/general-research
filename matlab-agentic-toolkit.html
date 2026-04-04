@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>matlab-agentic-toolkit — What It Is, What's Missing, and What Should Be Added</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --teal: #39d353;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 0 1rem 4rem;
+    }
+    .page-header {
+      background: linear-gradient(135deg, #0d1117 0%, #1c1a2e 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 0 2rem;
+      margin: 0 -1rem 2.5rem;
+      text-align: center;
+    }
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(255,166,87,0.15);
+      border: 1px solid rgba(255,166,87,0.4);
+      color: var(--orange);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 2.3rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
+    .subtitle { color: var(--muted); font-size: 1.05rem; max-width: 680px; margin: 0 auto 1.5rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .meta span { margin: 0 0.5rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 1.75rem 0 0.6rem;
+      color: var(--orange);
+    }
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.2rem 0 0.4rem;
+      color: var(--blue);
+    }
+    p { margin-bottom: 1rem; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    strong { color: var(--text); font-weight: 600; }
+    em { color: var(--muted); font-style: italic; }
+    code {
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.87em;
+      background: #1c2128;
+      border: 1px solid var(--border);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      color: var(--orange);
+    }
+    pre {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    pre code { background: none; border: none; padding: 0; font-size: inherit; color: var(--text); }
+    .cm { color: var(--muted); }
+    .kw { color: var(--purple); }
+    .fn { color: var(--blue); }
+    .str { color: var(--green); }
+    .hl { color: var(--orange); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.88rem;
+    }
+    th {
+      background: #1c2128;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 0.55rem 0.9rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .yes { color: var(--green); font-weight: 600; }
+    .no { color: var(--red); }
+    .partial { color: var(--yellow); }
+    .callout {
+      border-left: 3px solid;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      border-radius: 0 8px 8px 0;
+      background: rgba(255,255,255,0.03);
+    }
+    .callout.info { border-color: var(--blue); }
+    .callout.warning { border-color: var(--yellow); }
+    .callout.success { border-color: var(--green); }
+    .callout.danger { border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 0.4rem; }
+    .chip {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .chip.new { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+    .chip.missing { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+    .chip.partial { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+    .chip.critical { background: rgba(248,81,73,0.2); color: var(--red); border: 1px solid rgba(248,81,73,0.5); font-size: 0.65rem; }
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .toc h4 { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.75rem; color: var(--muted); }
+    .toc ol { margin: 0; padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.35rem; font-size: 0.9rem; }
+    .toc a { color: var(--muted); }
+    .toc a:hover { color: var(--blue); }
+    .repo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .repo-card-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .repo-card-body { flex: 1; }
+    .repo-card-title { font-weight: 600; color: var(--blue); font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .repo-card-desc { color: var(--muted); font-size: 0.87rem; line-height: 1.4; }
+    .repo-card-meta { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
+    .priority-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+    .priority-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .priority-box .p-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 0.5rem; }
+    .priority-box.p1 .p-label { color: var(--red); }
+    .priority-box.p2 .p-label { color: var(--yellow); }
+    .priority-box.p3 .p-label { color: var(--green); }
+    .priority-box ul { margin: 0; padding-left: 1rem; font-size: 0.85rem; }
+    .priority-box li { margin-bottom: 0.3rem; }
+    .skill-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+    .skill-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+    .skill-box h4 { margin: 0 0 0.4rem; color: var(--teal); font-size: 0.9rem; }
+    .skill-box .skill-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .skill-box p { font-size: 0.85rem; margin: 0; color: var(--muted); }
+    .gap-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+    }
+    .gap-row h4 { margin: 0 0 0.3rem; color: var(--text); font-size: 0.95rem; }
+    .gap-row .gap-detail { font-size: 0.87rem; color: var(--muted); }
+    .gap-row.high { border-left-color: var(--red); }
+    .gap-row.medium { border-left-color: var(--yellow); }
+    .gap-row.low { border-left-color: var(--blue); }
+    .add-row {
+      background: rgba(63,185,80,0.05);
+      border: 1px solid rgba(63,185,80,0.25);
+      border-left: 3px solid var(--green);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+    }
+    .add-row h4 { margin: 0 0 0.3rem; color: var(--green); font-size: 0.95rem; }
+    .add-row .add-detail { font-size: 0.87rem; color: var(--muted); }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 650px) {
+      h1 { font-size: 1.7rem; }
+      .priority-grid { grid-template-columns: 1fr; }
+      .skill-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="container">
+    <div class="badge">Gap Analysis · MATLAB Agentic AI</div>
+    <h1>matlab-agentic-toolkit</h1>
+    <p class="subtitle">What MathWorks shipped, what the broader ecosystem provides, and what still needs to be built.</p>
+    <div class="meta">
+      <span>April 2026</span>
+      <span>·</span>
+      <span>v0.1.0 · Initial Release April 3, 2026</span>
+      <span>·</span>
+      <span><a href="https://github.com/matlab/matlab-agentic-toolkit" target="_blank">github.com/matlab/matlab-agentic-toolkit</a></span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#what-it-is">What the Toolkit Actually Is</a></li>
+      <li><a href="#skills-catalog">The Skills Catalog — What's There</a></li>
+      <li><a href="#ecosystem">The Broader MATLAB Agentic Ecosystem</a></li>
+      <li><a href="#skill-gaps">Skill Gaps — Missing Domains</a></li>
+      <li><a href="#tool-gaps">MCP Tool Gaps — Missing Capabilities</a></li>
+      <li><a href="#simulink">The Simulink Problem</a></li>
+      <li><a href="#enterprise-gaps">Enterprise and Production Gaps</a></li>
+      <li><a href="#framework-comparison">What Competing Frameworks Provide</a></li>
+      <li><a href="#recommendations">Prioritized Recommendations</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </div>
+
+  <!-- SECTION 1: WHAT IT IS -->
+  <h2 id="what-it-is">What the Toolkit Actually Is</h2>
+
+  <p><code>matlab/matlab-agentic-toolkit</code> went public on <strong>April 3, 2026</strong> — one commit, by MATLAB Fellow Michelle Hirsch, zero pull requests, three open issues. This is not a code library. It is a <strong>configuration and documentation package</strong> that does two things:</p>
+
+  <ol>
+    <li><strong>Pre-wires agent platform configs</strong> so AI coding agents (Claude Code, GitHub Copilot, Cursor, OpenAI Codex, Sourcegraph Amp, Gemini CLI) automatically connect to a running MATLAB installation via the MCP Core Server.</li>
+    <li><strong>Delivers curated <code>SKILL.md</code> instruction files</strong> that encode MATLAB engineering best practices directly into agent context — telling the agent how to write tests, debug without breaking points, review code quality, and build apps.</li>
+  </ol>
+
+  <p>The actual MATLAB execution capability lives entirely in the separate <a href="https://github.com/matlab/matlab-mcp-core-server" target="_blank"><code>matlab/matlab-mcp-core-server</code></a> binary (closed-source, pre-compiled). The toolkit contains exactly <strong>one MATLAB file</strong>: <code>printCoverageGaps.m</code>, a utility for displaying code coverage holes from a <code>CoverageResult</code> object.</p>
+
+  <div class="callout info">
+    <strong>The right mental model</strong>
+    Think of the toolkit as the "system prompt layer" for MATLAB agents — it primes the agent with expert MATLAB knowledge before it ever touches your code. The MCP Core Server is what actually lets the agent run MATLAB. Neither replaces the other.
+  </div>
+
+  <h3>Repository Structure at a Glance</h3>
+
+  <table>
+    <thead>
+      <tr><th>Item</th><th>What It Does</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>.claude-plugin/marketplace.json</code></td><td>Automated setup for Claude Code — installs MCP server, registers skills</td></tr>
+      <tr><td><code>.vscode/mcp.json</code></td><td>GitHub Copilot MCP config (manual path edit required)</td></tr>
+      <tr><td><code>.cursor-plugin/plugin.json</code></td><td>Cursor plugin manifest (manual path edit required)</td></tr>
+      <tr><td><code>.codex-mcp.json</code> / <code>.codex-plugin/</code></td><td>OpenAI Codex MCP and plugin configs</td></tr>
+      <tr><td><code>gemini-extension.json</code></td><td>Gemini CLI config (placeholder path)</td></tr>
+      <tr><td><code>.agents/plugins/marketplace.json</code></td><td>Generic agent marketplace spec</td></tr>
+      <tr><td><code>skills-catalog/matlab-core/</code></td><td>6 skill directories, each with SKILL.md + manifest.yaml</td></tr>
+      <tr><td><code>skills-catalog/toolkit/</code></td><td>Setup skill — automated onboarding for Claude Code</td></tr>
+      <tr><td><code>printCoverageGaps.m</code></td><td>The only MATLAB source file in the entire repo</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <strong>License restriction</strong>
+    The license is BSD-3-Clause with a MathWorks-specific additional clause: <em>"the software is, and all modifications and derivatives of the software shall be, licensed to you solely for use in conjunction with MathWorks products and service offerings."</em> External contributions are accepted via issues only — MathWorks states it does not merge external pull requests.
+  </div>
+
+
+  <!-- SECTION 2: SKILLS CATALOG -->
+  <h2 id="skills-catalog">The Skills Catalog — What's There</h2>
+
+  <p>The <code>skills-catalog/matlab-core/</code> directory contains six skills. Each is a <code>SKILL.md</code> file structured as expert instruction for an AI agent — rules, patterns, anti-patterns, and worked examples specific to that domain. They require <strong>MATLAB R2020b or later</strong> (except Live Scripts, which requires R2025a).</p>
+
+  <div class="skill-grid">
+    <div class="skill-box">
+      <h4>testing</h4>
+      <div class="skill-meta">Tools: evaluate_matlab_code · run_matlab_test_file · check_matlab_code</div>
+      <p>Strict Arrange-Act-Assert pattern, <code>matlab.unittest.TestCase</code> inheritance, qualification level hierarchy (verify/assert/fatal/assume), fixture lifecycle (ClassSetup → MethodSetup → Test → MethodTeardown → ClassTeardown), mocking via <code>matlab.mock.TestCase</code>, parametrized tests, UI testing via <code>matlab.uitest.TestCase</code>, coverage reporting via <code>CodeCoveragePlugin</code>, CI integration via <code>matlab.buildtool</code>.</p>
+    </div>
+    <div class="skill-box">
+      <h4>debugging</h4>
+      <div class="skill-meta">Tools: evaluate_matlab_code · check_matlab_code</div>
+      <p>NEVER use <code>dbstop</code> (blocks eval channel). Use <code>fprintf</code> diagnostics, <code>try/catch</code> with full error context, <code>dbtype</code> for line numbers. Workflow: inspect → instrument → execute via eval → iterate → clean up.</p>
+    </div>
+    <div class="skill-box">
+      <h4>reviewing-code</h4>
+      <div class="skill-meta">Tools: evaluate_matlab_code · check_matlab_code · matlab_coding_guidelines (resource)</div>
+      <p>Naming conventions (lowerCamelCase/PascalCase/UPPER_SNAKE), function quality flags (>6 inputs, >50 lines, nesting depth >3), critical issues (eval/assignin/evalin, missing preallocation, hardcoded paths, builtin shadowing), severity hierarchy.</p>
+    </div>
+    <div class="skill-box">
+      <h4>modernizing-code</h4>
+      <div class="skill-meta">Tools: evaluate_matlab_code · check_matlab_code</div>
+      <p>Deprecated function replacement table: csvread→readmatrix, trainNetwork→trainnet, subplot→tiledlayout, datenum→datetime, guide→appdesigner. Anti-pattern removal: eval, str2num, array growing in loops, global variables, clear all.</p>
+    </div>
+    <div class="skill-box">
+      <h4>building-apps</h4>
+      <div class="skill-meta">Tools: evaluate_matlab_code · check_matlab_code</div>
+      <p>All apps as class-based <code>.m</code> files extending <code>handle</code> (never <code>.mlapp</code> binary files), always use <code>uigridlayout</code>, 12 supported UI components, <code>uihtml</code> for bidirectional MATLAB-JavaScript data exchange, always include <code>delete()</code> method.</p>
+    </div>
+    <div class="skill-box">
+      <h4>creating-live-scripts</h4>
+      <div class="skill-meta">Requires R2025a · No MCP tools listed</div>
+      <p><code>%[text]</code> syntax for text content, section structure with <code>%%</code>, inline equations with <code>$ $</code> delimiters (double LaTeX backslashes), standardized metadata appendix, version control compatibility rules.</p>
+    </div>
+  </div>
+
+  <p>Plus one setup skill:</p>
+
+  <div class="skill-box" style="margin-bottom:1.5rem;">
+    <h4>matlab-agentic-toolkit-setup (toolkit/ skill)</h4>
+    <div class="skill-meta">Claude Code only · Automated onboarding</div>
+    <p>Five-phase workflow: Discovery (silent info gathering) → Plan (single summary for user confirmation) → Execute (MCP server install + plugin registration) → Verify (communication test) → Report. Persists config to <code>~/.matlab-agentic-toolkit/config.json</code>.</p>
+  </div>
+
+
+  <!-- SECTION 3: ECOSYSTEM -->
+  <h2 id="ecosystem">The Broader MATLAB Agentic Ecosystem</h2>
+
+  <p>The toolkit is one piece in a rapidly growing set of MathWorks GitHub repos, all published under the <code>github.com/matlab</code> organization since late 2025. Understanding the full picture matters for identifying what's actually missing vs. what already exists elsewhere.</p>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">⚙️</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab/matlab-mcp-core-server" target="_blank">matlab/matlab-mcp-core-server</a></div>
+      <div class="repo-card-desc">The actual execution layer. A pre-compiled Go binary (closed source) that exposes MATLAB as an MCP server. v0.7.0 (April 2, 2026). 5 tools: <code>detect_matlab_toolboxes</code>, <code>check_matlab_code</code>, <code>evaluate_matlab_code</code>, <code>run_matlab_file</code>, <code>run_matlab_test_file</code>. 2 resources: <code>guidelines://coding</code>, <code>guidelines://plain-text-live-code</code>.</div>
+      <div class="repo-card-meta">9 releases since Oct 2025 · "personal use only" license restriction</div>
+    </div>
+  </div>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">📚</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab/skills" target="_blank">matlab/skills</a></div>
+      <div class="repo-card-desc">A separate, standalone skills repo with 6 additional skills: <code>matlab-live-script</code>, <code>matlab-test-creator</code>, <code>matlab-test-execution</code>, <code>matlab-performance-optimizer</code>, <code>matlab-uihtml-app-builder</code>, <code>matlab-digital-filter-design</code>. Installable via <code>/plugin install matlab-skills@matlab-skills</code> in Claude Code.</div>
+      <div class="repo-card-meta">Different repo from the agentic toolkit — some overlap in purpose</div>
+    </div>
+  </div>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">📏</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab/rules" target="_blank">matlab/rules</a></div>
+      <div class="repo-card-desc">Modular, referenceable coding rule files: <code>matlab-coding-standards.md</code>, <code>live-script-generation.md</code>, <code>matlab-performance-optimization.md</code>. CC-BY-4.0 licensed. Designed to be <code>@</code>-referenced in any agent. <strong>No Simulink rules.</strong></div>
+      <div class="repo-card-meta">CC-BY-4.0 · No Simulink coverage</div>
+    </div>
+  </div>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">🤖</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab-deep-learning/mcpHTTPClient" target="_blank">matlab-deep-learning/mcpHTTPClient</a></div>
+      <div class="repo-card-desc">MATLAB as an MCP <em>client</em> — calling out to MCP-compatible AI services from within MATLAB. Enables MATLAB to act as an agent orchestrator rather than just an agent tool.</div>
+      <div class="repo-card-meta">Separate org (matlab-deep-learning) · Complements the toolkit</div>
+    </div>
+  </div>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">🏭</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab/mcp-framework-matlab-production-server" target="_blank">matlab/mcp-framework-matlab-production-server</a></div>
+      <div class="repo-card-desc">Deploy MATLAB functions as MCP tools on MATLAB Production Server. Requires Compiler SDK, MPS R2022a+, MATLAB R2025b+. Uses <code>prodserver.mcp.build()</code> and <code>prodserver.mcp.deploy()</code>. Currently no SSE/streaming support — transactional connections only.</div>
+      <div class="repo-card-meta">Enterprise deployment path · Significant toolbox requirements</div>
+    </div>
+  </div>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">🔧</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab-deep-learning/llms-with-tools" target="_blank">matlab-deep-learning/llms-with-tools</a></div>
+      <div class="repo-card-desc">MATLAB LLM tool-calling framework. Supports OpenAI, Azure OpenAI, Anthropic, and Ollama backends. Provides <code>openAIFunction</code>, <code>openAIChat</code>, <code>ollamaChat</code>, tool schema definition, and JSON-structured output. The foundational "call LLMs from MATLAB" library.</div>
+      <div class="repo-card-meta">Cloud + local LLM support · Used in most MATLAB agentic examples</div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <strong>MathWorks' strategy is becoming clear</strong>
+    MathWorks is building a layered ecosystem: <code>llms-with-tools</code> (call LLMs from MATLAB) + <code>matlab-mcp-core-server</code> (let agents call MATLAB) + <code>mcpHTTPClient</code> (MATLAB calls other MCP servers) + <code>mcp-framework-matlab-production-server</code> (enterprise deployment) + <code>matlab-agentic-toolkit</code> (knowledge layer / skills). The toolkit is the newest and most surface-level piece of a stack that goes quite deep.
+  </div>
+
+
+  <!-- SECTION 4: SKILL GAPS -->
+  <h2 id="skill-gaps">Skill Gaps — Missing Domains</h2>
+
+  <p>The current toolkit covers 6 MATLAB coding domains. Here is what's absent — domains where an AI agent working with MATLAB has no expert guidance baked in and will generate lower-quality or incorrect code.</p>
+
+  <h3>The Largest Missing Domain: Simulink</h3>
+
+  <p>Simulink is MathWorks' primary product and the tool most MATLAB engineers use for serious engineering work. There is no Simulink skill in the toolkit, no Simulink section in <code>matlab/rules</code>, and the MCP Core Server exposes no Simulink-specific tools. An AI agent coding with Simulink today has no MATLAB-expert knowledge layer — it has to guess at best practices from training data alone.</p>
+
+  <p>A Simulink skill should cover at minimum:</p>
+  <ul>
+    <li>The correct simulation API: <code>out = sim(in)</code> where <code>in</code> is a <code>Simulink.SimulationInput</code> object (not <code>load_system</code> + <code>set_param</code> + <code>sim</code>)</li>
+    <li>Input signal construction: timeseries objects combined into <code>Simulink.SimulationData.Dataset</code></li>
+    <li>Data logging: accessing <code>logsout</code>, plotting via timeseries commands</li>
+    <li>Parallel parameter sweeps: <code>parsim()</code> with array of <code>SimulationInput</code> objects</li>
+    <li>Model advisor: <code>Simulink.ModelAdvisor.run()</code> for automated quality checks</li>
+    <li>Bus object patterns and signal routing standards</li>
+    <li>Callback conventions (model callbacks vs. block callbacks)</li>
+    <li>Subsystem vs. referenced model patterns</li>
+    <li>Configuration set management: <code>Simulink.ConfigSet</code></li>
+  </ul>
+
+  <h3>Other Missing Skill Domains</h3>
+
+  <div class="gap-row high">
+    <h4>Signal Processing <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">DSP System Toolbox and Signal Processing Toolbox are widely used. No skill for filter design workflows (<code>designfilt</code>, <code>filterDesigner</code>), spectral analysis (<code>pspectrum</code>, <code>spectrogram</code>), streaming signal processing via <code>dsp.System</code> objects, or the correct use of sample-rate-aware functions. Note: <code>matlab/skills</code> has a separate <code>matlab-digital-filter-design</code> skill, but it's not integrated into the agentic toolkit.</div>
+  </div>
+
+  <div class="gap-row high">
+    <h4>Control Systems Design <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">Control System Toolbox is one of MATLAB's most-used toolboxes. No skill for <code>tf()</code>/<code>ss()</code> model creation, <code>pidtune()</code>, <code>lqr()</code>/<code>lqe()</code>, <code>bode()</code>/<code>nyquist()</code>/<code>rlocus()</code> analysis, <code>feedback()</code> loop construction, or how agents should work with Simulink Control Design workflows.</div>
+  </div>
+
+  <div class="gap-row high">
+    <h4>Data Science and Machine Learning <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">No skill for Statistics and Machine Learning Toolbox patterns: <code>fitcsvm()</code>, <code>fitrensemble()</code>, <code>crossval()</code>, <code>confusionchart()</code>, feature engineering with <code>array2table()</code>, or the correct MATLAB data science pipeline. Deep Learning Toolbox: <code>trainingOptions()</code>, <code>trainnet()</code> (the replacement for <code>trainNetwork</code>), layer graph construction, transfer learning patterns.</div>
+  </div>
+
+  <div class="gap-row medium">
+    <h4>Optimization <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">Optimization Toolbox: <code>fmincon()</code> option structures, <code>ga()</code>/<code>particleswarm()</code> for global optimization, problem-based optimization with <code>optimproblem()</code>/<code>optimvar()</code>, solver selection guidance. No skill despite optimization being a core use case in engineering simulation workflows.</div>
+  </div>
+
+  <div class="gap-row medium">
+    <h4>Performance Profiling and Optimization <span class="chip partial">Partial</span></h4>
+    <div class="gap-detail"><code>matlab/skills</code> has a <code>matlab-performance-optimizer</code> skill and <code>matlab/rules</code> has a performance rules file, but neither is integrated into the agentic toolkit. No guidance on using the MATLAB Profiler (<code>profile on/off/viewer</code>), identifying bottlenecks, vectorization patterns, preallocation strategies, or <code>tall</code> arrays for out-of-memory data.</div>
+  </div>
+
+  <div class="gap-row medium">
+    <h4>Build Automation and CI/CD <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">MATLAB Build Tool (<code>buildfile.m</code>, <code>matlab.buildtool.tasks.*</code>) is the modern way to define CI pipelines. No skill for build task definition, dependency graphs between tasks, or integrating MATLAB builds with GitHub Actions, Jenkins, or GitLab CI. The testing skill references <code>buildfile.m</code> minimally but doesn't teach it.</div>
+  </div>
+
+  <div class="gap-row medium">
+    <h4>Code Generation (MATLAB Coder / Simulink Coder) <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">Generating C/C++ from MATLAB or Simulink for embedded targets is a major workflow. No skill for <code>codegen</code> configuration, supported/unsupported function lists, MEX compilation, coder configuration objects, or fixing "code generation not supported" errors that agents will commonly generate.</div>
+  </div>
+
+  <div class="gap-row low">
+    <h4>Package and Project Management <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">MATLAB Projects (introduced R2019a) and namespace packages (<code>+namespace/</code> directory structure) have no skill. No guidance on <code>matlab.project.Project</code> API, project startup/shutdown files, MATLAB Add-On packaging (<code>prj</code> files), or path management patterns that don't rely on <code>addpath</code>.</div>
+  </div>
+
+  <div class="gap-row low">
+    <h4>Data Import/Export <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">No skill for reading diverse engineering data: time-series data from instrumentation (<code>timetable</code>), large datasets (datastores, <code>tall</code> arrays), HDF5/<code>h5read</code>, MAT file versioning, binary protocol parsing. Agents default to <code>csvread</code>/<code>xlsread</code> (deprecated) without this guidance.</div>
+  </div>
+
+  <div class="gap-row low">
+    <h4>Parallel and GPU Computing <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">Parallel Computing Toolbox: <code>parfor</code> constraints (no shared state, no break statements), <code>parpool</code> management, <code>parfeval</code> for async work, <code>spmd</code> blocks, <code>gpuArray</code> patterns. Agents generate incorrect <code>parfor</code> loops without domain knowledge.</div>
+  </div>
+
+  <div class="gap-row low">
+    <h4>Documentation Generation <span class="chip missing">Missing</span></h4>
+    <div class="gap-detail">No skill for writing H1 lines, function help text that <code>help()</code>/<code>doc()</code> parse correctly, or <code>mlx</code> documentation patterns. Agents generate inconsistent or malformed help text without explicit guidance.</div>
+  </div>
+
+
+  <!-- SECTION 5: MCP TOOL GAPS -->
+  <h2 id="tool-gaps">MCP Tool Gaps — Missing Capabilities</h2>
+
+  <p>The <code>matlab-mcp-core-server</code> currently exposes 5 tools. Several obvious capabilities are absent, limiting what agents can do even with perfect skill instructions.</p>
+
+  <table>
+    <thead>
+      <tr><th>Missing Tool</th><th>What It Would Do</th><th>Why It Matters</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>run_simulink_model</strong></td>
+        <td>Execute a Simulink model via <code>sim(in)</code>, return structured output including signals and logged data</td>
+        <td>Currently, agents must use <code>evaluate_matlab_code</code> with a <code>sim()</code> call — no Simulink-specific error handling, no structured return of logged signals, no timeout management for long-running simulations</td>
+      </tr>
+      <tr>
+        <td><strong>get_workspace_variables</strong></td>
+        <td>List and inspect variables in the current MATLAB workspace (name, type, size, class)</td>
+        <td>Agents must call <code>whos</code> via <code>evaluate_matlab_code</code> and parse text output — fragile. Direct workspace introspection would enable smarter debugging loops</td>
+      </tr>
+      <tr>
+        <td><strong>get_matlab_profiler_output</strong></td>
+        <td>Run profiler on a function and return structured performance data (hot spots, call counts, timings)</td>
+        <td>Agents cannot help optimize code without seeing where time is spent. Text parsing of <code>profile viewer</code> is impractical</td>
+      </tr>
+      <tr>
+        <td><strong>read_figure / get_plot_data</strong></td>
+        <td>Capture a plot as an image or extract the underlying data from a figure</td>
+        <td>Agents generate code that produces plots but have no way to verify the visual output is correct. This is a closed loop problem for data visualization workflows</td>
+      </tr>
+      <tr>
+        <td><strong>list_open_models</strong></td>
+        <td>List all open Simulink models, their load state, and configuration</td>
+        <td>Agent can't know what's open before calling <code>sim()</code>. Calling <code>bdclose all</code> blindly may close work the user has open</td>
+      </tr>
+      <tr>
+        <td><strong>get_error_details</strong></td>
+        <td>Retrieve the full MException chain from the most recent MATLAB error (identifier, message, stack, cause)</td>
+        <td>Currently agents parse error text from <code>evaluate_matlab_code</code> responses. Structured error data would enable better error triage and retry logic</td>
+      </tr>
+      <tr>
+        <td><strong>manage_path</strong></td>
+        <td>Add/remove/query the MATLAB search path safely</td>
+        <td>Agents need to add project source directories before running code; currently requires inline <code>addpath()</code> calls that pollute namespace and don't clean up</td>
+      </tr>
+      <tr>
+        <td><strong>run_buildtool_task</strong></td>
+        <td>Execute a specific task from a <code>buildfile.m</code> build graph</td>
+        <td>Would enable CI-style build workflows driven by agents without the agent needing to understand the full build graph implementation</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- SECTION 6: SIMULINK PROBLEM -->
+  <h2 id="simulink">The Simulink Problem</h2>
+
+  <p>Simulink's absence from the toolkit is not just a skill gap — it's the most important missing piece, and it's harder to fix than adding a SKILL.md file.</p>
+
+  <h3>Why Simulink Is Architecturally Different from MATLAB</h3>
+
+  <p>The current MCP tools work well for MATLAB code because MATLAB code is text. A file is a <code>.m</code> file. You can read it, write it, check it with <code>checkcode</code>, and run it with <code>evaluate_matlab_code</code>.</p>
+
+  <p>Simulink models are different:</p>
+  <ul>
+    <li><strong>Binary format</strong>: <code>.slx</code> files are ZIP archives. An agent cannot read a Simulink model as text (though <code>.mdl</code> is text, it's legacy).</li>
+    <li><strong>GUI-heavy creation</strong>: Models are traditionally built through a graphical block editor. Programmatic model construction (using <code>add_block</code>, <code>add_line</code>, <code>set_param</code>) is powerful but verbose and error-prone.</li>
+    <li><strong>Long execution time</strong>: A Simulink simulation can run for seconds to hours. Synchronous tool calls block the agent context window for the full duration.</li>
+    <li><strong>License complexity</strong>: Running any Simulink model requires checking out a Simulink license, potentially plus additional blockset licenses. License checkout failures are a common runtime error that agents must handle.</li>
+    <li><strong>State mutation</strong>: Opening a Simulink model changes MATLAB's state in ways that <code>evaluate_matlab_code</code> doesn't fully account for. Agents can accidentally leave models open, consuming memory and licenses.</li>
+  </ul>
+
+  <h3>Simulink-Specific Failure Modes for Agents</h3>
+
+  <table>
+    <thead>
+      <tr><th>Failure Mode</th><th>MATLAB Error</th><th>Required Agent Response</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>License checkout failure</td><td><code>Unable to check out a Simulink license</code></td><td>Wait and retry with exponential backoff — not fail immediately</td></tr>
+      <tr><td>Numerical solver divergence</td><td><code>sim()</code> completes but output contains <code>Inf</code>/<code>NaN</code></td><td>Validate output numerics, not just check for exception</td></tr>
+      <tr><td>Model crash / dirty state</td><td>Simulink corrupts workspace</td><td>Run <code>bdclose all</code> + reinitialize before retrying</td></tr>
+      <tr><td>Memory exhaustion</td><td><code>Out of memory</code> mid-run</td><td>Monitor memory before simulation; reduce logging granularity</td></tr>
+      <tr><td>Toolbox license cascade</td><td>Sub-license checkout failure for blockset</td><td>Call <code>detect_matlab_toolboxes</code> first; verify all required licenses are available</td></tr>
+      <tr><td>Async simulation timeout</td><td>Long-running simulation exceeds agent timeout</td><td>Async dispatch; poll for completion; resume from checkpoint</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <strong>The synchronous tool call problem for simulation</strong>
+    The MCP protocol is synchronous by design for simple tools. A Simulink simulation that runs for 20 minutes will block the agent's tool call for 20 minutes — keeping the LLM context window open, consuming tokens, and risking timeout. This is an architectural problem that requires either (1) an async/polling model for long-running tools, or (2) a <code>run_simulink_model</code> tool with a configurable timeout that returns a job ID for later polling. Neither pattern exists in the current toolkit.
+  </div>
+
+
+  <!-- SECTION 7: ENTERPRISE GAPS -->
+  <h2 id="enterprise-gaps">Enterprise and Production Gaps</h2>
+
+  <p>The current toolkit is designed for a developer sitting at a workstation with Claude Desktop or Claude Code installed. It is not designed for enterprise deployment. The gap between these two contexts is substantial.</p>
+
+  <h3>Air-Gapped and On-Premises LLM Support</h3>
+
+  <p>The primary MATLAB user base — aerospace, defense, automotive, semiconductor — works in environments where external API calls to Anthropic or OpenAI are prohibited. ITAR-controlled programs and classified work cannot send code to cloud APIs. Even in unclassified commercial environments, legal and IT policies often block third-party AI service calls.</p>
+
+  <p>MATLAB already supports local LLMs via <code>llms-with-tools</code> (Ollama backend: <code>ollamaChat("llama3.2", Tools=tools)</code>). MathWorks has documented running LLMs on on-premises NVIDIA DGX hardware and connecting via MATLAB. But the <code>matlab-agentic-toolkit</code> does not document or test against any local backend. Model selection (cloud vs. on-prem) is not a first-class concept.</p>
+
+  <div class="callout danger">
+    <strong>Missing: Air-gapped deployment guide</strong>
+    For the core MATLAB user base (aerospace, defense, automotive), a local LLM stack is not optional — it's the only option. The toolkit needs an explicit air-gapped configuration path: Ollama or vLLM backend, local embedding models, self-hosted vector database, no MathWorks telemetry.
+  </div>
+
+  <h3>Observability and Tracing</h3>
+
+  <p>The toolkit produces no structured telemetry. An agent run leaves no queryable record of what tools were called, what arguments were passed, what outputs were returned, how long each step took, or why the agent made the decisions it did.</p>
+
+  <table>
+    <thead>
+      <tr><th>What's Needed</th><th>Python Equivalent</th><th>Current MATLAB Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Full trace of tool calls + LLM responses</td><td>LangSmith, Langfuse</td><td class="no">None</td></tr>
+      <tr><td>Token usage + cost per session</td><td>Helicone, LangSmith</td><td class="no">None</td></tr>
+      <tr><td>Structured logs for enterprise APM</td><td>OpenTelemetry GenAI conventions</td><td class="no">None</td></tr>
+      <tr><td>Session replay for debugging</td><td>Langfuse traces</td><td class="no">None</td></tr>
+      <tr><td>Anomaly detection on agent behavior</td><td>W&B Weave, Datadog LLM Observability</td><td class="no">None</td></tr>
+    </tbody>
+  </table>
+
+  <p>For self-hosted deployments, <strong>Langfuse</strong> is the strongest path — MIT-licensed, runs on PostgreSQL, full self-host documentation. MATLAB can call Langfuse's REST API via <code>webwrite</code> to emit traces without any Python dependency.</p>
+
+  <h3>Agent Memory and State Persistence</h3>
+
+  <p>Every agent session starts from zero context. There is no memory of previous sessions, no retrieval of similar past simulations, no accumulated institutional knowledge. This is a fundamental limitation for engineering workflows where an agent should learn from a project's history.</p>
+
+  <p>A MATLAB-native memory architecture could use:</p>
+  <ul>
+    <li><strong>Episodic memory</strong>: A MATLAB table of past tool calls (timestamp, tool, input, output) persisted to a MAT file — queryable by recency or project</li>
+    <li><strong>Semantic memory</strong>: Embeddings of past simulation results stored in a local Qdrant instance — retrieved by semantic similarity to the current task</li>
+    <li><strong>Procedural memory</strong>: The skills catalog itself, versioned per project via git</li>
+  </ul>
+
+  <h3>Agent Testing and Evaluation</h3>
+
+  <p>There is no testing framework for agents in the toolkit. Evaluating whether an agent's behavior has regressed after a skill update or model change requires:</p>
+
+  <ol>
+    <li>A golden dataset of prompt → expected tool call sequence mappings</li>
+    <li>Assertions on tool call behavior (not just output text — LLM outputs are non-deterministic)</li>
+    <li>An LLM-as-judge for semantic correctness evaluation</li>
+    <li>Integration with MATLAB's <code>matlab.unittest</code> framework for CI pipeline inclusion</li>
+    <li>Trace replay capability — run recorded agent sessions with mock tool outputs</li>
+  </ol>
+
+  <p>None of this exists. A team relying on the toolkit has no regression testing for agent behavior.</p>
+
+  <h3>Human-in-the-Loop and Approval Gates</h3>
+
+  <p>For high-consequence actions — writing to a model file, triggering a 2-hour simulation, deploying to production — there is no built-in approval mechanism. The agent executes immediately. In aerospace and defense contexts, regulatory frameworks (EASA NPA 2025-07, emerging DO-178C interpretations for AI) explicitly require human approval points for AI-influenced engineering decisions.</p>
+
+  <h3>Audit Trail for Regulated Environments</h3>
+
+  <p>Regulatory compliance in aerospace (DO-178C / EASA), automotive (ISO/PAS 8800:2024), and medical devices (ISO 13485) requires an immutable record of every AI-influenced decision. For a MATLAB agent working on safety-critical software, this means capturing:</p>
+
+  <ul>
+    <li>Authenticated user identity (who invoked the agent)</li>
+    <li>Complete prompt and response history (tamper-evident)</li>
+    <li>Every tool call: arguments, outputs, timestamps</li>
+    <li>Human approval/rejection decisions with rationale</li>
+    <li>Data lineage: which model files and parameter sets the agent accessed</li>
+    <li>Artifact hashes: what files the agent created or modified</li>
+  </ul>
+
+  <p>The current toolkit produces no audit trail whatsoever. This is a <strong>disqualifying gap</strong> for regulated use cases.</p>
+
+
+  <!-- SECTION 8: FRAMEWORK COMPARISON -->
+  <h2 id="framework-comparison">What Competing Frameworks Provide</h2>
+
+  <p>Python agentic frameworks have been evolving for 2+ years. Comparing what they provide reveals what maturity looks like — and what MATLAB is still missing.</p>
+
+  <table>
+    <thead>
+      <tr><th>Capability</th><th>LangGraph</th><th>AutoGen v0.4</th><th>OpenAI Agents SDK</th><th>CrewAI</th><th>MATLAB Agentic Toolkit</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Tool/function calling abstraction</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Partial (via MCP)</td></tr>
+      <tr><td><strong>ReAct / chain-of-thought planning</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">Skills only (no runtime planner)</td></tr>
+      <tr><td><strong>Multi-agent orchestration</strong></td><td class="yes">✓ (graphs)</td><td class="yes">✓ (groupchat)</td><td class="yes">✓ (handoffs)</td><td class="yes">✓ (crews)</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Short-term memory (conversation history)</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Agent-managed</td></tr>
+      <tr><td><strong>Long-term memory (vector store)</strong></td><td class="partial">Via LangChain</td><td class="partial">Via extension</td><td class="no">External</td><td class="yes">✓ (built-in)</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Human-in-the-loop</strong></td><td class="yes">✓ (interrupt)</td><td class="yes">✓</td><td class="partial">Limited</td><td class="yes">✓</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Async / durable execution</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Limited</td><td class="partial">Limited</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Observability / tracing</strong></td><td class="yes">LangSmith</td><td class="partial">Basic</td><td class="partial">Limited</td><td class="yes">LangSmith</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Retry / error recovery</strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Limited</td><td class="yes">✓</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Local / on-prem LLM</strong></td><td class="yes">Ollama, vLLM</td><td class="yes">✓</td><td class="no">Cloud only</td><td class="yes">✓</td><td class="partial">Via llms-with-tools; not in toolkit</td></tr>
+      <tr><td><strong>Agent testing / evaluation</strong></td><td class="yes">LangSmith evals</td><td class="partial">Limited</td><td class="no">Not built-in</td><td class="partial">Limited</td><td class="no">Not present</td></tr>
+      <tr><td><strong>Domain skills / expert knowledge</strong></td><td class="no">None built-in</td><td class="no">None built-in</td><td class="no">None built-in</td><td class="partial">Task templates</td><td class="yes">✓ (core strength)</td></tr>
+      <tr><td><strong>Engineering simulation tools</strong></td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="partial">MATLAB only; no Simulink</td></tr>
+    </tbody>
+  </table>
+
+  <p>The MATLAB toolkit's unique strength — domain-expert skills baked into agent context — is something no Python framework provides. But it lacks virtually every runtime capability that mature Python frameworks treat as table stakes.</p>
+
+
+  <!-- SECTION 9: RECOMMENDATIONS -->
+  <h2 id="recommendations">Prioritized Recommendations</h2>
+
+  <p>Organized by impact and feasibility. Skills and documentation changes are fast; new MCP tools require modifying the closed-source binary; enterprise capabilities require significant architectural work.</p>
+
+  <h3>Tier 1 — Add Now (Skills / Documentation Only)</h3>
+
+  <div class="add-row">
+    <h4>Simulink Modeling Skill</h4>
+    <div class="add-detail">The most impactful single addition. Cover the <code>Simulink.SimulationInput</code> API, correct <code>sim()</code> usage, signal construction, data logging, parallel sweeps via <code>parsim()</code>, and failure mode recovery (license checkout, solver divergence, <code>bdclose all</code> cleanup). Add to <code>matlab/rules</code> as <code>simulink-simulation-standards.md</code> for broad agent access.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Control Systems Design Skill</h4>
+    <div class="add-detail">Cover the full Control System Toolbox workflow: model creation (<code>tf</code>/<code>ss</code>/<code>zpk</code>), analysis (<code>bode</code>/<code>nyquist</code>/<code>rlocus</code>/<code>step</code>), synthesis (<code>pidtune</code>/<code>lqr</code>), and Simulink Control Design integration. This is MATLAB's second-most-used toolbox in engineering contexts.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Signal Processing Skill</h4>
+    <div class="add-detail">Merge the existing <code>matlab-digital-filter-design</code> skill from <code>matlab/skills</code> into the agentic toolkit and extend it: <code>designfilt</code>/<code>filterDesigner</code>, <code>pspectrum</code>/<code>spectrogram</code>/<code>periodogram</code>, <code>dsp.System</code> streaming objects for real-time processing, sample-rate-aware function selection.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Performance Profiling Skill</h4>
+    <div class="add-detail">Integrate the <code>matlab-performance-optimizer</code> skill from <code>matlab/skills</code>. Add profiler workflow: <code>profile on</code> → run → <code>profile off</code> → <code>profile('info')</code> for structured data. Teach agents to read profiler output, identify hot spots, and apply vectorization, preallocation, and <code>parfor</code> patterns correctly.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Build Automation Skill</h4>
+    <div class="add-detail">Cover <code>buildfile.m</code> task definition, task dependency graphs, <code>matlab.buildtool.tasks.TestTask</code>/<code>CodeIssuesTask</code>/<code>MexTask</code>, and how to integrate MATLAB builds into GitHub Actions / GitLab CI. Agents can help maintain and extend CI pipelines, not just write code.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Air-Gapped Configuration Guide</h4>
+    <div class="add-detail">Add a <code>GETTING_STARTED_AIRGAPPED.md</code> covering: Ollama installation and MATLAB connection, Ollama model selection for code tasks (Qwen2.5-Coder, Deepseek-Coder-V2), disabling telemetry (<code>--disable-telemetry</code>), self-hosting options, and the MathWorks DGX Spark pattern. This unlocks the toolkit for its primary user base.</div>
+  </div>
+
+  <h3>Tier 2 — High Impact (Requires MCP Server Changes)</h3>
+
+  <div class="add-row">
+    <h4>run_simulink_model Tool</h4>
+    <div class="add-detail">A dedicated Simulink tool in the MCP Core Server that: accepts a model name and <code>SimulationInput</code> spec as structured parameters, configures a timeout, runs <code>sim()</code>, and returns structured output (logged signals, simulation metadata, warnings). Includes Simulink-specific error classification (license failure, solver divergence, memory error) for typed error handling.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>get_workspace_variables Tool</h4>
+    <div class="add-detail">Return a structured list of workspace variables: name, class, size, bytes, type. Enables agents to inspect state before and after tool calls without parsing <code>whos</code> text output. Critical for debugging loops.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>get_profiler_data Tool</h4>
+    <div class="add-detail">Run the MATLAB profiler on a function and return structured performance data (function name, call count, total time, self time, source lines). Agents can use this to implement automated performance optimization loops.</div>
+  </div>
+
+  <h3>Tier 3 — Enterprise (Significant Architectural Work)</h3>
+
+  <div class="add-row">
+    <h4>Async Tool Execution Model</h4>
+    <div class="add-detail">For long-running simulations: a <code>submit_job</code> / <code>poll_job</code> / <code>get_job_result</code> tool pattern. The agent submits a Simulink simulation, gets a job ID, continues with other work (or waits), and retrieves results when ready. Prevents agent context timeout on 30-minute simulations. Optionally backed by MATLAB Parallel Server for distributed execution.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Structured Audit Logging</h4>
+    <div class="add-detail">Every tool call logged to an append-only structured record: timestamp, user, tool, arguments, output, latency, model version. Optional Langfuse integration via MATLAB REST calls. Hash-signed for tamper evidence. Configurable retention. Enables regulated industry adoption and provides the observability data that enterprise teams require.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Agent Evaluation Framework</h4>
+    <div class="add-detail">A <code>matlab.agenttest</code> framework (analogous to <code>matlab.unittest</code>) for testing agent behavior: golden dataset format, tool call sequence assertions, LLM-as-judge integration for semantic correctness, CI integration via <code>buildfile.m</code>. Enables regression testing when skills or models are updated.</div>
+  </div>
+
+  <div class="add-row">
+    <h4>Human-in-the-Loop Approval Gates</h4>
+    <div class="add-detail">A <code>requires_approval</code> flag in skill manifests for high-consequence actions (file writes, simulation runs, deployment). The agent pauses, presents a summary, and waits for explicit user confirmation before proceeding. For regulated environments, approval is logged with the audit trail.</div>
+  </div>
+
+  <div class="priority-grid">
+    <div class="priority-box p1">
+      <div class="p-label">Critical Gaps</div>
+      <ul>
+        <li>Simulink skill</li>
+        <li>No air-gapped config</li>
+        <li>No audit trail</li>
+        <li>No async simulation</li>
+      </ul>
+    </div>
+    <div class="priority-box p2">
+      <div class="p-label">High Value Additions</div>
+      <ul>
+        <li>Control systems skill</li>
+        <li>Signal processing skill</li>
+        <li>run_simulink_model tool</li>
+        <li>Observability integration</li>
+        <li>Agent evaluation framework</li>
+      </ul>
+    </div>
+    <div class="priority-box p3">
+      <div class="p-label">Medium Priority</div>
+      <ul>
+        <li>Data science / ML skill</li>
+        <li>Build automation skill</li>
+        <li>Memory subsystem</li>
+        <li>Multi-agent patterns</li>
+        <li>Human-in-the-loop gates</li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- SECTION 10: SOURCES -->
+  <h2 id="sources">Sources</h2>
+
+  <table>
+    <thead>
+      <tr><th>Resource</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>matlab-agentic-toolkit GitHub</td><td><a href="https://github.com/matlab/matlab-agentic-toolkit" target="_blank">github.com/matlab/matlab-agentic-toolkit</a></td></tr>
+      <tr><td>matlab-mcp-core-server GitHub</td><td><a href="https://github.com/matlab/matlab-mcp-core-server" target="_blank">github.com/matlab/matlab-mcp-core-server</a></td></tr>
+      <tr><td>matlab/skills GitHub</td><td><a href="https://github.com/matlab/skills" target="_blank">github.com/matlab/skills</a></td></tr>
+      <tr><td>matlab/rules GitHub</td><td><a href="https://github.com/matlab/rules" target="_blank">github.com/matlab/rules</a></td></tr>
+      <tr><td>matlab/prompts GitHub</td><td><a href="https://github.com/matlab/prompts" target="_blank">github.com/matlab/prompts</a></td></tr>
+      <tr><td>MATLAB MCP HTTP Client (mcpHTTPClient)</td><td><a href="https://github.com/matlab-deep-learning/mcpHTTPClient" target="_blank">github.com/matlab-deep-learning/mcpHTTPClient</a></td></tr>
+      <tr><td>MCP Framework for MATLAB Production Server</td><td><a href="https://github.com/matlab/mcp-framework-matlab-production-server" target="_blank">github.com/matlab/mcp-framework-matlab-production-server</a></td></tr>
+      <tr><td>llms-with-tools (MATLAB)</td><td><a href="https://github.com/matlab-deep-learning/llms-with-tools" target="_blank">github.com/matlab-deep-learning/llms-with-tools</a></td></tr>
+      <tr><td>Blog: MATLAB Agentic AI — The Workflow That Actually Works</td><td><a href="https://blogs.mathworks.com/matlab/2026/01/26/matlab-agentic-ai-the-workflow-that-actually-works/" target="_blank">blogs.mathworks.com/matlab/2026/01/26/…</a></td></tr>
+      <tr><td>Blog: Releasing the MATLAB MCP Core Server</td><td><a href="https://blogs.mathworks.com/deep-learning/2025/11/03/releasing-the-matlab-mcp-core-server-on-github/" target="_blank">blogs.mathworks.com/deep-learning/2025/11/03/…</a></td></tr>
+      <tr><td>Blog: Giving Local AI Agents the Ability to Use MATLAB</td><td><a href="https://blogs.mathworks.com/deep-learning/2026/01/21/giving-local-ai-agents-the-ability-to-use-matlab-with-mcp/" target="_blank">blogs.mathworks.com/deep-learning/2026/01/21/…</a></td></tr>
+      <tr><td>Blog: Running LLMs on NVIDIA DGX Spark and connecting in MATLAB</td><td><a href="https://blogs.mathworks.com/matlab/2026/01/05/running-large-language-models-on-the-nvidia-dgx-spark-and-connecting-to-them-in-matlab/" target="_blank">blogs.mathworks.com/matlab/2026/01/05/…</a></td></tr>
+      <tr><td>Blog: Ollama tool calling in MATLAB</td><td><a href="https://blogs.mathworks.com/matlab/2025/10/06/giving-llms-new-capabilities-ollama-tool-calling-in-matlab/" target="_blank">blogs.mathworks.com/matlab/2025/10/06/…</a></td></tr>
+      <tr><td>Blog: Simulink + Claude Code + MCP</td><td><a href="https://blogs.mathworks.com/simulink/2026/02/26/simulink-and-simscape-modeling-using-claude-code-and-the-matlab-mcp-server/" target="_blank">blogs.mathworks.com/simulink/2026/02/26/…</a></td></tr>
+      <tr><td>Lockheed Martin Astris AI launch</td><td><a href="https://news.lockheedmartin.com/Lockheed-Martin-Launches-Astris-AI-to-Enable-Secure-AI-Solutions-Across-Industries" target="_blank">news.lockheedmartin.com/…/Astris-AI/</a></td></tr>
+      <tr><td>LangSmith observability platform</td><td><a href="https://www.langchain.com/langsmith" target="_blank">langchain.com/langsmith</a></td></tr>
+      <tr><td>Langfuse (MIT, self-hostable)</td><td><a href="https://langfuse.com/" target="_blank">langfuse.com</a></td></tr>
+      <tr><td>OpenTelemetry AI Agent Observability (2025)</td><td><a href="https://opentelemetry.io/blog/2025/ai-agent-observability/" target="_blank">opentelemetry.io/blog/2025/ai-agent-observability/</a></td></tr>
+      <tr><td>RAGAS evaluation framework</td><td><a href="https://docs.ragas.io/" target="_blank">docs.ragas.io</a></td></tr>
+      <tr><td>LangGraph durable execution</td><td><a href="https://docs.langchain.com/oss/python/langgraph/durable-execution" target="_blank">docs.langchain.com/…/durable-execution</a></td></tr>
+      <tr><td>EASA NPA 2025-07: AI Trustworthiness</td><td><a href="https://www.easa.europa.eu/en/document-library/notices-of-proposed-amendment/npa-2025-07" target="_blank">easa.europa.eu/…/npa-2025-07</a></td></tr>
+      <tr><td>ISO/PAS 8800:2024 (automotive AI safety)</td><td><a href="https://www.iso.org/standard/83303.html" target="_blank">iso.org/standard/83303.html</a></td></tr>
+      <tr><td>ISACA: Safeguarding Enterprise Agentic AI</td><td><a href="https://www.isaca.org/resources/news-and-trends/industry-news/2025/safeguarding-the-enterprise-ai-evolution-best-practices-for-agentic-ai-workflows" target="_blank">isaca.org/…/safeguarding-enterprise-ai/</a></td></tr>
+      <tr><td>Ollama vs. vLLM benchmarking (Red Hat)</td><td><a href="https://developers.redhat.com/articles/2025/08/08/ollama-vs-vllm-deep-dive-performance-benchmarking" target="_blank">developers.redhat.com/…/ollama-vs-vllm/</a></td></tr>
+      <tr><td>Simulink license checkout failures (MathWorks Answers)</td><td><a href="https://www.mathworks.com/matlabcentral/answers/2021161-unable-to-check-out-a-simulink-license-reason-license-checkout-failed" target="_blank">mathworks.com/matlabcentral/answers/2021161/</a></td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<footer>Open Research · April 2026 · Analysis of matlab/matlab-agentic-toolkit v0.1.0 (released April 3, 2026)</footer>
+
+</body>
+</html>
