@@ -273,6 +273,7 @@
       <li><a href="#ecosystem">The Broader MATLAB Agentic Ecosystem</a></li>
       <li><a href="#skill-gaps">Skill Gaps — Missing Domains</a></li>
       <li><a href="#tool-gaps">MCP Tool Gaps — Missing Capabilities</a></li>
+      <li><a href="#github-issues">What Engineers Are Requesting — GitHub Issues</a></li>
       <li><a href="#simulink">The Simulink Problem</a></li>
       <li><a href="#enterprise-gaps">Enterprise and Production Gaps</a></li>
       <li><a href="#framework-comparison">What Competing Frameworks Provide</a></li>
@@ -423,15 +424,24 @@
   <div class="repo-card">
     <div class="repo-card-icon">🔧</div>
     <div class="repo-card-body">
-      <div class="repo-card-title"><a href="https://github.com/matlab-deep-learning/llms-with-tools" target="_blank">matlab-deep-learning/llms-with-tools</a></div>
-      <div class="repo-card-desc">MATLAB LLM tool-calling framework. Supports OpenAI, Azure OpenAI, Anthropic, and Ollama backends. Provides <code>openAIFunction</code>, <code>openAIChat</code>, <code>ollamaChat</code>, tool schema definition, and JSON-structured output. The foundational "call LLMs from MATLAB" library.</div>
-      <div class="repo-card-meta">Cloud + local LLM support · Used in most MATLAB agentic examples</div>
+      <div class="repo-card-title"><a href="https://github.com/matlab-deep-learning/llms-with-tools" target="_blank">matlab-deep-learning/llms-with-tools</a> <span class="chip partial" style="font-size:0.75rem;">Active issues</span></div>
+      <div class="repo-card-desc">MATLAB LLM tool-calling framework. v4.8.0. Classes: <code>openAIChat</code>, <code>azureChat</code>, <code>ollamaChat</code>. <strong>No native Anthropic/Claude SDK</strong> (Issue #105 — engineers actively requesting a <code>claudeChat</code> class). <strong>Gemini OpenAI-compat endpoint is actively broken on tool calls</strong> (Issue #107: bug in <code>callOpenAIChatAPI.m</code> lines 93–97 causes malformed tool result messages). <strong>Ollama embeddings not supported</strong> (Issue #73). Despite the "Anthropic" mention in docs, Anthropic Claude access goes through the OpenAI-compatible API only — no native <code>messages</code> endpoint support.</div>
+      <div class="repo-card-meta">Cloud + local LLM support · Used in most MATLAB agentic examples · 3 known open issues affecting major providers</div>
+    </div>
+  </div>
+
+  <div class="repo-card">
+    <div class="repo-card-icon">📝</div>
+    <div class="repo-card-body">
+      <div class="repo-card-title"><a href="https://github.com/matlab/prompts" target="_blank">matlab/prompts</a> + <a href="https://github.com/matlab/slash-commands" target="_blank">matlab/slash-commands</a></div>
+      <div class="repo-card-desc">Two additional knowledge repos: <code>matlab/prompts</code> contains 11 categories of reusable MATLAB-specific prompts (code generation, debugging, documentation, testing, etc.). <code>matlab/slash-commands</code> provides 13 slash commands for Claude Code that map directly to common MATLAB workflows — <code>/matlab-unit-test</code>, <code>/matlab-profile</code>, <code>/matlab-fix-error</code>, and others. These are not linked or referenced from the <code>matlab-agentic-toolkit</code> README despite covering complementary ground.</div>
+      <div class="repo-card-meta">Not referenced from toolkit README · Significant overlap in intent</div>
     </div>
   </div>
 
   <div class="callout success">
     <strong>MathWorks' strategy is becoming clear</strong>
-    MathWorks is building a layered ecosystem: <code>llms-with-tools</code> (call LLMs from MATLAB) + <code>matlab-mcp-core-server</code> (let agents call MATLAB) + <code>mcpHTTPClient</code> (MATLAB calls other MCP servers) + <code>mcp-framework-matlab-production-server</code> (enterprise deployment) + <code>matlab-agentic-toolkit</code> (knowledge layer / skills). The toolkit is the newest and most surface-level piece of a stack that goes quite deep.
+    MathWorks is building a layered ecosystem: <code>llms-with-tools</code> (call LLMs from MATLAB) + <code>matlab-mcp-core-server</code> (let agents call MATLAB) + <code>mcpHTTPClient</code> (MATLAB calls other MCP servers) + <code>mcp-framework-matlab-production-server</code> (enterprise deployment) + <code>matlab-agentic-toolkit</code> (knowledge layer / skills) + <code>matlab/prompts</code> + <code>matlab/slash-commands</code>. The toolkit is the newest and most surface-level piece of a stack that goes quite deep — but the pieces don't yet reference each other.
   </div>
 
 
@@ -565,8 +575,76 @@
         <td>Execute a specific task from a <code>buildfile.m</code> build graph</td>
         <td>Would enable CI-style build workflows driven by agents without the agent needing to understand the full build graph implementation</td>
       </tr>
+      <tr>
+        <td><strong>expose_user_function</strong></td>
+        <td>Register a user-defined MATLAB function as an MCP tool at runtime, auto-generating the JSON schema from the <code>arguments</code> block</td>
+        <td><strong>Issue #35</strong>: Currently there is no mechanism to expose a user's own MATLAB functions as MCP tools without MATLAB Production Server. This is a fundamental gap — every engineer using MATLAB has custom functions they want agents to call. The workaround requires Production Server (Compiler SDK, MPS R2022a+, MATLAB R2025b+) — a $50k+ infrastructure requirement for a capability that should be basic. <code>arguments</code> blocks in MATLAB are richer than Python type hints and could drive automatic schema generation.</td>
+      </tr>
     </tbody>
   </table>
+
+  <div class="callout danger">
+    <strong>Security vulnerabilities in the MCP Core Server (pre-compiled closed-source binary)</strong>
+    Two open security issues were filed against <code>matlab-mcp-core-server</code> as of April 2026 and remain unresolved. <strong>Issue #45</strong>: String injection — the server does not sanitize MATLAB code strings passed to <code>evaluate_matlab_code</code>, allowing prompt-injected MATLAB to escape sandbox assumptions. <strong>Issue #46</strong>: Missing path validation — the <code>run_matlab_file</code> and <code>run_matlab_test_file</code> tools accept arbitrary filesystem paths without validating they are within the expected project directory. Because the server is a pre-compiled Go binary with no source code available, the community cannot audit the fix or submit patches — users must wait for MathWorks to release a new binary. The "personal use only" license restriction further limits enterprise risk assessment.
+  </div>
+
+
+  <!-- SECTION 6B: GITHUB ISSUES SIGNAL -->
+  <h2 id="github-issues">What Engineers Are Actually Requesting — GitHub Issues Signal</h2>
+
+  <p>Looking across the <code>llms-with-matlab</code> and <code>matlab-mcp-core-server</code> issue trackers reveals a clear picture of where real users hit walls. These are not hypothetical gaps — they are documented frustrations from engineers actively trying to use the ecosystem today.</p>
+
+  <table>
+    <thead>
+      <tr><th>Repo</th><th>Issue</th><th>Request</th><th>Status (Apr 2026)</th><th>Severity</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>llms-with-matlab</code></td>
+        <td><a href="https://github.com/matlab-deep-learning/llms-with-matlab/issues/105" target="_blank">#105</a></td>
+        <td>Add <code>claudeChat</code> class — native Anthropic Messages API support, not OpenAI-compat shim</td>
+        <td>Open · No response</td>
+        <td><span class="chip missing">High</span></td>
+      </tr>
+      <tr>
+        <td><code>llms-with-matlab</code></td>
+        <td><a href="https://github.com/matlab-deep-learning/llms-with-matlab/issues/107" target="_blank">#107</a></td>
+        <td>Gemini tool calls broken — bug in <code>callOpenAIChatAPI.m</code> lines 93–97 produces malformed tool result messages</td>
+        <td>Open · Confirmed bug</td>
+        <td><span class="chip missing">High</span></td>
+      </tr>
+      <tr>
+        <td><code>llms-with-matlab</code></td>
+        <td><a href="https://github.com/matlab-deep-learning/llms-with-matlab/issues/73" target="_blank">#73</a></td>
+        <td>Ollama embeddings — <code>ollamaChat</code> has no <code>embed()</code> equivalent; RAG workflows can't stay fully local</td>
+        <td>Open · Long standing</td>
+        <td><span class="chip partial">Medium</span></td>
+      </tr>
+      <tr>
+        <td><code>matlab-mcp-core-server</code></td>
+        <td><a href="https://github.com/matlab/matlab-mcp-core-server/issues/35" target="_blank">#35</a></td>
+        <td>Expose user functions as MCP tools — currently requires Production Server ($50k+ stack); no lightweight path exists</td>
+        <td>Open · No response</td>
+        <td><span class="chip missing">High</span></td>
+      </tr>
+      <tr>
+        <td><code>matlab-mcp-core-server</code></td>
+        <td><a href="https://github.com/matlab/matlab-mcp-core-server/issues/45" target="_blank">#45</a></td>
+        <td>String injection — code passed to <code>evaluate_matlab_code</code> not sanitized</td>
+        <td>Open · Security</td>
+        <td><span class="chip missing">Critical</span></td>
+      </tr>
+      <tr>
+        <td><code>matlab-mcp-core-server</code></td>
+        <td><a href="https://github.com/matlab/matlab-mcp-core-server/issues/46" target="_blank">#46</a></td>
+        <td>Missing path validation — <code>run_matlab_file</code> accepts arbitrary filesystem paths</td>
+        <td>Open · Security</td>
+        <td><span class="chip missing">Critical</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The pattern here is important: <strong>the two highest-priority AI providers (Anthropic/Claude and Google/Gemini) both have active bugs or missing implementations in the foundational LLM library</strong>, while the most requested capability (exposing your own functions as tools) is gated behind enterprise infrastructure. These are the issues that MathWorks needs to address before the ecosystem can grow beyond early adopters with OpenAI accounts.</p>
 
 
   <!-- SECTION 6: SIMULINK PROBLEM -->
@@ -606,6 +684,11 @@
   <div class="callout danger">
     <strong>The synchronous tool call problem for simulation</strong>
     The MCP protocol is synchronous by design for simple tools. A Simulink simulation that runs for 20 minutes will block the agent's tool call for 20 minutes — keeping the LLM context window open, consuming tokens, and risking timeout. This is an architectural problem that requires either (1) an async/polling model for long-running tools, or (2) a <code>run_simulink_model</code> tool with a configurable timeout that returns a job ID for later polling. Neither pattern exists in the current toolkit.
+  </div>
+
+  <div class="callout warning">
+    <strong>MathWorks itself has admitted this</strong>
+    A December 2025 MathWorks blog post on Simulink agentic workflows included the candid admission that using LLMs to drive Simulink is <em>"not yet reliable enough to outpace a human."</em> This is a significant statement from the product team — acknowledging that the Simulink + AI agent combination is still in proof-of-concept territory, not production-ready. The community project <strong>matlab-ai-agent</strong> (a TypeScript project that drives Simulink via MATLAB Engine for Python) represents the most serious attempt to bridge this gap independently of MathWorks' official tools, including parallel simulation execution via <code>parsim()</code> that the MCP Core Server does not support.
   </div>
 
 
@@ -902,6 +985,14 @@
       <tr><td>ISACA: Safeguarding Enterprise Agentic AI</td><td><a href="https://www.isaca.org/resources/news-and-trends/industry-news/2025/safeguarding-the-enterprise-ai-evolution-best-practices-for-agentic-ai-workflows" target="_blank">isaca.org/…/safeguarding-enterprise-ai/</a></td></tr>
       <tr><td>Ollama vs. vLLM benchmarking (Red Hat)</td><td><a href="https://developers.redhat.com/articles/2025/08/08/ollama-vs-vllm-deep-dive-performance-benchmarking" target="_blank">developers.redhat.com/…/ollama-vs-vllm/</a></td></tr>
       <tr><td>Simulink license checkout failures (MathWorks Answers)</td><td><a href="https://www.mathworks.com/matlabcentral/answers/2021161-unable-to-check-out-a-simulink-license-reason-license-checkout-failed" target="_blank">mathworks.com/matlabcentral/answers/2021161/</a></td></tr>
+      <tr><td>matlab/slash-commands GitHub</td><td><a href="https://github.com/matlab/slash-commands" target="_blank">github.com/matlab/slash-commands</a></td></tr>
+      <tr><td>llms-with-matlab Issue #105 — claudeChat missing</td><td><a href="https://github.com/matlab-deep-learning/llms-with-matlab/issues/105" target="_blank">github.com/matlab-deep-learning/llms-with-matlab/issues/105</a></td></tr>
+      <tr><td>llms-with-matlab Issue #107 — Gemini tool calls broken</td><td><a href="https://github.com/matlab-deep-learning/llms-with-matlab/issues/107" target="_blank">github.com/matlab-deep-learning/llms-with-matlab/issues/107</a></td></tr>
+      <tr><td>llms-with-matlab Issue #73 — Ollama embeddings missing</td><td><a href="https://github.com/matlab-deep-learning/llms-with-matlab/issues/73" target="_blank">github.com/matlab-deep-learning/llms-with-matlab/issues/73</a></td></tr>
+      <tr><td>MCP Core Server Issue #35 — user function exposure</td><td><a href="https://github.com/matlab/matlab-mcp-core-server/issues/35" target="_blank">github.com/matlab/matlab-mcp-core-server/issues/35</a></td></tr>
+      <tr><td>MCP Core Server Issue #45 — string injection (security)</td><td><a href="https://github.com/matlab/matlab-mcp-core-server/issues/45" target="_blank">github.com/matlab/matlab-mcp-core-server/issues/45</a></td></tr>
+      <tr><td>MCP Core Server Issue #46 — path validation (security)</td><td><a href="https://github.com/matlab/matlab-mcp-core-server/issues/46" target="_blank">github.com/matlab/matlab-mcp-core-server/issues/46</a></td></tr>
+      <tr><td>MathWorks Blog: Simulink "not yet reliable enough to outpace a human" (Dec 2025)</td><td><a href="https://blogs.mathworks.com/simulink/" target="_blank">blogs.mathworks.com/simulink/</a></td></tr>
     </tbody>
   </table>
 
