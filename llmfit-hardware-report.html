@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>llmfit on an i7-8700K — What LLMs Actually Fit on a CPU-Only 8 GB Machine</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --teal: #39d353;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 0 1rem 4rem;
+    }
+    .page-header {
+      background: linear-gradient(135deg, #0d1117 0%, #1a2436 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 0 2rem;
+      margin: 0 -1rem 2.5rem;
+      text-align: center;
+    }
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(88,166,255,0.15);
+      border: 1px solid rgba(88,166,255,0.4);
+      color: var(--blue);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 2.2rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
+    .subtitle { color: var(--muted); font-size: 1.05rem; max-width: 720px; margin: 0 auto 1.5rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .meta span { margin: 0 0.5rem; }
+    .container { max-width: 920px; margin: 0 auto; }
+    h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 1.75rem 0 0.6rem;
+      color: var(--blue);
+    }
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.2rem 0 0.4rem;
+      color: var(--orange);
+    }
+    p { margin-bottom: 1rem; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    strong { color: var(--text); font-weight: 600; }
+    em { color: var(--muted); font-style: italic; }
+    code {
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.87em;
+      background: #1c2128;
+      border: 1px solid var(--border);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      color: var(--orange);
+    }
+    pre {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.88rem;
+    }
+    th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.55rem 0.8rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: rgba(22,27,34,0.5); }
+    .callout {
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .callout strong { display: block; margin-bottom: 0.3rem; }
+    .callout.info { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.3); }
+    .callout.warning { background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3); }
+    .callout.success { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.3); }
+    .callout.danger { background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.3); }
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+      font-size: 0.92rem;
+    }
+    .toc h4 { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.75rem; }
+    .toc ol { margin: 0; padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.25rem; }
+    .chip {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.1em 0.5em;
+      border-radius: 12px;
+      letter-spacing: 0.03em;
+    }
+    .chip.green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+    .chip.yellow { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+    .chip.red { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+    .chip.blue { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+    .chip.purple { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+    .hw-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+    .hw-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+    .hw-card .label { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+    .hw-card .value { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+    .hw-card .sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+    .score-bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .score-bar { height: 6px; background: var(--border); border-radius: 3px; flex: 1; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 3px; }
+    footer {
+      margin-top: 4rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+    }
+    .rank { font-weight: 700; color: var(--orange); }
+    .moe-badge { font-size: 0.7rem; background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); padding: 0.05em 0.4em; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="badge">Hardware × LLM Compatibility</div>
+  <h1>What LLMs Actually Fit on an 8 GB CPU-Only Machine</h1>
+  <p class="subtitle">Running llmfit v0.8.9 against an Intel i7-8700K with 8 GB RAM and no GPU — documenting what runs, what doesn't, and what the tool reveals about the current model landscape.</p>
+  <div class="meta">
+    <span>April 4, 2026</span>
+    <span>·</span>
+    <span>llmfit v0.8.9</span>
+    <span>·</span>
+    <span>792 models evaluated</span>
+    <span>·</span>
+    <span>WSL2 / Linux x86_64</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#tool">About llmfit</a></li>
+      <li><a href="#hardware">Hardware Profile Detected</a></li>
+      <li><a href="#overview">Fit Overview — 792 Models</a></li>
+      <li><a href="#top-picks">Top Recommendations</a></li>
+      <li><a href="#top30">Full Top 30 Runnable Models</a></li>
+      <li><a href="#families">Model Family Breakdown</a></li>
+      <li><a href="#moe">The MoE Advantage on RAM-Constrained Hardware</a></li>
+      <li><a href="#boundary">The Memory Boundary</a></li>
+      <li><a href="#upgrade">Hardware Planning — What Would Unlock</a></li>
+      <li><a href="#tool-notes">Tool Observations and Quirks</a></li>
+      <li><a href="#conclusions">Conclusions</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </div>
+
+
+  <!-- SECTION 1: ABOUT LLMFIT -->
+  <h2 id="tool">About llmfit</h2>
+
+  <p><a href="https://github.com/AlexsJones/llmfit" target="_blank">llmfit</a> is a Rust CLI tool (21k GitHub stars, released February 2026, currently v0.8.9) that detects local hardware and scores every model in its curated database for fit, speed, and quality. It can recommend models, compare them side-by-side, plan hardware upgrade requirements, and download GGUF weights — all from a single static binary with no runtime dependencies.</p>
+
+  <p>Key design choices worth noting:</p>
+  <ul>
+    <li><strong>No telemetry</strong> — nothing about your hardware or queries is sent to any remote server</li>
+    <li><strong>Offline-capable</strong> — the core model database is embedded; HuggingFace queries are optional enrichment</li>
+    <li><strong>JSON-first</strong> — every subcommand supports <code>--json</code> for tool/agent integration</li>
+    <li><strong>Estimates, not benchmarks</strong> — speed (tok/s) and memory figures are heuristic estimates based on quantization math, not measured benchmarks on the specific hardware</li>
+    <li><strong>llama.cpp runtime assumed</strong> — all recommendations assume you'll run models via llama.cpp (or a wrapper like Ollama); no PyTorch inference path</li>
+  </ul>
+
+  <div class="callout info">
+    <strong>How to run it</strong>
+    Download the static musl binary (no libc deps), verify the SHA256 checksum, and run directly. Add <code>--no-dashboard</code> if you don't want the web UI to start on port 8787.
+    <br><br>
+    <code>curl -sL https://github.com/AlexsJones/llmfit/releases/download/v0.8.9/llmfit-v0.8.9-x86_64-unknown-linux-musl.tar.gz -o llmfit.tar.gz</code><br>
+    <code>sha256sum llmfit.tar.gz  # verify against .sha256 file</code><br>
+    <code>tar -xzf llmfit.tar.gz && ./llmfit system --no-dashboard</code>
+  </div>
+
+
+  <!-- SECTION 2: HARDWARE -->
+  <h2 id="hardware">Hardware Profile Detected</h2>
+
+  <p>llmfit's hardware detection was run inside a WSL2 container on a Windows host. Results from <code>llmfit system --json</code>:</p>
+
+  <div class="hw-grid">
+    <div class="hw-card">
+      <div class="label">CPU</div>
+      <div class="value" style="font-size:1rem; margin-top:0.2rem;">Intel i7-8700K</div>
+      <div class="sub">3.70 GHz · 12 logical cores<br>Coffee Lake (2017, 6-core/12-thread)</div>
+    </div>
+    <div class="hw-card">
+      <div class="label">Total RAM</div>
+      <div class="value">7.72 GB</div>
+      <div class="sub">6.25 GB available at run time</div>
+    </div>
+    <div class="hw-card">
+      <div class="label">GPU</div>
+      <div class="value" style="color: var(--red);">None</div>
+      <div class="sub">CPU-only inference<br>WSL2 — GPU passthrough unavailable</div>
+    </div>
+    <div class="hw-card">
+      <div class="label">Backend</div>
+      <div class="value" style="font-size:1rem; margin-top:0.2rem;">CPU (x86)</div>
+      <div class="sub">No Apple Silicon, no unified memory,<br>no CUDA, no ROCm</div>
+    </div>
+  </div>
+
+  <p>The 6.25 GB available RAM (vs 7.72 GB total) reflects OS + WSL2 overhead consuming roughly 1.5 GB before any model is loaded. This available figure is what llmfit uses for fit calculations.</p>
+
+  <div class="callout warning">
+    <strong>WSL2 GPU passthrough note</strong>
+    WSL2 does support NVIDIA GPU passthrough via CUDA on Windows (requires NVIDIA's WSL2 driver and Docker Desktop GPU integration). However, in this container environment, no GPU was detected. Running natively on Windows or Linux with the host GPU accessible would significantly change the results below.
+  </div>
+
+
+  <!-- SECTION 3: OVERVIEW -->
+  <h2 id="overview">Fit Overview — 792 Models</h2>
+
+  <p>llmfit's embedded database contains <strong>792 models</strong> as of v0.8.9. Every model is scored against the detected hardware. Fit levels:</p>
+
+  <table>
+    <thead>
+      <tr><th>Fit Level</th><th>Count</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Marginal</strong> <span class="chip yellow">Runnable</span></td>
+        <td>472 (60%)</td>
+        <td>Model fits in available RAM and can be loaded. Memory headroom may be tight — OS and other processes compete for the same pool. Inference will be CPU-only and slow.</td>
+      </tr>
+      <tr>
+        <td><strong>Too Tight</strong> <span class="chip red">Won't Fit</span></td>
+        <td>320 (40%)</td>
+        <td>Model exceeds available RAM at the recommended quantization level. Would require either more RAM, a GPU, or aggressive quantization reduction below what llmfit considers quality-acceptable.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Notably, there are <strong>no "Good" or "Perfect" fits</strong> in this result set — those levels require a GPU with sufficient VRAM, or a machine with significantly more RAM. Every model that fits on this hardware gets the "Marginal" label, regardless of how much headroom it leaves.</p>
+
+  <div class="callout info">
+    <strong>"Marginal" doesn't mean broken</strong>
+    Despite the label, "Marginal" models are fully runnable. The term means the model is within the available memory envelope but with less headroom than llmfit considers comfortable. For casual / research use, all 472 Marginal models should load and run. For production use or multi-task workloads where RAM contention is real, the tighter-fitting models may cause OOM conditions.
+  </div>
+
+
+  <!-- SECTION 4: TOP PICKS -->
+  <h2 id="top-picks">Top Recommendations</h2>
+
+  <p>From <code>llmfit recommend --json</code> — llmfit's curated picks for this hardware, scored on a composite of fit, quality, speed, and context length:</p>
+
+  <h3>#1 — microsoft/Phi-mini-MoE-instruct <span class="chip green">Score: 89.2</span> <span class="moe-badge">MoE</span></h3>
+  <table>
+    <tbody>
+      <tr><td><strong>Parameters</strong></td><td>7.6B total / ~1.3B active (MoE: 16 experts, 2 active)</td></tr>
+      <tr><td><strong>Best quantization</strong></td><td>Q5_K_M (llmfit upgrades from model default Q4_K_M)</td></tr>
+      <tr><td><strong>RAM required</strong></td><td>4.3 GB (68.8% of available)</td></tr>
+      <tr><td><strong>Estimated speed</strong></td><td>59.7 tok/s (CPU estimate)</td></tr>
+      <tr><td><strong>Context window</strong></td><td>4,096 tokens</td></tr>
+      <tr><td><strong>Score breakdown</strong></td><td>Quality 73 · Speed 100 · Fit 100 · Context 100</td></tr>
+      <tr><td><strong>GGUF source</strong></td><td>None listed in database (needs manual HuggingFace search)</td></tr>
+      <tr><td><strong>Use case</strong></td><td>Instruction following, chat</td></tr>
+    </tbody>
+  </table>
+  <p>The top pick is a <strong>Mixture-of-Experts</strong> model from Microsoft. 7.6B parameters but only ~1.3B are active per token, which is why it fits at 4.3 GB instead of the ~5+ GB a dense 7B would need. The quality score of 73 reflects that it's a small model — capable for general chat and instruction following but not competitive with frontier models. Context is limited to 4k tokens.</p>
+
+  <h3>#2 — LiquidAI/LFM2-8B-A1B <span class="chip green">Score: 86.5</span> <span class="moe-badge">MoE</span></h3>
+  <table>
+    <tbody>
+      <tr><td><strong>Parameters</strong></td><td>8.3B total / ~1.5B active (MoE: 32 experts, 4 active)</td></tr>
+      <tr><td><strong>Best quantization</strong></td><td>Q4_K_M</td></tr>
+      <tr><td><strong>RAM required</strong></td><td>4.7 GB (75.2% of available)</td></tr>
+      <tr><td><strong>Estimated speed</strong></td><td>59.0 tok/s</td></tr>
+      <tr><td><strong>Context window</strong></td><td>128,000 tokens</td></tr>
+      <tr><td><strong>Score breakdown</strong></td><td>Quality 70 · Speed 100 · Fit 100 · Context 100</td></tr>
+      <tr><td><strong>GGUF source</strong></td><td><a href="https://huggingface.co/unsloth/LFM2-8B-A1B-GGUF" target="_blank">unsloth/LFM2-8B-A1B-GGUF</a></td></tr>
+      <tr><td><strong>Use case</strong></td><td>General purpose text generation</td></tr>
+    </tbody>
+  </table>
+  <p>The standout characteristic of LFM2-8B-A1B is its <strong>128k token context window</strong> — the largest of any runnable model on this hardware. Liquid AI's LFM2 series uses a different MoE architecture (32 experts, 4 active) and fits comfortably at 4.7 GB. If long-context work matters — processing documents, long conversations, large codebases — this is the right choice despite the slightly lower quality score.</p>
+
+  <h3>#3 — allenai/OLMoE-1B-7B-0125-Instruct <span class="chip green">Score: 83.2</span> <span class="moe-badge">MoE</span></h3>
+  <table>
+    <tbody>
+      <tr><td><strong>Parameters</strong></td><td>6.9B total (1B active MoE)</td></tr>
+      <tr><td><strong>Best quantization</strong></td><td>Q5_K_M</td></tr>
+      <tr><td><strong>RAM required</strong></td><td>3.9 GB (62.4% of available)</td></tr>
+      <tr><td><strong>Estimated speed</strong></td><td>65.9 tok/s</td></tr>
+      <tr><td><strong>Context window</strong></td><td>4,096 tokens</td></tr>
+      <tr><td><strong>GGUF source</strong></td><td><a href="https://huggingface.co/mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF" target="_blank">mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF</a></td></tr>
+      <tr><td><strong>Use case</strong></td><td>Instruction following, chat</td></tr>
+    </tbody>
+  </table>
+  <p>Allen AI's OLMoE is <strong>fully open-source</strong> (Apache 2.0, weights + training code + data). Slightly lower quality score than the top two but leaves more RAM headroom (3.9 GB vs 4.3–4.7 GB), making it the safest choice on a machine where other processes are competing for memory.</p>
+
+  <h3>#4 — microsoft/Phi-tiny-MoE-instruct <span class="chip yellow">Score: 82.0</span> <span class="moe-badge">MoE</span></h3>
+  <table>
+    <tbody>
+      <tr><td><strong>Parameters</strong></td><td>3.8B total (~small active set, MoE)</td></tr>
+      <tr><td><strong>Best quantization</strong></td><td>Q8_0 (llmfit upgrades significantly from default Q4_K_M)</td></tr>
+      <tr><td><strong>RAM required</strong></td><td>2.1 GB (33.6% of available)</td></tr>
+      <tr><td><strong>Estimated speed</strong></td><td>97.2 tok/s — fastest of the top picks</td></tr>
+      <tr><td><strong>Context window</strong></td><td>4,096 tokens</td></tr>
+    </tbody>
+  </table>
+  <p>The speed champion at 97.2 estimated tok/s and the most RAM-efficient at just 2.1 GB. For interactive use where response latency matters more than raw quality, this is the practical pick. Q8_0 quantization (higher quality than Q4) is possible precisely because the model is smaller.</p>
+
+
+  <!-- SECTION 5: TOP 30 TABLE -->
+  <h2 id="top30">Full Top 30 Runnable Models</h2>
+
+  <p>All models with <code>fit_level: Marginal</code>, sorted by composite score. Run with <code>llmfit fit --json --no-dashboard</code>.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Score</th>
+        <th>Model</th>
+        <th>Params</th>
+        <th>Quant</th>
+        <th>RAM</th>
+        <th>Est. t/s</th>
+        <th>Context</th>
+        <th>Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="rank">1</td><td>89.2</td><td>microsoft/Phi-mini-MoE-instruct <span class="moe-badge">MoE</span></td><td>7.6B</td><td>Q5_K_M</td><td>4.3 GB</td><td>59.7</td><td>4k</td><td>Chat</td></tr>
+      <tr><td class="rank">2</td><td>86.5</td><td><a href="https://huggingface.co/unsloth/LFM2-8B-A1B-GGUF" target="_blank">LiquidAI/LFM2-8B-A1B</a> <span class="moe-badge">MoE</span></td><td>8.3B</td><td>Q4_K_M</td><td>4.7 GB</td><td>59.0</td><td>128k</td><td>General</td></tr>
+      <tr><td class="rank">3</td><td>83.2</td><td><a href="https://huggingface.co/mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF" target="_blank">allenai/OLMoE-1B-7B-0125-Instruct</a> <span class="moe-badge">MoE</span></td><td>6.9B</td><td>Q5_K_M</td><td>3.9 GB</td><td>65.9</td><td>4k</td><td>Chat</td></tr>
+      <tr><td class="rank">4</td><td>82.0</td><td>microsoft/Phi-tiny-MoE-instruct <span class="moe-badge">MoE</span></td><td>3.8B</td><td>Q8_0</td><td>2.1 GB</td><td>97.2</td><td>4k</td><td>Chat</td></tr>
+      <tr><td class="rank">5</td><td>81.1</td><td><a href="https://huggingface.co/mradermacher/OLMoE-1B-7B-0125-GGUF" target="_blank">allenai/OLMoE-1B-7B-0125</a> <span class="moe-badge">MoE</span></td><td>6.9B</td><td>Q5_K_M</td><td>3.9 GB</td><td>65.9</td><td>4k</td><td>General</td></tr>
+      <tr><td class="rank">6</td><td>80.7</td><td>apolo13x/Qwen3.5-35B-A3B-quantized.w4a16 <span class="moe-badge">MoE</span></td><td>6.4B</td><td>Q4_K_M</td><td>3.6 GB</td><td>174.1</td><td>—</td><td>General</td></tr>
+      <tr><td class="rank">7</td><td>80.7</td><td>ByteDance-Seed/academic-ds-9B <span class="moe-badge">MoE</span></td><td>9.4B</td><td>Q3_K_M</td><td>5.2 GB</td><td>129.0</td><td>—</td><td>General</td></tr>
+      <tr><td class="rank">8</td><td>79.8</td><td>ibm-granite/granite-4.0-h-tiny <span class="moe-badge">MoE</span></td><td>6.9B</td><td>Q4_K_M</td><td>3.9 GB</td><td>91.8</td><td>—</td><td>Edge</td></tr>
+      <tr><td class="rank">9</td><td>79.7</td><td>ibm-research/PowerMoE-3b <span class="moe-badge">MoE</span></td><td>3.4B</td><td>Q8_0</td><td>1.9 GB</td><td>76.1</td><td>—</td><td>General</td></tr>
+      <tr><td class="rank">10</td><td>78.8</td><td><a href="https://huggingface.co/RedHatAI/Llama-3.2-1B-Instruct-FP8" target="_blank">RedHatAI/Llama-3.2-1B-Instruct-FP8</a></td><td>1.5B</td><td>Q8_0</td><td>3.6 GB</td><td>41.1</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">11</td><td>78.7</td><td>Vikhrmodels/Vikhr-Llama-3.2-1B-Instruct</td><td>1.2B</td><td>Q8_0</td><td>3.1 GB</td><td>49.8</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">12</td><td>77.6</td><td>LiquidAI/LFM2.5-1.2B-Instruct</td><td>1.2B</td><td>Q8_0</td><td>2.9 GB</td><td>52.6</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">13</td><td>77.6</td><td><a href="https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct" target="_blank">Qwen/Qwen2.5-1.5B-Instruct</a></td><td>1.5B</td><td>Q8_0</td><td>2.5 GB</td><td>39.9</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">14</td><td>76.9</td><td>Qwen/Qwen2.5-Math-1.5B-Instruct</td><td>1.5B</td><td>Q8_0</td><td>2.2 GB</td><td>39.9</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">15</td><td>76.4</td><td>ShahriarFerdoush/llama-3.2-1b-code-instruct</td><td>1.2B</td><td>Q8_0</td><td>3.1 GB</td><td>49.8</td><td>—</td><td>Code</td></tr>
+      <tr><td class="rank">16</td><td>76.3</td><td><a href="https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct" target="_blank">meta-llama/Llama-3.2-1B-Instruct</a></td><td>1.2B</td><td>Q8_0</td><td>1.8 GB</td><td>49.8</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">17</td><td>76.1</td><td>allenai/OLMo-2-0425-1B-Instruct</td><td>1.5B</td><td>Q8_0</td><td>2.1 GB</td><td>41.5</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">18</td><td>75.5</td><td>Zyphra/Zamba2-1.2B-instruct</td><td>1.2B</td><td>Q8_0</td><td>1.8 GB</td><td>50.7</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">19</td><td>75.3</td><td>ibm-granite/granite-4.0-h-1b</td><td>1.5B</td><td>Q8_0</td><td>3.6 GB</td><td>42.1</td><td>—</td><td>General</td></tr>
+      <tr><td class="rank">20</td><td>75.3</td><td><a href="https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct" target="_blank">Qwen/Qwen2.5-Coder-1.5B-Instruct</a></td><td>1.5B</td><td>Q8_0</td><td>2.5 GB</td><td>39.9</td><td>—</td><td>Code</td></tr>
+      <tr><td class="rank">21</td><td>75.2</td><td>OpenGVLab/InternVL3_5-1B-Instruct</td><td>1.1B</td><td>Q8_0</td><td>1.6 GB</td><td>58.1</td><td>—</td><td>Chat</td></tr>
+      <tr><td class="rank">22</td><td>74.9</td><td>LiquidAI/LFM2-1.2B</td><td>1.2B</td><td>Q8_0</td><td>2.1 GB</td><td>52.6</td><td>—</td><td>General</td></tr>
+      <tr><td class="rank">23</td><td>74.0</td><td>Qwen/Qwen2.5-Coder-3B-Instruct</td><td>3.1B</td><td>Q8_0</td><td>3.5 GB</td><td>20.0</td><td>—</td><td>Code</td></tr>
+      <tr><td class="rank">24</td><td>73.7</td><td>bigcode/starcoder2-3b</td><td>3.0B</td><td>Q8_0</td><td>3.4 GB</td><td>20.3</td><td>—</td><td>Code</td></tr>
+      <tr><td class="rank">25</td><td>72.7</td><td><a href="https://huggingface.co/nomic-ai/nomic-embed-text-v1.5" target="_blank">nomic-ai/nomic-embed-text-v1.5</a></td><td>137M</td><td>Q8_0</td><td>0.2 GB</td><td>450.5</td><td>—</td><td>Embeddings (RAG)</td></tr>
+      <tr><td class="rank">26</td><td>72.7</td><td>microsoft/Phi-4-mini-reasoning</td><td>3.8B</td><td>Q8_0</td><td>4.3 GB</td><td>16.2</td><td>—</td><td>Reasoning</td></tr>
+      <tr><td class="rank">27</td><td>70.9</td><td>deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B</td><td>1.8B</td><td>Q8_0</td><td>4.2 GB</td><td>34.7</td><td>—</td><td>Reasoning</td></tr>
+      <tr><td class="rank">28</td><td>70.4</td><td>ibm-granite/granite-4.0-h-tiny (edge variant)</td><td>1.1B</td><td>Q8_0</td><td>1.6 GB</td><td>56.0</td><td>—</td><td>Edge</td></tr>
+      <tr><td class="rank">29</td><td>69.9</td><td><a href="https://huggingface.co/BAAI/bge-large-en-v1.5" target="_blank">BAAI/bge-large-en-v1.5</a></td><td>335M</td><td>Q8_0</td><td>0.4 GB</td><td>183.8</td><td>—</td><td>Embeddings (RAG)</td></tr>
+      <tr><td class="rank">30</td><td>69.3</td><td>Vikhrmodels/QVikhr-3-1.7B-Instruction-noreasoning</td><td>1.7B</td><td>Q8_0</td><td>3.5 GB</td><td>35.8</td><td>—</td><td>Reasoning</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- SECTION 6: FAMILY BREAKDOWN -->
+  <h2 id="families">Model Family Breakdown</h2>
+
+  <table>
+    <thead>
+      <tr><th>Family</th><th>Runnable</th><th>Best Runnable Model</th><th>Score</th><th>RAM</th><th>Est. t/s</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Phi (Microsoft)</strong></td>
+        <td>11</td>
+        <td>Phi-mini-MoE-instruct</td>
+        <td>89.2</td>
+        <td>4.3 GB</td>
+        <td>59.7</td>
+      </tr>
+      <tr>
+        <td><strong>Qwen3 (Alibaba)</strong></td>
+        <td>39</td>
+        <td>Qwen3.5-35B-A3B-quantized (MoE)</td>
+        <td>80.7</td>
+        <td>3.6 GB</td>
+        <td>174.1</td>
+      </tr>
+      <tr>
+        <td><strong>Qwen2.5 (Alibaba)</strong></td>
+        <td>25</td>
+        <td>Qwen2.5-1.5B-Instruct</td>
+        <td>77.6</td>
+        <td>2.5 GB</td>
+        <td>39.9</td>
+      </tr>
+      <tr>
+        <td><strong>Llama-3 (Meta)</strong></td>
+        <td>21</td>
+        <td>Llama-3.2-1B-Instruct-FP8 (RedHat)</td>
+        <td>78.8</td>
+        <td>3.6 GB</td>
+        <td>41.1</td>
+      </tr>
+      <tr>
+        <td><strong>LFM2 (Liquid AI)</strong></td>
+        <td>28</td>
+        <td>LFM2-8B-A1B (128k context!)</td>
+        <td>86.5</td>
+        <td>4.7 GB</td>
+        <td>59.0</td>
+      </tr>
+      <tr>
+        <td><strong>Gemma (Google)</strong></td>
+        <td>27</td>
+        <td>paligemma2-3b-mix-224 (vision)</td>
+        <td>67.7</td>
+        <td>3.8 GB</td>
+        <td>20.3</td>
+      </tr>
+      <tr>
+        <td><strong>DeepSeek</strong></td>
+        <td>8</td>
+        <td>DeepSeek-R1-Distill-Qwen-1.5B</td>
+        <td>70.9</td>
+        <td>4.2 GB</td>
+        <td>34.7</td>
+      </tr>
+      <tr>
+        <td><strong>Mistral</strong></td>
+        <td>9</td>
+        <td>Only tiny test models fit</td>
+        <td>60.9</td>
+        <td>&lt;1 GB</td>
+        <td>616</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Mistral's production models (7B, 8×7B, etc.) all require more than 6.25 GB at Q4_K_M. The 9 "runnable" Mistral models are all tiny test/research variants. For practical Mistral use, a GPU or more RAM is required.</p>
+
+  <p>DeepSeek similarly — the flagship models (R1, V3) are far out of reach. Only the small distilled variants fit. DeepSeek-R1-Distill-Qwen-1.5B (rank #27) is the largest runnable DeepSeek model on this hardware.</p>
+
+
+  <!-- SECTION 7: MOE -->
+  <h2 id="moe">The MoE Advantage on RAM-Constrained Hardware</h2>
+
+  <p>The most striking finding from running llmfit is that <strong>the top 9 models by score are all Mixture-of-Experts (MoE) architectures</strong>. This is not a coincidence — MoE provides a specific advantage when RAM is the limiting constraint.</p>
+
+  <h3>Why MoE fits better on low-RAM hardware</h3>
+
+  <p>In a dense model, all parameters are active for every token. A 7B dense model uses all 7B parameters per forward pass, and all parameters must be resident in memory.</p>
+
+  <p>In a MoE model, the parameter count is split across N "experts" (feed-forward networks), and only K experts are active per token. The rest sit idle. Since all parameters still need to be in memory (on CPU — GPU expert offloading doesn't apply without a GPU), the RAM savings come from the <em>quantization interaction</em>: a model with 7B parameters but 1B active can be quantized more aggressively overall while maintaining quality at the active-parameter level.</p>
+
+  <p>The practical result: MoE models punch above their weight in llmfit's quality score relative to their RAM footprint.</p>
+
+  <div class="callout warning">
+    <strong>Important caveat: CPU-only MoE is slower than it should be</strong>
+    llmfit notes on every MoE model: <em>"MoE architecture, but expert offloading requires a GPU."</em> On a GPU, unused experts can be offloaded to CPU RAM while active experts run on VRAM — this is where MoE truly shines for speed. On CPU-only, all experts are in RAM and the routing overhead is pure cost. The estimated tok/s figures above assume CPU-only execution. Actual inference speed on CPU with MoE models may be lower than a dense model of equivalent active parameter count.
+  </div>
+
+
+  <!-- SECTION 8: MEMORY BOUNDARY -->
+  <h2 id="boundary">The Memory Boundary</h2>
+
+  <p>The line between "Marginal" (runnable) and "Too Tight" (won't fit) falls at almost exactly <strong>6.25 GB</strong> — the detected available RAM:</p>
+
+  <ul>
+    <li><strong>Largest runnable model</strong>: 6.2 GB (ByteDance academic-ds-9B at Q3_K_M)</li>
+    <li><strong>Smallest model that won't fit</strong>: 6.4 GB (GigaChat3-10B-A1.8B at Q4_K_M)</li>
+  </ul>
+
+  <p>The gap is just <strong>200 MB</strong>. Several models that don't fit today would fit with a small increase in available RAM — closing other applications, disabling swap, or running on a fresh boot without the ~1.5 GB WSL2 overhead.</p>
+
+  <p>Top models that are just out of reach (Too Tight, highest score):</p>
+
+  <table>
+    <thead>
+      <tr><th>Score</th><th>Model</th><th>RAM Required</th><th>Why Interesting</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>78.0</td><td>RedHatAI/DeepSeek-Coder-V2-Lite-Instruct-FP8</td><td>8.8 GB</td><td>Serious code model, DeepSeek V2 quality</td></tr>
+      <tr><td>77.5</td><td>NVFP4/Qwen3-Coder-30B-A3B-Instruct-FP4</td><td>8.7 GB</td><td>30B MoE coder, FP4 quantized to fit</td></tr>
+      <tr><td>77.0</td><td>deepseek-ai/DeepSeek-V2-Lite-Chat</td><td>8.8 GB</td><td>DeepSeek V2 Lite, strong general model</td></tr>
+      <tr><td>76.6</td><td>RedHatAI/Llama-4-Scout-17B-16E-Instruct</td><td>11.0 GB</td><td>Llama 4 Scout (MoE), Meta's latest</td></tr>
+      <tr><td>75.8</td><td>ai-sage/GigaChat3-10B-A1.8B</td><td>6.4 GB</td><td>Only 200 MB over the limit</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- SECTION 9: HARDWARE PLANNING -->
+  <h2 id="upgrade">Hardware Planning — What Would Unlock</h2>
+
+  <p>llmfit's <code>plan</code> subcommand calculates what hardware changes are needed to run specific models. Output from <code>llmfit plan &lt;model&gt; --context 8192 --json</code>:</p>
+
+  <h3>Llama-3.1-8B-Instruct (a mainstream 8B model)</h3>
+  <table>
+    <thead>
+      <tr><th>Run Path</th><th>Minimum VRAM</th><th>Minimum RAM</th><th>Est. t/s</th><th>Fit Level</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>GPU (full offload)</td><td>5.7 GB VRAM</td><td>8.0 GB</td><td>31.5</td><td>Marginal</td></tr>
+      <tr><td>CPU+GPU offload</td><td>2.0 GB VRAM</td><td>5.7 GB</td><td>15.8</td><td>Marginal</td></tr>
+      <tr><td>CPU only (current)</td><td>—</td><td>5.7 GB</td><td>10.0</td><td>Marginal</td></tr>
+    </tbody>
+  </table>
+  <p>A 5.7–7.5 GB GPU (RTX 3060 12GB or similar) would move Llama-3.1-8B from CPU-only to GPU-accelerated, increasing speed roughly 3× at minimum. An RTX 4060 Ti 16GB or RTX 3090 would put it in "Perfect" fit range.</p>
+
+  <h3>Llama-3.1-70B-Instruct (a large frontier model)</h3>
+  <table>
+    <thead>
+      <tr><th>Run Path</th><th>Minimum VRAM</th><th>Est. t/s</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>GPU (full offload)</td><td>46 GB VRAM</td><td>3.6</td><td>Dual RTX 4090 or H100 80GB SXM</td></tr>
+      <tr><td>CPU only</td><td>—</td><td>1.1–1.3</td><td>46 GB RAM required — unusable on this machine</td></tr>
+    </tbody>
+  </table>
+  <p>70B models are firmly out of reach on consumer hardware without specialist GPUs. At 1.1–1.3 tok/s on CPU, a 70B response would take minutes per reply.</p>
+
+  <div class="callout success">
+    <strong>The sweet spot for this machine: 1–5B parameter models</strong>
+    The practical range for CPU-only inference on 8 GB RAM is 1B–5B parameter models at Q4–Q8 quantization. MoE models can extend this to apparent 6–9B parameter counts via sparse activation. For anything larger, a GPU with ≥8 GB VRAM transforms the situation: an RTX 3060 12GB (~$250 used) would make 8B models run well and 13B models possible.
+  </div>
+
+
+  <!-- SECTION 10: TOOL NOTES -->
+  <h2 id="tool-notes">Tool Observations and Quirks</h2>
+
+  <p>Running llmfit revealed several behaviors worth noting for anyone using it:</p>
+
+  <h3>What works well</h3>
+  <ul>
+    <li><strong>JSON output is consistent and well-structured</strong> — <code>--json</code> works on <code>system</code>, <code>fit</code>, <code>recommend</code>, <code>info</code>, <code>diff</code>, and <code>plan</code></li>
+    <li><strong>Hardware detection is fast</strong> — system profiling completes in under a second, no external tool dependencies on Linux</li>
+    <li><strong>The diff subcommand is genuinely useful</strong> — side-by-side comparison of two models against the same hardware, including score components and GGUF source links</li>
+    <li><strong>Quantization upscaling</strong> — llmfit often recommends a <em>higher</em> quantization than the model default when RAM allows (e.g., Q5_K_M or Q8_0 instead of Q4_K_M). This is a meaningful quality improvement the user might not think to make manually.</li>
+    <li><strong>GGUF source linking</strong> — where available, the tool provides direct HuggingFace repo links for community-quantized GGUF files (primarily Unsloth and mradermacher)</li>
+  </ul>
+
+  <h3>Limitations observed</h3>
+  <ul>
+    <li><strong><code>search</code> subcommand doesn't support <code>--json</code></strong> — outputs a rich terminal table but piping to JSON fails. Workaround: use <code>fit --json</code> and filter client-side.</li>
+    <li><strong><code>hf-search</code> returned no results</strong> for "instruction" — the live HuggingFace GGUF search may require different search terms or a network path the container couldn't reach. The embedded database is the reliable source.</li>
+    <li><strong>No GGUF sources for several top models</strong> — Phi-mini-MoE-instruct and Phi-tiny-MoE-instruct have no listed GGUF sources, meaning you'd need to manually find or convert them. The model recommendations are theoretically sound but not always immediately actionable.</li>
+    <li><strong>Speed estimates are heuristic</strong> — tok/s figures are calculated from quantization math and hardware specs, not measured. Real-world CPU inference on a i7-8700K will be heavily influenced by memory bandwidth, OS scheduling, and thermal throttling in a way the model can't capture. Treat estimates as order-of-magnitude guidance.</li>
+    <li><strong>"Marginal" applies to all CPU-only results regardless of headroom</strong> — a model using 30% of RAM gets the same "Marginal" label as one using 95%. The fit score components provide more nuance, but the fit level itself loses meaning in CPU-only scenarios.</li>
+    <li><strong>No score for 216 Qwen3 variants</strong> — the search results showed many models with <code>score: -</code>, indicating they weren't fully evaluated (likely MLX-format or non-GGUF variants that llama.cpp can't run).</li>
+  </ul>
+
+  <h3>Score component breakdown</h3>
+  <p>llmfit's composite score has four components, each 0–100:</p>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>What it measures</th><th>Typical values (CPU-only 8GB)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Fit</strong></td><td>How much memory headroom the model leaves</td><td>86–100 for models using &lt;90% of RAM</td></tr>
+      <tr><td><strong>Speed</strong></td><td>Estimated tokens/second relative to usability threshold</td><td>100 for most CPU models (heuristic ceiling)</td></tr>
+      <tr><td><strong>Context</strong></td><td>Context window length adequacy</td><td>100 for most models (4k+ is sufficient for basic use)</td></tr>
+      <tr><td><strong>Quality</strong></td><td>Model quality relative to database-wide range</td><td>58–73 for small models on this hardware</td></tr>
+    </tbody>
+  </table>
+  <p>On CPU-only hardware, speed and context scores are frequently 100 (the models that fit can run fast enough and have adequate context), so the quality component dominates differentiation between models. A higher-quality model that uses more RAM will score higher than a lower-quality model that fits more comfortably.</p>
+
+
+  <!-- SECTION 11: CONCLUSIONS -->
+  <h2 id="conclusions">Conclusions</h2>
+
+  <h3>What actually runs on 8 GB RAM with no GPU</h3>
+  <p>More than expected. 472 of 792 models in the llmfit database technically fit. For practical use, the 1B–5B parameter range offers the best experience: fast enough for interactive use (~40–100 tok/s estimated), small enough to leave OS headroom, and the quantization quality is high enough to be useful.</p>
+
+  <h3>MoE is the architecture for RAM-constrained hardware</h3>
+  <p>Every top recommendation is a MoE model. The apparent parameter count (7B, 8B, 9B) is misleading — the active parameters per token are 1–2B, matching the quality of a smaller dense model at much higher apparent sophistication. On CPU without GPU offloading, the speed advantage of MoE is reduced, but the RAM efficiency remains.</p>
+
+  <h3>The GPU gap is real but not enormous for modest models</h3>
+  <p>A used RTX 3060 12GB (~$250) would change this machine from "CPU-only marginal" to "GPU-accelerated Good fit" for 8B models. The performance improvement would be roughly 3–10× in tokens/second. For anyone serious about local LLM inference, GPU + moderate RAM is a significantly better investment than more RAM alone.</p>
+
+  <h3>llmfit is a useful tool with real rough edges</h3>
+  <p>The JSON API is well-designed for agent and tool integration. The hardware planning output is genuinely actionable. The limitations (heuristic speeds, missing GGUF sources for some top models, search subcommand not JSON-compatible) are real but don't undermine the core use case: quickly understanding what's possible on a given machine without manually calculating quantization math.</p>
+
+  <h3>Recommended starting point for this hardware</h3>
+  <ul>
+    <li><strong>Best overall</strong>: <code>LiquidAI/LFM2-8B-A1B</code> via Unsloth's GGUF — 128k context, solid quality, available GGUF</li>
+    <li><strong>Fastest response time</strong>: <code>microsoft/Phi-tiny-MoE-instruct</code> at Q8_0 — 97 tok/s estimated, only 2.1 GB</li>
+    <li><strong>Most RAM efficient + open source</strong>: <code>meta-llama/Llama-3.2-1B-Instruct</code> — 1.8 GB, Apache 2.0, widely tested</li>
+    <li><strong>Embeddings for RAG</strong>: <code>nomic-ai/nomic-embed-text-v1.5</code> — 137M parameters, 0.2 GB, 450 tok/s</li>
+    <li><strong>Code</strong>: <code>Qwen/Qwen2.5-Coder-1.5B-Instruct</code> — 2.5 GB, strong code model for its size</li>
+  </ul>
+
+
+  <!-- SOURCES -->
+  <h2 id="sources">Sources</h2>
+  <table>
+    <thead>
+      <tr><th>Resource</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>llmfit GitHub</td><td><a href="https://github.com/AlexsJones/llmfit" target="_blank">github.com/AlexsJones/llmfit</a></td></tr>
+      <tr><td>llmfit v0.8.9 release</td><td><a href="https://github.com/AlexsJones/llmfit/releases/tag/v0.8.9" target="_blank">github.com/AlexsJones/llmfit/releases/tag/v0.8.9</a></td></tr>
+      <tr><td>LiquidAI LFM2-8B-A1B GGUF (Unsloth)</td><td><a href="https://huggingface.co/unsloth/LFM2-8B-A1B-GGUF" target="_blank">huggingface.co/unsloth/LFM2-8B-A1B-GGUF</a></td></tr>
+      <tr><td>OLMoE-1B-7B GGUF (mradermacher)</td><td><a href="https://huggingface.co/mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF" target="_blank">huggingface.co/mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF</a></td></tr>
+      <tr><td>nomic-embed-text-v1.5</td><td><a href="https://huggingface.co/nomic-ai/nomic-embed-text-v1.5" target="_blank">huggingface.co/nomic-ai/nomic-embed-text-v1.5</a></td></tr>
+      <tr><td>Qwen2.5-Coder-1.5B-Instruct</td><td><a href="https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct" target="_blank">huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct</a></td></tr>
+      <tr><td>Llama-3.2-1B-Instruct</td><td><a href="https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct" target="_blank">huggingface.co/meta-llama/Llama-3.2-1B-Instruct</a></td></tr>
+      <tr><td>llama.cpp (inference runtime)</td><td><a href="https://github.com/ggerganov/llama.cpp" target="_blank">github.com/ggerganov/llama.cpp</a></td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<footer>Open Research · April 4, 2026 · Run on Intel i7-8700K, 8 GB RAM, no GPU · llmfit v0.8.9 · 792 models evaluated</footer>
+
+</body>
+</html>
