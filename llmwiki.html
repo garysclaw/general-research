@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LLM Wiki — Karpathy's Alternative to RAG</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --teal: #39d353;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 0 1rem 4rem;
+    }
+    .page-header {
+      background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 0 2rem;
+      margin: 0 -1rem 2.5rem;
+      text-align: center;
+    }
+    .page-header .badge {
+      display: inline-block;
+      background: rgba(63,185,80,0.12);
+      border: 1px solid rgba(63,185,80,0.35);
+      color: var(--green);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 2.2rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
+    .subtitle { color: var(--muted); font-size: 1.05rem; max-width: 700px; margin: 0 auto 1.5rem; }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .meta span { margin: 0 0.5rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h2 { font-size: 1.55rem; font-weight: 700; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 1.15rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--blue); }
+    h4 { font-size: 1rem; font-weight: 600; margin: 1.2rem 0 0.4rem; color: var(--orange); }
+    p { margin-bottom: 1rem; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    strong { color: var(--text); font-weight: 600; }
+    em { color: var(--muted); font-style: italic; }
+    code {
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.87em;
+      background: #1c2128;
+      border: 1px solid var(--border);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      color: var(--orange);
+    }
+    pre {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+    th { background: var(--surface); color: var(--muted); font-weight: 600; text-align: left; padding: 0.6rem 0.8rem; border: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 0.55rem 0.8rem; border: 1px solid var(--border); vertical-align: top; }
+    tr:nth-child(even) td { background: rgba(22,27,34,0.5); }
+    .callout { border-radius: 8px; padding: 1rem 1.25rem; margin: 1.25rem 0; font-size: 0.95rem; line-height: 1.6; }
+    .callout strong { display: block; margin-bottom: 0.3rem; }
+    .callout.info { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.3); }
+    .callout.warning { background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3); }
+    .callout.success { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.3); }
+    .callout.danger { background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.3); }
+    .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; font-size: 0.92rem; }
+    .toc h4 { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.75rem; }
+    .toc ol { margin: 0; padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.25rem; }
+    .chip { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 0.1em 0.5em; border-radius: 12px; letter-spacing: 0.03em; margin-left: 0.3rem; }
+    .chip.new { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+    .chip.warn { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+    .chip.info { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+    .diagram {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.25rem 0;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--text);
+      overflow-x: auto;
+    }
+    .diagram .comment { color: var(--muted); }
+    .diagram .highlight { color: var(--teal); font-weight: 600; }
+    .diagram .arrow { color: var(--blue); }
+    .impl-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .impl-card-title { font-weight: 600; margin-bottom: 0.25rem; }
+    .impl-card-desc { font-size: 0.88rem; color: var(--muted); }
+    footer { margin-top: 4rem; text-align: center; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+    blockquote {
+      border-left: 3px solid var(--border);
+      padding-left: 1rem;
+      color: var(--muted);
+      margin: 1rem 0 1.25rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="badge">Knowledge Management · April 2026</div>
+  <h1>LLM Wiki</h1>
+  <p class="subtitle">Andrej Karpathy's idea for using an LLM as a persistent librarian — compiling sources into a living, interlinked markdown knowledge base rather than searching raw documents at query time.</p>
+  <div class="meta">
+    <span>April 9, 2026</span>
+    <span>·</span>
+    <span>Originated April 2026 by Andrej Karpathy</span>
+    <span>·</span>
+    <span>17k+ likes · 3M+ views in 48 hours</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#what">What Is LLM Wiki?</a></li>
+      <li><a href="#problem">The Problem It Solves</a></li>
+      <li><a href="#architecture">How It Works — Architecture</a></li>
+      <li><a href="#operations">The Three Core Operations</a></li>
+      <li><a href="#tooling">Recommended Tooling</a></li>
+      <li><a href="#implementations">Implementations in the Wild</a></li>
+      <li><a href="#vs-rag">LLM Wiki vs. RAG</a></li>
+      <li><a href="#vs-pkm">LLM Wiki vs. Traditional PKM Tools</a></li>
+      <li><a href="#criticisms">Criticisms and Limitations</a></li>
+      <li><a href="#use-cases">Use Cases</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </div>
+
+
+  <!-- SECTION 1 -->
+  <h2 id="what">What Is LLM Wiki?</h2>
+
+  <p>LLM Wiki is a <strong>conceptual pattern</strong> for personal knowledge management, published by <strong>Andrej Karpathy</strong> (former Tesla AI Director, OpenAI co-founder, creator of NanoGPT and micrograd) in early April 2026 as a GitHub Gist. It is not a product, not a library, and not a protocol — it is a blueprint for how to structure the relationship between an LLM agent and a personal knowledge base.</p>
+
+  <p>The core idea: instead of searching raw documents at query time (as RAG does), use an LLM to <strong>compile your sources into a structured, interlinked markdown wiki once</strong>, and then keep that wiki maintained and up-to-date as new sources arrive. The LLM acts as a persistent librarian rather than a search-and-answer machine.</p>
+
+  <blockquote>
+    "Rather than treating the LLM like a search engine over your documents, treat it like an expert who has read everything and written up their notes — and you can ask those notes questions."
+    <br><br>— Karpathy's framing, paraphrased from the gist
+  </blockquote>
+
+  <p>Karpathy deliberately published this as an <strong>"idea file"</strong> rather than production code. The gist is a plain-text prompt/blueprint that you paste into an LLM agent, which customises an implementation for your specific setup. This framing — the "idea file" as a shareable unit of agent instruction — was itself considered noteworthy by the community.</p>
+
+  <div class="callout success">
+    <strong>Reception</strong>
+    The original gist received 5,000+ stars within days. Karpathy's tweet announcing it got 17,000+ likes and 3 million+ views in 48 hours. Two separate threads reached the Hacker News front page (295 points, 94 comments on the main thread). Dozens of independent implementations appeared on GitHub within the first week.
+  </div>
+
+
+  <!-- SECTION 2 -->
+  <h2 id="problem">The Problem It Solves</h2>
+
+  <p>Standard LLM use has a fundamental statefulness problem:</p>
+
+  <ul>
+    <li>Every new chat session starts with no memory of previous ones</li>
+    <li>RAG systems re-search and re-synthesise raw documents on every query — no accumulated understanding</li>
+    <li>Knowledge stays fragmented across chat histories, PDFs, browser tabs, and notes apps</li>
+    <li>Cross-referencing and synthesis must be redone from scratch every time you ask a related question</li>
+  </ul>
+
+  <p>Karpathy's analogy: current LLM workflows treat the model like a <strong>compiler that discards all intermediate work after each run</strong>. A better model is a <strong>librarian who reads everything, writes up their notes, keeps those notes organised, and you consult the notes — not the raw source material</strong>.</p>
+
+  <p>The compiled wiki is the intermediate work that gets saved. Ingesting a new document is a one-time cost. All future queries run against the synthesised knowledge base, not the raw sources.</p>
+
+
+  <!-- SECTION 3 -->
+  <h2 id="architecture">How It Works — Architecture</h2>
+
+  <p>The system has three layers:</p>
+
+  <div class="diagram">
+<span class="comment">┌─────────────────────────────────────────────┐</span>
+<span class="comment">│              RAW SOURCES  (read-only)       │</span>
+<span class="comment">│   PDFs · URLs · Papers · YouTube transcripts│</span>
+<span class="comment">│   raw/ directory — never modified by LLM    │</span>
+<span class="comment">└──────────────────────┬──────────────────────┘</span>
+                       <span class="arrow">│ ingest</span>
+                       <span class="arrow">▼</span>
+<span class="comment">┌─────────────────────────────────────────────┐</span>
+<span class="highlight">│              THE WIKI  (LLM-maintained)     │</span>
+<span class="highlight">│  wiki/ — markdown files with [[wikilinks]]  │</span>
+<span class="highlight">│  Concept pages · Entity pages · Comparisons │</span>
+<span class="highlight">│  Cross-references · Summaries · Indexes     │</span>
+<span class="comment">└──────────────────────┬──────────────────────┘</span>
+                       <span class="arrow">│ query</span>
+                       <span class="arrow">▼</span>
+<span class="comment">┌─────────────────────────────────────────────┐</span>
+<span class="comment">│              QUERIES                        │</span>
+<span class="comment">│   Answered from compiled wiki, not raw docs │</span>
+<span class="comment">│   Valuable answers filed back as new pages  │</span>
+<span class="comment">└─────────────────────────────────────────────┘</span>
+  </div>
+
+  <p>A fourth component sits above all three: the <strong>schema file</strong> (<code>CLAUDE.md</code> or <code>AGENTS.md</code>), which defines the wiki's structure, naming conventions, link formats, and the agent's workflow rules. This is the "idea file" — it is what Karpathy actually shared in the gist.</p>
+
+  <h3>Directory layout</h3>
+
+  <pre>knowledge-base/
+├── CLAUDE.md           ← schema / agent instructions (the "idea file")
+├── raw/                ← immutable source documents (never modified)
+│   ├── paper-2024.pdf
+│   ├── article-url.md
+│   └── yt-transcript.txt
+└── wiki/               ← LLM-compiled knowledge (always evolving)
+    ├── INDEX.md
+    ├── concepts/
+    │   ├── transformer-architecture.md
+    │   └── attention-mechanism.md
+    └── entities/
+        ├── andrej-karpathy.md
+        └── openai.md</pre>
+
+  <p>Scale target from Karpathy's own setup: approximately <strong>100 articles and 400,000 words</strong>. The approach works reliably up to roughly 50,000–100,000 tokens (~100–200 wiki pages) within a single agent context.</p>
+
+
+  <!-- SECTION 4 -->
+  <h2 id="operations">The Three Core Operations</h2>
+
+  <h3>1. Ingest</h3>
+  <p>When a new source is added to <code>raw/</code>, the LLM:</p>
+  <ol>
+    <li>Reads the source document in full</li>
+    <li>Identifies key concepts, entities, facts, and relationships</li>
+    <li>Integrates the new information into existing wiki pages (extending, correcting, adding cross-references)</li>
+    <li>Creates new pages where concepts don't yet exist</li>
+    <li>Updates the index and adds <code>[[wikilinks]]</code> between related pages</li>
+    <li>Logs the ingest in an activity file</li>
+  </ol>
+  <p>Knowledge is <strong>compiled once</strong> at ingest time. Subsequent queries don't re-read the source.</p>
+
+  <h3>2. Query</h3>
+  <p>Questions are answered from the compiled wiki — not from raw sources. Because the wiki already contains synthesised, cross-referenced knowledge, answers are faster and more coherent than querying raw documents. Valuable query responses that represent new synthesis can be filed back into the wiki as new pages.</p>
+
+  <h3>3. Lint</h3>
+  <p>Periodic health-check operation. The LLM reviews the wiki for:</p>
+  <ul>
+    <li>Contradictions between pages (newer source contradicts older synthesis)</li>
+    <li>Orphaned pages (no inbound <code>[[wikilinks]]</code>)</li>
+    <li>Stale claims (information that has likely been superseded)</li>
+    <li>Dead links and broken references</li>
+    <li>Knowledge gaps (concepts mentioned but not yet given their own page)</li>
+  </ul>
+
+
+  <!-- SECTION 5 -->
+  <h2 id="tooling">Recommended Tooling</h2>
+
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Role</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Obsidian</strong></td><td>Wiki browser / viewer</td><td>Renders <code>[[wikilinks]]</code>, graph view shows the knowledge graph visually, backlinks panel shows what links to each page</td></tr>
+      <tr><td><strong>qmd</strong></td><td>Local search</td><td>BM25 + vector + LLM re-ranking, works entirely locally over markdown files</td></tr>
+      <tr><td><strong>Dataview</strong> (Obsidian plugin)</td><td>Dynamic queries</td><td>Query frontmatter metadata across wiki pages (e.g. "all papers published after 2023")</td></tr>
+      <tr><td><strong>Git</strong></td><td>Version control</td><td>Full history of every wiki edit; diff shows exactly what the LLM changed on each ingest</td></tr>
+      <tr><td><strong>Claude Code / Cursor</strong></td><td>Agent runtime</td><td>File-system access lets the agent read raw/ and write wiki/ directly; Claude Code's skills layer fits the schema concept naturally</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>No vector database required</strong>
+    The LLM Wiki pattern deliberately avoids the infrastructure overhead of RAG: no embeddings pipeline, no vector store, no retrieval service. The entire knowledge base is plain markdown files on disk. The search layer (qmd or Obsidian's built-in search) operates over those files directly.
+  </div>
+
+
+  <!-- SECTION 6 -->
+  <h2 id="implementations">Implementations in the Wild</h2>
+
+  <p>There is no single canonical <code>llm-wiki</code> repository. The ecosystem is fragmented — dozens of independent implementations appeared on GitHub within the first week. Notable ones:</p>
+
+  <div class="impl-card">
+    <div class="impl-card-title"><a href="https://github.com/lucasastorian/llmwiki" target="_blank">lucasastorian/llmwiki</a> <span class="chip new">Most Stars (~148)</span></div>
+    <div class="impl-card-desc">Full-stack web app (Next.js + FastAPI + Supabase + MCP). Hosted version at llmwiki.app. The most polished implementation but the furthest from the original file-system-first concept.</div>
+  </div>
+
+  <div class="impl-card">
+    <div class="impl-card-title"><a href="https://github.com/iamsashank09/llm-wiki-kit" target="_blank">iamsashank09/llm-wiki-kit</a></div>
+    <div class="impl-card-desc">Python toolkit with PDF/URL/YouTube ingest, SQLite FTS5 full-text search, MCP server support, graph visualization. Closest to the original pattern in spirit — stays file-system oriented.</div>
+  </div>
+
+  <div class="impl-card">
+    <div class="impl-card-title"><a href="https://github.com/ekadetov/llm-wiki" target="_blank">ekadetov/llm-wiki</a></div>
+    <div class="impl-card-desc">Claude Code plugin for Obsidian. Python + Shell. Designed to run the ingest/lint operations directly from within Claude Code against an Obsidian vault.</div>
+  </div>
+
+  <div class="impl-card">
+    <div class="impl-card-title"><a href="https://github.com/MehmetGoekce/llm-wiki" target="_blank">MehmetGoekce/llm-wiki</a></div>
+    <div class="impl-card-desc">L1/L2 cache architecture — hot/warm/cold tiers for wiki pages. Supports both Logseq and Obsidian as the viewer layer.</div>
+  </div>
+
+  <div class="impl-card">
+    <div class="impl-card-title"><a href="https://github.com/ussumant/llm-wiki-compiler" target="_blank">ussumant/llm-wiki-compiler</a></div>
+    <div class="impl-card-desc">Claude Code plugin that compiles markdown documents into topic-based wiki pages. Explicitly designed as a Claude Code skill.</div>
+  </div>
+
+  <div class="impl-card">
+    <div class="impl-card-title"><a href="https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2" target="_blank">LLM Wiki v2 (gist)</a> <span class="chip info">Extension</span></div>
+    <div class="impl-card-desc">Community extension of the original pattern. Adds: confidence scoring per claim, memory lifecycle management (active/archived/deprecated), typed knowledge graph relationships, multi-agent sync. More rigorous but more complex.</div>
+  </div>
+
+  <div class="impl-card">
+    <div class="impl-card-title">CacheZero (Show HN)</div>
+    <div class="impl-card-desc">Packaged the entire concept as a single <code>npm install</code>. Appeared on Hacker News as a Show HN post. NPM-first approach — lowest friction for JS developers.</div>
+  </div>
+
+
+  <!-- SECTION 7 -->
+  <h2 id="vs-rag">LLM Wiki vs. RAG</h2>
+
+  <p>RAG (Retrieval-Augmented Generation) and LLM Wiki solve adjacent but different problems. The comparison that dominated the Hacker News discussion:</p>
+
+  <table>
+    <thead>
+      <tr><th>Dimension</th><th>LLM Wiki</th><th>RAG</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>When knowledge is processed</strong></td><td>At ingest time — once, compiled into the wiki</td><td>At query time — re-retrieved and re-synthesised every query</td></tr>
+      <tr><td><strong>Infrastructure required</strong></td><td>Zero — plain markdown files on disk</td><td>Vector database + embedding pipeline + retrieval service</td></tr>
+      <tr><td><strong>Scale ceiling</strong></td><td>~50k–100k tokens (~100–200 wiki pages)</td><td>Millions of documents with appropriate indexing</td></tr>
+      <tr><td><strong>Cross-references</strong></td><td>Persistent, maintained wikilinks</td><td>Ad hoc, rediscovered per query</td></tr>
+      <tr><td><strong>Freshness</strong></td><td>Requires manual re-ingest + lint cycle</td><td>Near-real-time via pipeline re-indexing</td></tr>
+      <tr><td><strong>Multi-user</strong></td><td>Write conflicts — difficult</td><td>Native, by design</td></tr>
+      <tr><td><strong>Human readability</strong></td><td>Fully readable, auditable markdown</td><td>Machine-oriented vector embeddings</td></tr>
+      <tr><td><strong>Token efficiency</strong></td><td>Up to 95% reduction vs. loading raw docs</td><td>Higher per-query cost depending on chunk size</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Personal, stable, mid-sized knowledge domains</td><td>Large, dynamic, multi-user document corpora</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <strong>The recommended approach: hybrid</strong>
+    LLM Wiki and RAG are not mutually exclusive. One practical hybrid: stable, core knowledge (architecture decisions, key concepts, personal notes) maintained as an LLM Wiki loaded into the system prompt; RAG used for dynamic or large-scale content (recent papers, large codebases, customer call transcripts). Each does what it's better at.
+  </div>
+
+
+  <!-- SECTION 8 -->
+  <h2 id="vs-pkm">LLM Wiki vs. Traditional PKM Tools</h2>
+
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Key Difference</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Obsidian / Logseq / Roam</strong></td>
+        <td>The <em>human</em> does the synthesis, cross-referencing, and maintenance. LLM Wiki offloads all of that to the agent. Obsidian is actually recommended as the <em>viewer</em> for an LLM Wiki — the tools are complementary, not competing.</td>
+      </tr>
+      <tr>
+        <td><strong>Notion / Confluence</strong></td>
+        <td>Static wikis go stale because humans don't maintain them. The LLM Wiki pattern delegates maintenance to the agent, keeping it current. The "company bible" use case (LLM maintains an internal wiki from Slack threads, meeting transcripts, and project docs) was widely discussed on HN.</td>
+      </tr>
+      <tr>
+        <td><strong>Knowledge Graphs (Neo4j)</strong></td>
+        <td>Formally verified, queryable graph relationships — but requires Cypher/SPARQL expertise and significant engineering. LLM Wiki trades formal graph semantics for zero infrastructure and human readability. LLM Wiki v2 adds typed relationships to partially close this gap.</td>
+      </tr>
+      <tr>
+        <td><strong>Zettelkasten</strong></td>
+        <td>Philosophically similar — atomic notes, permanent links. The key difference is authorship: Zettelkasten is human-authored (learning through writing), LLM Wiki is agent-authored (you delegate the writing). This difference was a major point of debate on HN.</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- SECTION 9 -->
+  <h2 id="criticisms">Criticisms and Limitations</h2>
+
+  <h3>Technical limitations</h3>
+
+  <ul>
+    <li><strong>Scale ceiling is real</strong> — works reliably at ~100–200 pages. Above that, context window limits, slow lint cycles, and cross-reference management become problematic. Not an enterprise solution.</li>
+    <li><strong>Multi-user write conflicts</strong> — designed for single-person use. Two agents writing to the same wiki simultaneously will produce conflicts. No built-in resolution mechanism.</li>
+    <li><strong>No real-time freshness</strong> — re-ingesting updated sources and running lint is a manual, periodic operation. For rapidly changing domains, this is a significant disadvantage vs. RAG.</li>
+    <li><strong>Context window obsolescence</strong> — as models gain larger context windows, the need for a compiled intermediate layer may diminish. If you can load 200 raw documents in context, why compile them?</li>
+  </ul>
+
+  <h3>Hallucination accumulation</h3>
+
+  <div class="callout danger">
+    <strong>The compounding error problem</strong>
+    Errors synthesised into wiki pages can propagate into subsequent ingest cycles — an LLM reads a page with an incorrect claim and treats it as authoritative when integrating new sources. Over many ingest cycles, errors can become entrenched and hard to audit back to their origin. The lint operation is intended to catch contradictions, but it can't catch plausible-but-wrong synthesis.
+  </div>
+
+  <h3>Philosophical criticisms (from HN)</h3>
+  <ul>
+    <li><strong>"Not genuinely novel"</strong> — several developers noted that coding assistants and memory-augmented agents had been doing this for over a year before Karpathy's post. The novelty is in the naming and framing, not the technical concept.</li>
+    <li><strong>Cognitive value loss</strong> — organising and synthesising information yourself produces insight ("shower thoughts"). The act of writing forces understanding. Automating this removes a learning step. Several HN commenters argued the value of a Zettelkasten is in the building, not the built thing.</li>
+    <li><strong>Maintenance burden shifts, not disappears</strong> — you still need to curate what goes into <code>raw/</code>, review what the LLM synthesises, and run lint cycles. The automation reduces but doesn't eliminate human judgment.</li>
+  </ul>
+
+
+  <!-- SECTION 10 -->
+  <h2 id="use-cases">Use Cases</h2>
+
+  <table>
+    <thead>
+      <tr><th>Use Case</th><th>Fit</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Personal research knowledge base</td><td><span class="chip new">Excellent</span></td><td>The original target. Domain-specific wikis for ongoing research. One HN user reported 3 books → 210 synthesised concept pages with 4,600+ cross-references.</td></tr>
+      <tr><td>Developer context persistence</td><td><span class="chip new">Excellent</span></td><td>AI coding agents that remember project architecture, decisions, and conventions across sessions. <code>ekadetov/llm-wiki</code> and <code>ussumant/llm-wiki-compiler</code> target this directly.</td></tr>
+      <tr><td>Institutional / team knowledge</td><td><span class="chip info">Good</span></td><td>"Company bible" fed from Slack, meeting transcripts, customer calls. Write-conflict problem limits truly concurrent multi-user use.</td></tr>
+      <tr><td>Multi-format ingestion (PDF, URL, video)</td><td><span class="chip info">Good</span></td><td>llm-wiki-kit supports PDF + URL + YouTube transcripts all compiled into one wiki.</td></tr>
+      <tr><td>Large-scale enterprise knowledge management</td><td><span class="chip warn">Poor</span></td><td>Scale ceiling, no access control, write conflicts, audit challenges. RAG or purpose-built enterprise tools are better here.</td></tr>
+      <tr><td>Real-time / rapidly changing domains</td><td><span class="chip warn">Poor</span></td><td>Manual re-ingest cycle makes this unsuitable for domains where freshness matters within hours.</td></tr>
+    </tbody>
+  </table>
+
+
+  <!-- SECTION 11 -->
+  <h2 id="sources">Sources</h2>
+
+  <table>
+    <thead>
+      <tr><th>Resource</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Original Karpathy gist</td><td><a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank">gist.github.com/karpathy/442a6bf…</a></td></tr>
+      <tr><td>Hacker News — main thread (295 pts)</td><td><a href="https://news.ycombinator.com/item?id=47640875" target="_blank">news.ycombinator.com/item?id=47640875</a></td></tr>
+      <tr><td>Hacker News — Show HN open-source impl</td><td><a href="https://news.ycombinator.com/item?id=47656181" target="_blank">news.ycombinator.com/item?id=47656181</a></td></tr>
+      <tr><td>Hacker News — Show HN CacheZero</td><td><a href="https://news.ycombinator.com/item?id=47667723" target="_blank">news.ycombinator.com/item?id=47667723</a></td></tr>
+      <tr><td>lucasastorian/llmwiki (most stars)</td><td><a href="https://github.com/lucasastorian/llmwiki" target="_blank">github.com/lucasastorian/llmwiki</a></td></tr>
+      <tr><td>iamsashank09/llm-wiki-kit</td><td><a href="https://github.com/iamsashank09/llm-wiki-kit" target="_blank">github.com/iamsashank09/llm-wiki-kit</a></td></tr>
+      <tr><td>ekadetov/llm-wiki (Claude Code plugin)</td><td><a href="https://github.com/ekadetov/llm-wiki" target="_blank">github.com/ekadetov/llm-wiki</a></td></tr>
+      <tr><td>LLM Wiki v2 extension gist</td><td><a href="https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2" target="_blank">gist.github.com/rohitg00/2067ab…</a></td></tr>
+      <tr><td>VentureBeat coverage</td><td><a href="https://venturebeat.com/data/karpathy-shares-llm-knowledge-base-architecture-that-bypasses-rag-with-an" target="_blank">venturebeat.com — Karpathy shares LLM knowledge base</a></td></tr>
+      <tr><td>LLM Wiki vs RAG — Atlan</td><td><a href="https://atlan.com/know/llm-wiki-vs-rag-knowledge-base/" target="_blank">atlan.com/know/llm-wiki-vs-rag-knowledge-base/</a></td></tr>
+      <tr><td>Analytics Vidhya coverage</td><td><a href="https://www.analyticsvidhya.com/blog/2026/04/llm-wiki-by-andrej-karpathy/" target="_blank">analyticsvidhya.com/blog/2026/04/llm-wiki…</a></td></tr>
+      <tr><td>MindStudio — LLM Wiki vs RAG</td><td><a href="https://www.mindstudio.ai/blog/llm-wiki-vs-rag-markdown-knowledge-base-comparison" target="_blank">mindstudio.ai/blog/llm-wiki-vs-rag…</a></td></tr>
+      <tr><td>DAIR.AI Academy — LLM Knowledge Bases</td><td><a href="https://academy.dair.ai/blog/llm-knowledge-bases-karpathy" target="_blank">academy.dair.ai/blog/llm-knowledge-bases-karpathy</a></td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<footer>Open Research · April 9, 2026 · Based on Karpathy's April 2026 gist and community implementations</footer>
+
+</body>
+</html>
