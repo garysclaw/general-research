@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indoor Citrus Tree Varieties — Research Guide</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #1c2128;
+      --bg-card: #21262d;
+      --border: #30363d;
+      --border-muted: #21262d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --text-subtle: #6e7681;
+      --accent: #f0883e;
+      --accent-warm: #ffa657;
+      --accent-yellow: #e3b341;
+      --accent-green: #3fb950;
+      --accent-red: #ff7b72;
+      --accent-blue: #79c0ff;
+      --accent-purple: #d2a8ff;
+      --highlight-bg: #2d1f0e;
+      --highlight-border: #f0883e;
+      --star-color: #f0883e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    a {
+      color: var(--accent-warm);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a0e00 0%, #0d1117 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 0 40px;
+    }
+
+    .header-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--highlight-bg);
+      border: 1px solid var(--highlight-border);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      width: fit-content;
+    }
+
+    header h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    .header-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 680px;
+    }
+
+    .header-meta {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .header-meta span {
+      font-size: 13px;
+      color: var(--text-subtle);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .header-meta span::before {
+      content: "•";
+      color: var(--accent);
+    }
+    .header-meta span:first-child::before { display: none; }
+
+    /* ── Section titles ── */
+    .section {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .section-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .section-intro {
+      color: var(--text-muted);
+      max-width: 780px;
+      margin-bottom: 32px;
+      font-size: 15px;
+    }
+
+    /* ── Limão Cravo Spotlight ── */
+    .spotlight {
+      background: linear-gradient(135deg, #2d1f0e 0%, #1a1205 100%);
+      border: 1px solid var(--highlight-border);
+      border-radius: 12px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .spotlight::before {
+      content: "🍊";
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      font-size: 120px;
+      opacity: .06;
+      user-select: none;
+    }
+
+    .spotlight-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .spotlight-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #e67e22, #f39c12);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      flex-shrink: 0;
+      box-shadow: 0 0 24px rgba(240,136,62,.4);
+    }
+
+    .spotlight-titles h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent-warm);
+      line-height: 1.2;
+    }
+
+    .spotlight-titles .botanical {
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    .spotlight-names {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .name-pill {
+      background: rgba(240,136,62,.15);
+      border: 1px solid rgba(240,136,62,.3);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      color: var(--accent-warm);
+      font-weight: 500;
+    }
+
+    .spotlight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .spotlight-fact {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .spotlight-fact h4 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .spotlight-fact p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .spotlight-body {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .spotlight-body p + p {
+      margin-top: 14px;
+    }
+
+    /* ── Comparison Table ── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--bg-card);
+      border-bottom: 2px solid var(--border);
+    }
+
+    thead th {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-muted);
+      transition: background .15s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--bg-secondary);
+    }
+
+    tbody tr.highlighted-row {
+      background: rgba(240,136,62,.06);
+    }
+
+    tbody tr.highlighted-row:hover {
+      background: rgba(240,136,62,.1);
+    }
+
+    td {
+      padding: 11px 14px;
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+
+    .variety-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .variety-botanical {
+      font-style: italic;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    .badge-special {
+      display: inline-block;
+      background: var(--highlight-bg);
+      border: 1px solid var(--highlight-border);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: .05em;
+      margin-top: 3px;
+    }
+
+    .stars {
+      color: var(--star-color);
+      letter-spacing: 1px;
+      font-size: 13px;
+    }
+
+    .stars-empty {
+      color: var(--border);
+    }
+
+    /* ── Top Picks Cards ── */
+    .picks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px;
+    }
+
+    .pick-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .pick-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .pick-card.featured {
+      border-color: var(--highlight-border);
+      background: linear-gradient(180deg, #2d1f0e 0%, var(--bg-card) 40%);
+    }
+
+    .pick-header {
+      padding: 20px 20px 14px;
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .pick-rank {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .pick-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .pick-botanical {
+      font-style: italic;
+      font-size: 12px;
+      color: var(--text-subtle);
+      margin-top: 2px;
+    }
+
+    .pick-ratings {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pick-rating {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .pick-rating-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-subtle);
+      font-weight: 600;
+    }
+
+    .pick-rating-stars {
+      color: var(--star-color);
+      font-size: 12px;
+    }
+
+    .pick-body {
+      padding: 16px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pick-section h5 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--accent-warm);
+      margin-bottom: 4px;
+    }
+
+    .pick-section p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .pick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 6px;
+    }
+
+    .tag {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    /* ── Growing Guide ── */
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .guide-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .guide-card-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .guide-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .guide-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .guide-card ul li {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .guide-card ul li::before {
+      content: "›";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Nurseries ── */
+    .nursery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .nursery-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nursery-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .nursery-url {
+      font-size: 13px;
+      color: var(--accent-warm);
+    }
+
+    .nursery-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .nursery-note {
+      font-size: 12px;
+      color: var(--text-subtle);
+      font-style: italic;
+    }
+
+    /* ── Sources ── */
+    .sources-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sources-list a {
+      font-size: 13.5px;
+      color: var(--accent-blue);
+      display: block;
+    }
+
+    .sources-list a:hover {
+      color: var(--accent-warm);
+    }
+
+    /* ── Callout box ── */
+    .callout {
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .callout strong {
+      color: var(--text);
+    }
+
+    /* ── Intro section ── */
+    .intro-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .intro-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .intro-card-icon {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .intro-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .intro-card p {
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 32px 0;
+      text-align: center;
+      color: var(--text-subtle);
+      font-size: 13px;
+    }
+
+    footer span {
+      color: var(--accent);
+    }
+
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.8rem; }
+      .spotlight { padding: 22px; }
+      .spotlight-icon { width: 52px; height: 52px; font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div class="header-badge">🍊 Horticultural Research</div>
+      <h1>Indoor <span>Citrus Tree</span> Varieties</h1>
+      <p class="header-subtitle">
+        A comprehensive guide to growing beautiful, tree-shaped citrus indoors — ranked by flavor, tree form, and indoor adaptability. Special spotlight on the beloved Brazilian <em>limão cravo</em>.
+      </p>
+      <div class="header-meta">
+        <span>April 2026</span>
+        <span>15 varieties researched</span>
+        <span>Focus: tree form + indoor suitability + flavor</span>
+        <span>Limão Cravo spotlight included</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════ INTRO ═══════════════════════════════════════ -->
+<div class="container">
+  <div class="section">
+    <div class="section-label">Overview</div>
+    <h2 class="section-title">Why Grow Citrus Indoors?</h2>
+    <p class="section-intro">
+      Citrus trees are among the most rewarding plants you can grow indoors. They produce fragrant blossoms, ornamental fruit, and genuine edible harvests year-round — all while adding architectural beauty to a room with their single-trunk, canopy form. The key is choosing the right variety: one that tolerates lower light levels and indoor humidity, stays compact enough for containers, and — critically — actually tastes good.
+    </p>
+    <p class="section-intro" style="margin-top: -16px;">
+      This guide focuses specifically on <strong>tree-shaped</strong> varieties (single trunk, defined canopy) rather than shrubby or multi-stemmed forms. It ranks varieties by flavor quality and indoor performance based on horticultural consensus and nursery guidance.
+    </p>
+
+    <div class="intro-cards">
+      <div class="intro-card">
+        <div class="intro-card-icon">🌳</div>
+        <h4>Tree Form Matters</h4>
+        <p>Single-trunk varieties are more architectural and can be trained as standard trees with a defined canopy.</p>
+      </div>
+      <div class="intro-card">
+        <div class="intro-card-icon">☀️</div>
+        <h4>Light is Non-Negotiable</h4>
+        <p>Most indoor citrus need 6–8 hours of direct sun daily. South-facing windows or grow lights are essential.</p>
+      </div>
+      <div class="intro-card">
+        <div class="intro-card-icon">🍋</div>
+        <h4>Flavor First</h4>
+        <p>Not all citrus is created equal. Some indoor-adapted varieties produce exceptional fruit; others are more ornamental.</p>
+      </div>
+      <div class="intro-card">
+        <div class="intro-card-icon">🪴</div>
+        <h4>Container Adaptation</h4>
+        <p>Varieties on dwarfing rootstock stay manageable indoors — typically 4–8 feet — and fruit earlier than seedlings.</p>
+      </div>
+      <div class="intro-card">
+        <div class="intro-card-icon">🌍</div>
+        <h4>Global Varieties</h4>
+        <p>The best indoor citrus comes from breeding programs in California, Japan, Brazil, and the Mediterranean.</p>
+      </div>
+    </div>
+  </div>
+
+<!-- ═══════════════════════════════ LIMÃO CRAVO SPOTLIGHT ═══════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">Special Feature</div>
+    <h2 class="section-title">The Limão Cravo Spotlight</h2>
+    <p class="section-intro">
+      A dedicated deep-dive into the variety most beloved in Brazil — the tangy, aromatic, mandarin-lemon hybrid that is the backbone of Brazilian juice culture and far more interesting than it first appears.
+    </p>
+
+    <div class="spotlight">
+      <div class="spotlight-header">
+        <div class="spotlight-icon">🍊</div>
+        <div class="spotlight-titles">
+          <h2>Limão Cravo / Rangpur Lime</h2>
+          <div class="botanical">Citrus × limonia (syn. Citrus × limonia Osbeck)</div>
+          <div class="spotlight-names">
+            <span class="name-pill">🇧🇷 limão cravo</span>
+            <span class="name-pill">limão-tangerina</span>
+            <span class="name-pill">Rangpur lime</span>
+            <span class="name-pill">mandarin-lime</span>
+            <span class="name-pill">canton lemon</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="spotlight-body">
+        <p>
+          <strong>Limão cravo</strong> — literally "clove lime" in Portuguese, a reference to its intensely aromatic, almost spiced fragrance — is one of the defining fruits of Brazilian gastronomy. Despite being called a "limão" (lime/lemon) in Brazil, it is not botanically a lime at all. Modern genomic studies confirm it is an <strong>F1 hybrid of citron (Citrus medica) and mandarin orange (Citrus reticulata)</strong>, making it a sibling to the Meyer lemon in spirit, though quite different in character. The same fruit is known internationally as Rangpur lime, after the city of Rangpur in Bangladesh where it was historically cultivated.
+        </p>
+        <p>
+          In Brazil, the limão cravo completely dominates the lime/lemon market. The Brazilian "lemonade" (limonada brasileira) is almost always made with this fruit — blended whole in a blender with sweetened condensed milk — precisely because its thick, aromatic rind contributes as much flavor as its juice. It is also the primary acidulant in caipirinha cocktails in many regions, and Brazil is one of the world's largest commercial producers, using it extensively for juice concentrate.
+        </p>
+        <p>
+          The fruit is <strong>visually striking</strong>: roughly tangerine-sized, turning a vivid orange at maturity (not green as its "lime" name implies). The flesh is orange-tinged and extremely juicy. The flavor is layered — intensely acidic and sour up front, with characteristic mandarin/tangerine overtones in the background: floral, smoky, musky, and complex in a way that true limes simply are not.
+        </p>
+      </div>
+
+      <div class="spotlight-grid">
+        <div class="spotlight-fact">
+          <h4>Botanical Identity</h4>
+          <p>Hybrid of citron (Citrus medica) × mandarin (Citrus reticulata). Classified as Citrus × limonia. Related to Meyer lemon, but distinct parentage.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Flavor Profile</h4>
+          <p>Intensely sour and acidic like a lime, but with rich mandarin/tangerine background notes — floral, musky, slightly smoky. Very aromatic rind.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Fruit Appearance</h4>
+          <p>Tangerine-sized (4–6 cm), bright orange skin at maturity. Looser rind than a true mandarin. Orange-tinted juicy flesh. Many seeds.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Tree Form</h4>
+          <p>Moderate vigor. Naturally somewhat compact-spherical and can develop thorns. Grows 8–15 ft in ground; in containers, 4–7 ft. Can be trained to single-trunk tree form.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Indoor Suitability</h4>
+          <p>Excellent. Very drought-tolerant, adaptable to container culture. Widely used as rootstock because of its vigor and adaptability. Handles lower humidity better than many citrus.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Brazil's Connection</h4>
+          <p>The dominant commercial lime/lemon in Brazil. Used in limonada brasileira, caipirinha, juice production. Brazil is a global top producer. Called "cravo" (clove) for its spiced aroma.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Fruiting Speed</h4>
+          <p>Fast-bearing. Young grafted trees can fruit in 1–2 years. Known for prolific, year-round production in warm climates; seasonal indoors.</p>
+        </div>
+        <div class="spotlight-fact">
+          <h4>Where to Buy in the US</h4>
+          <p>Four Winds Growers (fourwindsgrowers.com), US Citrus Nursery (uscitrusnursery.com), Logee's (logees.com), and specialty Brazilian/tropical plant importers.</p>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 20px;">
+        <strong>Indoor tip:</strong> The limão cravo's natural tendency toward a compact, spherical canopy means it can be pruned into an attractive standard tree form (single trunk + rounded head). It responds well to formative pruning. The aromatic rind makes the whole room fragrant when fruit is present — a major bonus for indoor growing.
+      </div>
+    </div>
+  </div>
+
+<!-- ═══════════════════════════════ COMPARISON TABLE ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">Full Comparison</div>
+    <h2 class="section-title">All Varieties Side by Side</h2>
+    <p class="section-intro">
+      Ratings are on a 5-point scale. Tree Form rates how naturally tree-like (single trunk + canopy) versus shrubby/multi-stemmed the variety grows. Indoor Suitability reflects tolerance of lower light, indoor humidity, and container culture. Flavor rates eating and/or culinary quality.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Variety</th>
+            <th>Tree Form</th>
+            <th>Indoor Suit.</th>
+            <th>Flavor</th>
+            <th>Fruit Size</th>
+            <th>First Fruit</th>
+            <th>Indoor Height</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="highlighted-row">
+            <td>
+              <div class="variety-name">Limão Cravo / Rangpur Lime</div>
+              <div class="variety-botanical">Citrus × limonia</div>
+              <div class="badge-special">★ SPOTLIGHT</div>
+            </td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td>Medium (tangerine-sized)</td>
+            <td>1–2 years</td>
+            <td>4–7 ft</td>
+            <td>Naturally compact-spherical. Trainable to tree form. Drought-tolerant. Very prolific. Intensely aromatic.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Improved Meyer Lemon</div>
+              <div class="variety-botanical">Citrus × meyeri 'Improved'</div>
+            </td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Medium (egg-sized)</td>
+            <td>1–3 years</td>
+            <td>4–6 ft</td>
+            <td>Disease-resistant version. The gold standard for indoor citrus. Sweeter, thinner-skinned than Eureka. Nearly everbearing.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Owari Satsuma Mandarin</div>
+              <div class="variety-botanical">Citrus unshiu 'Owari'</div>
+            </td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Small-medium</td>
+            <td>2–3 years</td>
+            <td>4–6 ft</td>
+            <td>Most tree-like satsuma. Excellent single-trunk form. Cold-hardiest indoor citrus. Seedless, easy-peel. Exceptional flavor.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Cara Cara Navel Orange</div>
+              <div class="variety-botanical">Citrus sinensis 'Cara Cara'</div>
+            </td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Large</td>
+            <td>2–4 years</td>
+            <td>5–8 ft</td>
+            <td>Stunning pink flesh. Berry-like sweetness. Strong tree form with defined trunk. Needs excellent light. Visually dramatic.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Blood Orange (Moro)</div>
+              <div class="variety-botanical">Citrus sinensis 'Moro'</div>
+            </td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Medium-large</td>
+            <td>2–4 years</td>
+            <td>5–8 ft</td>
+            <td>Deepest red flesh of all blood oranges. Complex raspberry-orange flavor. True tree form. Needs temperature fluctuation for best color.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Trovita Orange</div>
+              <div class="variety-botanical">Citrus sinensis 'Trovita'</div>
+            </td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td>Medium</td>
+            <td>2–4 years</td>
+            <td>4–6 ft</td>
+            <td>Bred for lower-light environments — unusual for a sweet orange. Compact, upright tree form. Excellent for sunny indoor spots.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Clementine Mandarin</div>
+              <div class="variety-botanical">Citrus × clementina</div>
+            </td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Small-medium</td>
+            <td>2–3 years</td>
+            <td>4–6 ft</td>
+            <td>Superb flavor — the sweetest mandarin group. Tree-able with training. Needs cross-pollination for full crop (some self-fertile varieties exist).</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Eureka Lemon</div>
+              <div class="variety-botanical">Citrus limon 'Eureka'</div>
+            </td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td>Medium-large</td>
+            <td>2–4 years</td>
+            <td>5–8 ft</td>
+            <td>More classically tree-like than Meyer. True lemon flavor. Demands high light indoors — not forgiving of dim conditions. Nearly thornless on grafted trees.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Ponderosa Lemon</div>
+              <div class="variety-botanical">Citrus × pyriformis</div>
+            </td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td>Very large (grapefruit-sized)</td>
+            <td>1–2 years</td>
+            <td>5–7 ft</td>
+            <td>Spectacular fruit — can weigh 2 lbs. Very dramatic as a specimen tree. Flavor is mild/citron-like rather than classic lemon. Strong visual impact.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Washington Navel Orange</div>
+              <div class="variety-botanical">Citrus sinensis 'Washington'</div>
+            </td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Large</td>
+            <td>3–5 years</td>
+            <td>6–10 ft</td>
+            <td>Magnificent tree form but very space-demanding. Requires outstanding light and care indoors. Best in a sunroom or greenhouse-style space.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Meyer Lemon (Standard)</div>
+              <div class="variety-botanical">Citrus × meyeri</div>
+            </td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Medium</td>
+            <td>1–3 years</td>
+            <td>4–6 ft</td>
+            <td>The original, pre-disease-resistance version. Still available. Nearly identical to Improved in most practical respects. Slightly more susceptible to tristeza virus.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Calamondin</div>
+              <div class="variety-botanical">× Citrofortunella microcarpa</div>
+            </td>
+            <td><span class="stars">★★</span><span class="stars-empty">★★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td>Very small</td>
+            <td>1–2 years</td>
+            <td>3–5 ft</td>
+            <td>Extremely adaptable indoors. Very ornamental with abundant tiny fruit. Naturally multi-stemmed/shrubby — requires persistent training for tree form. Tart, mostly culinary use.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Satsuma Mandarin (general)</div>
+              <div class="variety-botanical">Citrus unshiu</div>
+            </td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td>Small-medium</td>
+            <td>2–3 years</td>
+            <td>4–7 ft</td>
+            <td>Hardiest mandarin group. Cold-tolerant to ~15°F. Good tree form on standard rootstock. Owari is the most recommended indoor cultivar of this type.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Makrut / Kaffir Lime</div>
+              <div class="variety-botanical">Citrus hystrix</div>
+            </td>
+            <td><span class="stars">★★</span><span class="stars-empty">★★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td>Small, bumpy</td>
+            <td>2–3 years</td>
+            <td>3–6 ft</td>
+            <td>Grown primarily for its extraordinary double-lobed leaves (essential in Thai/Southeast Asian cuisine). Fruit is very zesty but not for eating fresh. Naturally shrubby.</td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="variety-name">Kumquat (Nagami)</div>
+              <div class="variety-botanical">Fortunella margarita</div>
+            </td>
+            <td><span class="stars">★★★</span><span class="stars-empty">★★</span></td>
+            <td><span class="stars">★★★★★</span></td>
+            <td><span class="stars">★★★★</span><span class="stars-empty">★</span></td>
+            <td>Very small (olive-sized)</td>
+            <td>1–2 years</td>
+            <td>3–5 ft</td>
+            <td>Eaten whole — sweet skin, tart flesh. Cold-hardiest of all indoor citrus. Compact but can be trained upright. Prolific fruiter indoors. Not a true Citrus.</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout" style="margin-top: 20px;">
+      <strong>Note on tree form:</strong> All citrus can be trained toward a tree shape with deliberate formative pruning — selecting a central leader, removing competing stems at the base, and gradually raising the canopy. However, some varieties (Meyer, Owari Satsuma, Trovita) naturally produce a clean single-trunk structure, while others (Calamondin, Makrut Lime) fight this constantly and require sustained effort.
+    </div>
+  </div>
+
+<!-- ═══════════════════════════════ TOP PICKS CARDS ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">Recommendations</div>
+    <h2 class="section-title">Top 6 Picks for Indoor Tree-Shaped Citrus</h2>
+    <p class="section-intro">
+      These varieties offer the best combination of natural tree form, indoor adaptability, and outstanding fruit quality. Each is worth growing as a long-term indoor specimen.
+    </p>
+
+    <div class="picks-grid">
+
+      <!-- Card 1: Limão Cravo -->
+      <div class="pick-card featured">
+        <div class="pick-header">
+          <div class="pick-rank">Special Interest Pick</div>
+          <div class="pick-name">Limão Cravo / Rangpur Lime</div>
+          <div class="pick-botanical">Citrus × limonia</div>
+          <div class="pick-ratings">
+            <div class="pick-rating">
+              <span class="pick-rating-label">Tree Form</span>
+              <span class="pick-rating-stars">★★★☆☆</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Indoor Suit.</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Flavor</span>
+              <span class="pick-rating-stars">★★★★☆</span>
+            </div>
+          </div>
+        </div>
+        <div class="pick-body">
+          <div class="pick-section">
+            <h5>Flavor Notes</h5>
+            <p>Intensely sour and acidic with a rich, musky mandarin undercurrent. Floral, slightly smoky, and very aromatic — especially the thick orange rind. Used the same way as lime or lemon in cooking, but with far more complexity.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Tree Shape</h5>
+            <p>Naturally compact and somewhat rounded. Has a tendency to be multi-stemmed when young, but with formative pruning will develop a strong single-trunk standard form. May have light thorns. Grows 4–7 ft in a container.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Indoor Care Tips</h5>
+            <p>One of the most drought-tolerant citrus — let the soil dry slightly more than other varieties between waterings. Handles moderate humidity drops well. South window or supplemented light (6+ hours). Minimal fertilization needed compared to other citrus.</p>
+          </div>
+          <div class="pick-tags">
+            <span class="tag">Brazilian icon</span>
+            <span class="tag">drought-tolerant</span>
+            <span class="tag">everbearing</span>
+            <span class="tag">aromatic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Improved Meyer Lemon -->
+      <div class="pick-card">
+        <div class="pick-header">
+          <div class="pick-rank">Pick #1 — Classic Indoor Citrus</div>
+          <div class="pick-name">Improved Meyer Lemon</div>
+          <div class="pick-botanical">Citrus × meyeri 'Improved'</div>
+          <div class="pick-ratings">
+            <div class="pick-rating">
+              <span class="pick-rating-label">Tree Form</span>
+              <span class="pick-rating-stars">★★★★☆</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Indoor Suit.</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Flavor</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+          </div>
+        </div>
+        <div class="pick-body">
+          <div class="pick-section">
+            <h5>Flavor Notes</h5>
+            <p>A lemon-orange hybrid with sweeter, less acidic juice than Eureka or Lisbon. Thin edible skin. Complex floral-lemon aroma. Perfect for lemonade, baking, cocktails, and cooking. Widely considered the finest lemon for home growing.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Tree Shape</h5>
+            <p>Naturally grows into a well-defined, rounded canopy on a single trunk. More compact than Eureka with fewer thorns. Excellent structure without heavy pruning. Container height of 4–6 ft is easily maintained.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Indoor Care Tips</h5>
+            <p>The most forgiving indoor citrus. Needs 6–8 hours of direct sun (south window). Keep above 50°F. Let soil dry 1–2 inches between waterings. Fertilize monthly with citrus-specific formula spring through fall. Blooms multiple times per year indoors.</p>
+          </div>
+          <div class="pick-tags">
+            <span class="tag">everbearing</span>
+            <span class="tag">disease resistant</span>
+            <span class="tag">fragrant blooms</span>
+            <span class="tag">beginner-friendly</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Owari Satsuma -->
+      <div class="pick-card">
+        <div class="pick-header">
+          <div class="pick-rank">Pick #2 — Best Mandarin for Indoors</div>
+          <div class="pick-name">Owari Satsuma Mandarin</div>
+          <div class="pick-botanical">Citrus unshiu 'Owari'</div>
+          <div class="pick-ratings">
+            <div class="pick-rating">
+              <span class="pick-rating-label">Tree Form</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Indoor Suit.</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Flavor</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+          </div>
+        </div>
+        <div class="pick-body">
+          <div class="pick-section">
+            <h5>Flavor Notes</h5>
+            <p>Exceptionally sweet with low acidity and a rich, complex mandarin flavor. Seedless, easy-peel, and ready to eat with no mess. Fruit quality rivals the best grocery store mandarins — and surpasses them for freshness off the tree.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Tree Shape</h5>
+            <p>Naturally strong, upright single-trunk form with a spreading, open canopy. Among the most tree-like of all indoor citrus — looks the part without heavy training. Dense, dark-green foliage is beautiful year-round. Reaches 4–6 ft in containers.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Indoor Care Tips</h5>
+            <p>Cold-hardiest mandarin — can tolerate brief dips to 15–20°F, making it ideal for cool sunrooms or entryways. Produces fruit in fall-winter, which is the perfect season for fresh mandarins. Standard citrus watering and fertilizing applies. One of the easiest citrus for beginners.</p>
+          </div>
+          <div class="pick-tags">
+            <span class="tag">seedless</span>
+            <span class="tag">cold-tolerant</span>
+            <span class="tag">fall harvest</span>
+            <span class="tag">best tree form</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Cara Cara -->
+      <div class="pick-card">
+        <div class="pick-header">
+          <div class="pick-rank">Pick #3 — Most Dramatic Fruit</div>
+          <div class="pick-name">Cara Cara Navel Orange</div>
+          <div class="pick-botanical">Citrus sinensis 'Cara Cara'</div>
+          <div class="pick-ratings">
+            <div class="pick-rating">
+              <span class="pick-rating-label">Tree Form</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Indoor Suit.</span>
+              <span class="pick-rating-stars">★★★★☆</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Flavor</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+          </div>
+        </div>
+        <div class="pick-body">
+          <div class="pick-section">
+            <h5>Flavor Notes</h5>
+            <p>Uniquely sweet orange with berry-like undertones — strawberry and raspberry notes are often detected. Pink-red flesh from lycopene pigmentation (not anthocyanin). Lower acidity than standard navels. Visually stunning when cut: pink flesh is a conversation piece.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Tree Shape</h5>
+            <p>Strong, classic orange-tree form: upright central trunk, rounded spreading canopy with glossy dark leaves. One of the most architecturally satisfying indoor citrus. Grows to 5–8 ft in containers — needs some space but rewards it beautifully.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Indoor Care Tips</h5>
+            <p>Demands the best light of any variety in this list — a south-facing window with no obstructions, or high-quality grow light supplementation. Fruit development takes patience (2–4 years from a young tree). Container-grown trees can be managed at 6 ft with annual pruning. Keep humidity above 40%.</p>
+          </div>
+          <div class="pick-tags">
+            <span class="tag">pink flesh</span>
+            <span class="tag">architectural form</span>
+            <span class="tag">navel orange</span>
+            <span class="tag">show-stopper</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Blood Orange Moro -->
+      <div class="pick-card">
+        <div class="pick-header">
+          <div class="pick-rank">Pick #4 — Most Complex Flavor</div>
+          <div class="pick-name">Blood Orange 'Moro'</div>
+          <div class="pick-botanical">Citrus sinensis 'Moro'</div>
+          <div class="pick-ratings">
+            <div class="pick-rating">
+              <span class="pick-rating-label">Tree Form</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Indoor Suit.</span>
+              <span class="pick-rating-stars">★★★★☆</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Flavor</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+          </div>
+        </div>
+        <div class="pick-body">
+          <div class="pick-section">
+            <h5>Flavor Notes</h5>
+            <p>The deepest, most intensely colored blood orange — nearly purple-red flesh and even reddish rind blush. Flavor is an extraordinary sweet-tart combination with strong raspberry, cherry, and red berry notes. Unlike any other citrus. Best eaten fresh, juiced, or in cocktails.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Tree Shape</h5>
+            <p>Produces a classically beautiful orange tree form: strong single trunk, spreading canopy, medium-to-large stature. Dark green glossy leaves are attractive year-round. Grows 5–8 ft in containers.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Indoor Care Tips</h5>
+            <p>Blood color development requires cold nights (below 55°F) — so a cool sunroom, unheated room, or time near a cold window in winter encourages the best coloring. In warm indoor conditions, color will be lighter but flavor remains excellent. Full sun essential. Fruit typically ripens mid-winter to early spring.</p>
+          </div>
+          <div class="pick-tags">
+            <span class="tag">deep red flesh</span>
+            <span class="tag">berry notes</span>
+            <span class="tag">winter fruit</span>
+            <span class="tag">Mediterranean origin</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Trovita Orange -->
+      <div class="pick-card">
+        <div class="pick-header">
+          <div class="pick-rank">Pick #5 — Best Low-Light Orange</div>
+          <div class="pick-name">Trovita Orange</div>
+          <div class="pick-botanical">Citrus sinensis 'Trovita'</div>
+          <div class="pick-ratings">
+            <div class="pick-rating">
+              <span class="pick-rating-label">Tree Form</span>
+              <span class="pick-rating-stars">★★★★★</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Indoor Suit.</span>
+              <span class="pick-rating-stars">★★★★☆</span>
+            </div>
+            <div class="pick-rating">
+              <span class="pick-rating-label">Flavor</span>
+              <span class="pick-rating-stars">★★★★☆</span>
+            </div>
+          </div>
+        </div>
+        <div class="pick-body">
+          <div class="pick-section">
+            <h5>Flavor Notes</h5>
+            <p>Sweet, mild, classic orange flavor with good juice content. Not quite as rich as Washington Navel, but perfectly pleasant. Seedless to few seeds. Thin rind. Excellent eaten fresh or juiced. Fruit is medium-sized with an attractive orange color.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Tree Shape</h5>
+            <p>Compact, upright tree with a naturally clean single-trunk structure. One of the most well-formed small orange trees available for containers. Stays at 4–6 ft in a pot without aggressive pruning — unusually well-behaved for a sweet orange.</p>
+          </div>
+          <div class="pick-section">
+            <h5>Indoor Care Tips</h5>
+            <p>Trovita was developed from a seedling that showed unusual adaptation to lower light conditions — making it the best sweet orange choice for indoor spaces that don't have a perfect south window. Still needs 6+ hours of light, but is more forgiving than other sweet oranges. Spring bloomer with fall-winter fruit.</p>
+          </div>
+          <div class="pick-tags">
+            <span class="tag">lower light tolerant</span>
+            <span class="tag">compact form</span>
+            <span class="tag">seedless</span>
+            <span class="tag">sweet orange</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<!-- ═══════════════════════════════ GROWING GUIDE ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">Cultivation</div>
+    <h2 class="section-title">Indoor Growing Fundamentals</h2>
+    <p class="section-intro">
+      Citrus grown indoors need more attention than many houseplants, but less than most people fear. These fundamentals apply to virtually all varieties. Get these right and your tree will thrive for decades.
+    </p>
+
+    <div class="guide-grid">
+
+      <div class="guide-card">
+        <div class="guide-card-icon">☀️</div>
+        <h3>Light Requirements</h3>
+        <ul>
+          <li>Minimum 6 hours of direct sun daily; 8–10 hours is better for fruiting</li>
+          <li>South-facing window is ideal; west-facing can work with grow light supplement</li>
+          <li>Full-spectrum LED grow lights (at least 2000–4000 lux) positioned 12–24 inches above canopy compensate for insufficient sun</li>
+          <li>Rotate the pot 90° every 2 weeks for even canopy development</li>
+          <li>Insufficient light = leaf drop, no flowers, no fruit. This is the most common failure point.</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">🪴</div>
+        <h3>Container &amp; Potting</h3>
+        <ul>
+          <li>Terracotta breathes better and prevents overwatering — preferred for citrus</li>
+          <li>Drainage holes are absolutely non-negotiable. Never sit pot in standing water.</li>
+          <li>Start in a 10–14 inch pot; size up only when roots circle the bottom (every 2–3 years)</li>
+          <li>Use a well-draining, slightly acidic potting mix (pH 5.5–6.5) formulated for citrus/palms</li>
+          <li>Heavy pots on casters allow rotation and moving without strain</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">💧</div>
+        <h3>Watering</h3>
+        <ul>
+          <li>Citrus hate wet feet — overwatering kills far more trees than underwatering</li>
+          <li>Water deeply when the top 1–2 inches of soil are dry; let water drain fully</li>
+          <li>In winter (low light), reduce watering significantly — monthly for some trees</li>
+          <li>Yellow leaves with green veins = overwatering or poor drainage</li>
+          <li>Yellow leaves falling = underwatering or cold draft</li>
+          <li>Use room-temperature water; cold water shocks roots in winter</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">🌫️</div>
+        <h3>Humidity</h3>
+        <ul>
+          <li>Indoor air (especially in winter with heating) is often too dry for citrus</li>
+          <li>Target 40–60% relative humidity</li>
+          <li>Pebble trays filled with water placed under (not touching) the pot add localized humidity</li>
+          <li>A small humidifier near the tree is the most reliable solution</li>
+          <li>Misting is helpful but must be done in the morning to prevent fungal issues</li>
+          <li>Grouping plants together raises humidity naturally</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">🌱</div>
+        <h3>Fertilizing</h3>
+        <ul>
+          <li>Citrus are heavy feeders — nitrogen-rich fertilizer is essential</li>
+          <li>Use a citrus-specific granular or liquid fertilizer (high N, with micronutrients including iron, manganese, zinc)</li>
+          <li>Fertilize monthly from spring through early fall; stop or reduce in winter</li>
+          <li>Iron deficiency (chlorosis) is common indoors — look for yellowing between veins on new growth</li>
+          <li>Avoid over-fertilizing in low-light conditions — this causes leaf burn without growth benefit</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">🌡️</div>
+        <h3>Temperature</h3>
+        <ul>
+          <li>Most indoor citrus prefer 55–85°F (13–30°C) year-round</li>
+          <li>Below 50°F slows growth significantly; below 32°F damages most varieties</li>
+          <li>Keep away from heating vents, radiators, and cold drafts from windows</li>
+          <li>A cool winter rest (60–65°F nights) encourages spring bloom flush</li>
+          <li>Satsuma mandarins are the most cold-tolerant; blood oranges benefit from cool nights for coloring</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">✂️</div>
+        <h3>Pruning for Tree Form</h3>
+        <ul>
+          <li>Select one dominant upright stem as the central leader early on</li>
+          <li>Remove suckers from below the graft union immediately — they are rootstock, not your variety</li>
+          <li>Thin crossing, inward-growing, and downward-hanging branches to open the canopy</li>
+          <li>Raise the skirt gradually — remove lower branches over 2–3 years to develop a clear trunk</li>
+          <li>Prune after a flush of growth (spring is ideal). Never remove more than 1/3 at once.</li>
+          <li>Light tip-pruning encourages bushier growth; avoid if you want height</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-card-icon">🔄</div>
+        <h3>Repotting</h3>
+        <ul>
+          <li>Repot every 2–3 years or when roots circle visibly at the drainage holes</li>
+          <li>Spring is the best time — just before the active growing season</li>
+          <li>Go up only one pot size at a time (2 inches in diameter) to prevent root rot from overly wet soil</li>
+          <li>Refresh potting mix even if you use the same pot size</li>
+          <li>Root-prune large, container-bound trees to maintain size and refresh root health</li>
+          <li>Water well after repotting and keep in shade for 1–2 weeks to reduce transplant stress</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+<!-- ═══════════════════════════════ WHERE TO BUY ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">Sourcing</div>
+    <h2 class="section-title">Where to Buy Indoor Citrus Trees (US)</h2>
+    <p class="section-intro">
+      Buy grafted trees from reputable specialty nurseries — not box stores, which typically sell ungrafted seedlings that may take 7–10 years to fruit (if ever). The nurseries below ship USDA-compliant trees nationwide (restrictions apply to some states — particularly AZ, CA, FL, TX due to citrus greening quarantine regulations).
+    </p>
+
+    <div class="nursery-grid">
+
+      <div class="nursery-card">
+        <div class="nursery-name">Four Winds Growers</div>
+        <a class="nursery-url" href="https://www.fourwindsgrowers.com" target="_blank">fourwindsgrowers.com</a>
+        <p class="nursery-desc">California's premier indoor/dwarf citrus specialist since 1954. Offers 50+ varieties of semi-dwarf and dwarf citrus on certified disease-free rootstock. The single best source for indoor citrus in the US, including Meyer Lemon, Satsuma, Rangpur Lime, and dozens of specialty varieties. Ships to most states.</p>
+        <p class="nursery-note">Cannot ship to AZ, FL, or TX. Ships to CA with restrictions.</p>
+      </div>
+
+      <div class="nursery-card">
+        <div class="nursery-name">Logee's Greenhouses</div>
+        <a class="nursery-url" href="https://www.logees.com" target="_blank">logees.com</a>
+        <p class="nursery-desc">Family-owned greenhouse in Danielson, Connecticut — operating since 1892. Excellent selection of tropical and subtropical fruiting plants including citrus. Particularly strong on unusual and dwarf varieties suited for indoor growing. Personal expertise in container growing.</p>
+        <p class="nursery-note">Cannot ship to AZ, CA, FL, or TX.</p>
+      </div>
+
+      <div class="nursery-card">
+        <div class="nursery-name">US Citrus Nursery</div>
+        <a class="nursery-url" href="https://uscitrusnursery.com" target="_blank">uscitrusnursery.com</a>
+        <p class="nursery-desc">Florida-based specialty citrus nursery offering a curated selection of grafted trees including Rangpur/Limão Cravo, Meyer Lemon, and unusual varieties. Good resource for those seeking the limão cravo specifically. Blog content is well-researched and informative.</p>
+        <p class="nursery-note">Check current state shipping restrictions before ordering.</p>
+      </div>
+
+      <div class="nursery-card">
+        <div class="nursery-name">Just Fruits and Exotics</div>
+        <a class="nursery-url" href="https://justfruitsandexotics.com" target="_blank">justfruitsandexotics.com</a>
+        <p class="nursery-desc">North Florida specialty nursery with a focus on fruit trees suited to the Southeast. Strong selection of satsuma mandarins, blood oranges, and unusual subtropical fruits. Good option for gardeners in the South and Mid-Atlantic.</p>
+        <p class="nursery-note">Best for Southeast US; check shipping range for your state.</p>
+      </div>
+
+      <div class="nursery-card">
+        <div class="nursery-name">Stark Bro's Nurseries</div>
+        <a class="nursery-url" href="https://www.starkbros.com" target="_blank">starkbros.com</a>
+        <p class="nursery-desc">One of America's oldest nurseries (since 1816). Offers a solid selection of standard citrus varieties — Meyer Lemon, Navel Orange, Mandarin — suitable for indoor growing. Good for straightforward, reliable varieties at accessible prices. Ships widely across the US.</p>
+        <p class="nursery-note">Selection is more limited than specialty citrus nurseries.</p>
+      </div>
+
+      <div class="nursery-card">
+        <div class="nursery-name">Nature Hills Nursery</div>
+        <a class="nursery-url" href="https://naturehills.com" target="_blank">naturehills.com</a>
+        <p class="nursery-desc">Large online nursery with a wide selection of container citrus. Good for comparative shopping and often has good stock depth. Covers Trovita, Cara Cara, Meyer, Satsuma, and other top picks. Detailed growing information provided with each plant listing.</p>
+        <p class="nursery-note">Broad selection; verify citrus greening compliance before ordering.</p>
+      </div>
+
+    </div>
+
+    <div class="callout" style="margin-top: 20px;">
+      <strong>State restrictions:</strong> Due to citrus greening disease (Huanglongbing/HLB) quarantine regulations, shipping live citrus plants to and from certain states — particularly Florida, Texas, California, and Arizona — is restricted or prohibited. Always verify current regulations with the nursery before ordering. These rules change; what was legal last year may not be today.
+    </div>
+  </div>
+
+<!-- ═══════════════════════════════ SOURCES ═══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">Bibliography</div>
+    <h2 class="section-title">Sources</h2>
+    <p class="section-intro">Research compiled from horticultural extension publications, specialty nursery resources, botanical databases, and culinary sources.</p>
+
+    <div class="sources-list">
+      <a href="https://en.wikipedia.org/wiki/Rangpur_lime" target="_blank">Wikipedia — Rangpur Lime (Citrus × limonia)</a>
+      <a href="https://www.fourwindsgrowers.com/a/blog/all-about-the-rangpur-lime-tree" target="_blank">Four Winds Growers — All About the Rangpur Lime Tree</a>
+      <a href="https://www.fourwindsgrowers.com/a/blog/growing-citrus-trees-indoors" target="_blank">Four Winds Growers — A Guide to Growing Citrus Trees Indoors</a>
+      <a href="https://www.fourwindsgrowers.com/a/blog/all-about-the-owari-satsuma-mandarin-tree" target="_blank">Four Winds Growers — All About the Owari Satsuma Mandarin Tree</a>
+      <a href="https://www.fourwindsgrowers.com/a/blog/all-about-the-cara-cara-orange-tree" target="_blank">Four Winds Growers — All About the Cara Cara Orange Tree</a>
+      <a href="https://uscitrusnursery.com/blogs/citrus-simplified/rangpur-lime-tree" target="_blank">US Citrus Nursery — Rangpur Lime Tree: The Fiery Indian Mandarin-Lime Hybrid</a>
+      <a href="http://flavorsofbrazil.blogspot.com/2011/05/fruits-of-brazil-rangpurmandarin-lime.html" target="_blank">Flavors of Brazil — Rangpur / Mandarin-Lime (Limão Cravo)</a>
+      <a href="https://citrusvariety.ucr.edu/usa-rangpur-lime" target="_blank">UCR Givaudan Citrus Variety Collection — USA Rangpur Lime</a>
+      <a href="https://extension.umd.edu/resource/growing-dwarf-citrus" target="_blank">University of Maryland Extension — Growing Dwarf Citrus</a>
+      <a href="https://hort.extension.wisc.edu/articles/indoor-citrus/" target="_blank">Wisconsin Horticulture Extension — Indoor Citrus</a>
+      <a href="https://www.gardeningknowhow.com/edible/fruits/mandarin-lime-trees/growing-mandarin-limes.htm" target="_blank">Gardening Know How — Mandarin Lime Tree Info: Tips for Growing Mandarin Limes</a>
+      <a href="https://naturehills.com/blogs/garden-blog/grow-lemons-in-pots-victory-garden-selection-guide" target="_blank">Nature Hills — Grow Citrus Trees in Pots: Top 20 Varieties</a>
+      <a href="https://gregalder.com/yardposts/cara-cara-navel-orange-tree-a-profile/" target="_blank">Greg Alder's Yard Posts — Cara Cara Navel Orange Tree: A Profile</a>
+      <a href="https://www.espoma.com/gardening/indoor-gardening/2024-growing-joy-with-maria-blog-how-to-grow-citrus-indoors-%F0%9F%8D%8A/" target="_blank">Espoma Organic — How to Grow Citrus Indoors</a>
+      <a href="https://eatrio.net/2012/05/lemon-lime-confusion-in-brazil.html" target="_blank">EatRio — Lemon-Lime Confusion in Brazil</a>
+      <a href="https://www.epicgardening.com/container-citrus-trees/" target="_blank">Epic Gardening — 17 Citrus Trees Perfect for Growing in Indoor Containers</a>
+      <a href="https://www.logees.com/collections/citrus-trees" target="_blank">Logee's Plants — Citrus Trees and Plants For Sale</a>
+      <a href="https://justfruitsandexotics.com" target="_blank">Just Fruits and Exotics — Specialty Fruit Nursery</a>
+      <a href="https://www.starkbros.com/products/fruit-trees/citrus-trees" target="_blank">Stark Bro's Nurseries — Citrus Trees For Sale</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <p>Research compiled April 2026 &nbsp;·&nbsp; Repository: <span>garysclaw/general-research</span> &nbsp;·&nbsp; For educational and personal use</p>
+    <p style="margin-top: 6px;">All variety information based on horticultural publications, university extension resources, and specialist nursery guidance.</p>
+  </div>
+</footer>
+
+</body>
+</html>
