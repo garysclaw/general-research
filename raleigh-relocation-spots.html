@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Raleigh Relocation Research — Best Cities Within 5 Hours</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #7d8590;
+      --accent: #58a6ff;
+      --accent-soft: #1a2332;
+      --green: #3fb950;
+      --green-soft: #12261e;
+      --yellow: #d29922;
+      --yellow-soft: #2a1f05;
+      --blue: #58a6ff;
+      --blue-soft: #0d2045;
+      --red: #f85149;
+      --tag-bg: #21262d;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 36px 24px 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .site-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    .header-meta {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .meta-chip {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .meta-chip strong { color: var(--text); }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── SECTION HEADINGS ── */
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      margin-top: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── CALLOUT / SUMMARY ── */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 12px;
+      font-size: 0.94rem;
+    }
+
+    .callout h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .top-picks {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .top-pick-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .top-pick-card .rank {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .top-pick-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .top-pick-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── CHIPS / BADGES ── */
+    .chip {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+
+    .chip-green  { background: var(--green-soft);  color: var(--green);  border: 1px solid #1e4731; }
+    .chip-yellow { background: var(--yellow-soft); color: var(--yellow); border: 1px solid #3d2b00; }
+    .chip-blue   { background: var(--blue-soft);   color: var(--blue);   border: 1px solid #0e325c; }
+
+    /* ── MAP ── */
+    #map {
+      width: 100%;
+      height: 520px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .map-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.4);
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+
+    thead tr {
+      background: var(--surface2);
+    }
+
+    thead th {
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+      padding: 12px 14px;
+      vertical-align: top;
+      color: var(--text);
+    }
+
+    tbody td.muted { color: var(--muted); }
+
+    .city-name-cell strong { display: block; margin-bottom: 2px; }
+    .city-name-cell span { font-size: 0.77rem; color: var(--muted); }
+
+    .stars { color: var(--yellow); letter-spacing: -1px; }
+
+    /* ── CITY CARDS (deep dives) ── */
+    .city-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .city-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .city-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .city-card-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .city-card-header .state {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .city-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .city-stat {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+    }
+
+    .city-stat .stat-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .city-stat .stat-val {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .city-card h4 {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .city-card p, .city-card li {
+      font-size: 0.86rem;
+      color: #9ba3bc;
+      line-height: 1.55;
+    }
+
+    .city-card ul {
+      padding-left: 18px;
+    }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .pros, .cons {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+    }
+
+    .pros h4 { color: var(--green); }
+    .cons h4 { color: var(--red); }
+
+    .pros li, .cons li {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    /* ── METHODOLOGY ── */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .method-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .method-card h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .method-card p {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── EXCLUDED TABLE ── */
+    .excluded-table {
+      font-size: 0.83rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+    }
+
+    .excluded-table h4 {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .excluded-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+
+    .excluded-row:last-child { border-bottom: none; }
+
+    .excl-city { color: var(--text); font-weight: 600; }
+    .excl-reason { color: var(--muted); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      header h1 { font-size: 1.4rem; }
+      .city-cards { grid-template-columns: 1fr; }
+      .pros-cons { grid-template-columns: 1fr; }
+      #map { height: 340px; }
+      .city-stats-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── LEAFLET POPUP OVERRIDE ── */
+    .leaflet-popup-content-wrapper {
+      background: #1c2128 !important;
+      border: 1px solid #30363d !important;
+      color: #e6edf3 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
+    }
+
+    .leaflet-popup-tip {
+      background: #1c2128 !important;
+    }
+
+    .popup-city { font-size: 1rem; font-weight: 700; color: #e6edf3; margin-bottom: 6px; }
+    .popup-stat { font-size: 0.8rem; color: #9ba3bc; line-height: 1.6; }
+    .popup-stat strong { color: #e6edf3; }
+    .popup-chip {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-top: 6px;
+    }
+    .popup-green  { background: #12261e; color: #3fb950; border: 1px solid #1e4731; }
+    .popup-yellow { background: #2a1f05; color: #d29922; border: 1px solid #3d2b00; }
+    .popup-blue   { background: #0d2045; color: #58a6ff; border: 1px solid #0e325c; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="site-label">Open Research · Relocation Analysis</div>
+  <h1>Best Cities Within <span>5 Hours</span> of Raleigh, NC</h1>
+  <p style="color:var(--muted); font-size:0.95rem; margin-top:8px; max-width:680px;">
+    A data-driven look at cities that satisfy all three criteria: within 5 hours of Raleigh, within 3 hours of a ski resort,
+    and metro population above 30,000 — with bonus scoring for tech/engineering job markets.
+  </p>
+  <div class="header-meta">
+    <div class="meta-chip"><strong>Research Date:</strong> April 9, 2026</div>
+    <div class="meta-chip"><strong>Radius:</strong> ~5 hr drive from Raleigh, NC</div>
+    <div class="meta-chip"><strong>Ski Threshold:</strong> ≤ 3 hr to nearest ski area</div>
+    <div class="meta-chip"><strong>Pop. Threshold:</strong> Metro &gt; 30,000</div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════ MAIN -->
+<main>
+
+  <!-- ── TOP PICKS SUMMARY ── -->
+  <div class="section-label">Top Picks Summary</div>
+
+  <div class="callout">
+    <h2>Top 4 Recommended Locations</h2>
+    <p style="font-size:0.86rem; color:var(--muted); margin-bottom:18px;">
+      After scoring all qualifying cities on drive times, ski proximity, cost of living, and job market strength,
+      these four cities stand out as the best overall packages.
+    </p>
+    <div class="top-picks">
+      <div class="top-pick-card">
+        <div class="rank">#1 Best Overall</div>
+        <h3>Charlottesville, VA</h3>
+        <p>UVA anchor, Wintergreen ski resort 45 min away, strong tech/defense scene, ~3.5 hr from Raleigh. Premium cost of living but excellent quality.</p>
+      </div>
+      <div class="top-pick-card">
+        <div class="rank">#2 Best Tech Jobs</div>
+        <h3>Blacksburg, VA</h3>
+        <p>Virginia Tech drives a dense tech/R&amp;D corridor. 3.5 hr from Raleigh, Winterplace WV 1.5 hr away, very affordable housing.</p>
+      </div>
+      <div class="top-pick-card">
+        <div class="rank">#3 Best Lifestyle</div>
+        <h3>Asheville, NC</h3>
+        <p>Mountain culture, arts scene, Beech/Sugar Mountain 2 hr away. Growing healthcare/tech sector. 3.75 hr from Raleigh.</p>
+      </div>
+      <div class="top-pick-card">
+        <div class="rank">#4 Best Value + Growth</div>
+        <h3>Roanoke, VA</h3>
+        <p>Affordable median home price (~$290K), Snowshoe/Winterplace ~2.5 hr, active outdoor culture, growing innovation ecosystem.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAP ── -->
+  <div class="section-label">Interactive Map</div>
+
+  <div class="map-legend">
+    <span style="font-weight:600; color:var(--text); margin-right:4px;">Map Key:</span>
+    <div class="legend-item"><div class="legend-dot" style="background:#3fb950;"></div> Strong Tech Jobs</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d29922;"></div> Moderate Tech Jobs</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#58a6ff;"></div> Scenic / Lifestyle Focus</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f85149;"></div> Raleigh (Origin)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a5d6ff; border:2px dashed #58a6ff;"></div> Ski Areas</div>
+  </div>
+
+  <div id="map"></div>
+  <p style="font-size:0.78rem; color:var(--muted); margin-top:6px; margin-bottom:4px;">
+    Click any marker for city details. The dashed circle approximates a 5-hour drive radius (~330 miles) from Raleigh.
+    Ski area markers shown as snowflake icons.
+  </p>
+
+  <!-- ── DATA TABLE ── -->
+  <div class="section-label">Full Qualifying City Data</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>City / Metro</th>
+          <th>Drive from Raleigh</th>
+          <th>Nearest Ski Area</th>
+          <th>Drive to Ski</th>
+          <th>Metro Pop.</th>
+          <th>Median Home Price</th>
+          <th>Tech Market</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="city-name-cell"><strong>Charlottesville, VA</strong><br><span>Albemarle County MSA</span></td>
+          <td>~3 hr 33 min</td>
+          <td>Wintergreen Resort, VA</td>
+          <td>~45 min</td>
+          <td>228,600</td>
+          <td>$440–$465K</td>
+          <td><span class="stars">★★★★</span><br><span class="chip chip-green">Strong</span></td>
+          <td>UVA, Northrop Grumman, WillowTree, GE Intelligent Platforms</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Blacksburg, VA</strong><br><span>Blacksburg-Christiansburg MSA</span></td>
+          <td>~3 hr 35 min</td>
+          <td>Winterplace WV / Snowshoe WV</td>
+          <td>~1.5 hr / ~2.5 hr</td>
+          <td>182,000</td>
+          <td>~$350–$446K</td>
+          <td><span class="stars">★★★★</span><br><span class="chip chip-green">Strong</span></td>
+          <td>Virginia Tech, VT Corporate Research Center, Honeywell, MOOG, Rackspace</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Asheville, NC</strong><br><span>Buncombe County MSA</span></td>
+          <td>~3 hr 45 min</td>
+          <td>Beech Mountain / Sugar Mountain</td>
+          <td>~2 hr</td>
+          <td>~475,000</td>
+          <td>~$440K</td>
+          <td><span class="stars">★★★</span><br><span class="chip chip-yellow">Moderate</span></td>
+          <td>Mission Health, tourism-heavy, growing tech/remote sector; arts &amp; mountain culture</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Roanoke, VA</strong><br><span>Roanoke MSA</span></td>
+          <td>~3 hr 03 min</td>
+          <td>Snowshoe WV / Winterplace WV</td>
+          <td>~2.5 hr</td>
+          <td>~315,000</td>
+          <td>~$290–$300K</td>
+          <td><span class="stars">★★★</span><br><span class="chip chip-yellow">Moderate</span></td>
+          <td>Carilion Clinic, RBTC tech corridor, outdoor recreation hub, Blue Ridge Parkway access</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Greenville, SC</strong><br><span>Greenville-Anderson-Greer MSA</span></td>
+          <td>~4 hr 01 min</td>
+          <td>Cataloochee NC / Ski Sapphire Valley</td>
+          <td>~2 hr</td>
+          <td>1,014,000</td>
+          <td>~$355–$475K</td>
+          <td><span class="stars">★★★★</span><br><span class="chip chip-green">Strong</span></td>
+          <td>BMW manufacturing HQ, Michelin, GE Power, growing tech startup scene on Main St</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Johnson City / Tri-Cities, TN</strong><br><span>Kingsport-Bristol-JC MSA</span></td>
+          <td>~4 hr 23 min</td>
+          <td>Beech Mountain NC / Sugar Mountain</td>
+          <td>~1.5 hr</td>
+          <td>~520,000</td>
+          <td>~$290–$365K</td>
+          <td><span class="stars">★★</span><br><span class="chip chip-yellow">Moderate</span></td>
+          <td>Eastman Chemical (14K employees), ETSU, Mountain States Health Alliance, low cost of living</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Winston-Salem, NC</strong><br><span>Forsyth County MSA</span></td>
+          <td>~2 hr 00 min</td>
+          <td>Beech Mountain / App Ski Mtn</td>
+          <td>~1.5 hr</td>
+          <td>~552,000</td>
+          <td>~$275–$320K</td>
+          <td><span class="stars">★★★</span><br><span class="chip chip-yellow">Moderate</span></td>
+          <td>Atrium Health Wake Forest Baptist, Hanesbrands, Reynolds American; biotech/nanotech hub</td>
+        </tr>
+        <tr>
+          <td class="city-name-cell"><strong>Boone / High Country, NC</strong><br><span>Watauga County</span></td>
+          <td>~3 hr 15 min</td>
+          <td>App Ski Mtn / Beech Mountain</td>
+          <td>~15 min</td>
+          <td>~58,000</td>
+          <td>~$380K</td>
+          <td><span class="stars">★</span><br><span class="chip chip-blue">Lifestyle</span></td>
+          <td>Appalachian State University town; closest city to NC ski areas; beautiful mountain setting</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── CITY DEEP-DIVES ── -->
+  <div class="section-label">City Deep-Dives — Top 6 Picks</div>
+
+  <div class="city-cards">
+
+    <!-- CHARLOTTESVILLE -->
+    <div class="city-card">
+      <div class="city-card-header">
+        <div>
+          <h3>Charlottesville, VA</h3>
+          <div class="state">Albemarle County · Central Virginia</div>
+        </div>
+        <span class="chip chip-green">Strong Tech</span>
+      </div>
+
+      <div class="city-stats-grid">
+        <div class="city-stat">
+          <div class="stat-label">Drive from Raleigh</div>
+          <div class="stat-val">~3 hr 33 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Ski (Wintergreen)</div>
+          <div class="stat-val">~45 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Metro Population</div>
+          <div class="stat-val">228,600</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Median Home Price</div>
+          <div class="stat-val">$440–$465K</div>
+        </div>
+      </div>
+
+      <div>
+        <h4>Major Employers / Tech Scene</h4>
+        <ul>
+          <li>University of Virginia — largest employer, 67K+ statewide jobs in ecosystem</li>
+          <li>Northrop Grumman — aerospace/defense engineering</li>
+          <li>WillowTree — mobile/digital product studio (acquired by TELUS)</li>
+          <li>GE Intelligent Platforms — industrial software</li>
+          <li>Apex Clean Energy — renewable energy development</li>
+          <li>Strong defense contractor presence (proximity to DC)</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>What It's Known For</h4>
+        <p>Home of Thomas Jefferson and UVA, one of America's most beautiful university campuses. Historic downtown pedestrian mall, exceptional dining, wineries on the Monticello Trail, Blue Ridge Mountains backdrop. Draws highly educated professionals.</p>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Ski resort 45 min away</li>
+            <li>Strong university ecosystem</li>
+            <li>Walkable downtown</li>
+            <li>DC proximity for remote/hybrid</li>
+            <li>Excellent restaurants &amp; culture</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Priciest on this list ($440K+)</li>
+            <li>Traffic on US-29</li>
+            <li>Limited public transit</li>
+            <li>Smaller metro overall</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLACKSBURG -->
+    <div class="city-card">
+      <div class="city-card-header">
+        <div>
+          <h3>Blacksburg, VA</h3>
+          <div class="state">Montgomery County · New River Valley</div>
+        </div>
+        <span class="chip chip-green">Strong Tech</span>
+      </div>
+
+      <div class="city-stats-grid">
+        <div class="city-stat">
+          <div class="stat-label">Drive from Raleigh</div>
+          <div class="stat-val">~3 hr 35 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Ski (Winterplace WV)</div>
+          <div class="stat-val">~1.5 hr</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Metro Population</div>
+          <div class="stat-val">182,000</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Median Home Price</div>
+          <div class="stat-val">~$350–$446K</div>
+        </div>
+      </div>
+
+      <div>
+        <h4>Major Employers / Tech Scene</h4>
+        <ul>
+          <li>Virginia Tech — top-10 engineering school, massive research output</li>
+          <li>VT Corporate Research Center — 200+ companies on campus</li>
+          <li>Honeywell — analytics &amp; controls R&amp;D</li>
+          <li>MOOG Inc. — defense/aerospace components</li>
+          <li>Rackspace — managed cloud services</li>
+          <li>National Weather Service regional HQ</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>What It's Known For</h4>
+        <p>College town with a genuine tech ecosystem built around VT. The New River Valley has outstanding outdoor recreation — hiking, mountain biking, fly fishing. Small-town feel with world-class engineering talent pipeline. Very walkable university district.</p>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Dense engineering talent pool</li>
+            <li>Relatively affordable housing</li>
+            <li>Winterplace ski 1.5 hr away</li>
+            <li>Excellent outdoor access</li>
+            <li>VT startup incubation</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Small metro (&lt;200K)</li>
+            <li>Limited airport access</li>
+            <li>College-town dynamic</li>
+            <li>Fewer big-city amenities</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASHEVILLE -->
+    <div class="city-card">
+      <div class="city-card-header">
+        <div>
+          <h3>Asheville, NC</h3>
+          <div class="state">Buncombe County · Western NC</div>
+        </div>
+        <span class="chip chip-yellow">Moderate Tech</span>
+      </div>
+
+      <div class="city-stats-grid">
+        <div class="city-stat">
+          <div class="stat-label">Drive from Raleigh</div>
+          <div class="stat-val">~3 hr 45 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Ski (Beech/Sugar Mtn)</div>
+          <div class="stat-val">~2 hr</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Metro Population</div>
+          <div class="stat-val">~475,000</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Median Home Price</div>
+          <div class="stat-val">~$440K</div>
+        </div>
+      </div>
+
+      <div>
+        <h4>Major Employers / Tech Scene</h4>
+        <ul>
+          <li>Mission Health / HCA Healthcare — largest employer</li>
+          <li>Remote-work migration has boosted tech population significantly</li>
+          <li>Growing professional/scientific services sector (5,382+ employed)</li>
+          <li>Tourism, hospitality, craft brewing major economic pillars</li>
+          <li>Thriving creative economy; entrepreneurs and small firms</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>What It's Known For</h4>
+        <p>Consistently ranked a top US small city for arts, food, and outdoor culture. Home to the Grove Park Inn, Biltmore Estate, vibrant River Arts District, and one of the best craft beer scenes in the Southeast. Blue Ridge Parkway access is exceptional.</p>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Outstanding quality of life</li>
+            <li>Mountains &amp; outdoor culture</li>
+            <li>Strong arts/food scene</li>
+            <li>Blue Ridge Parkway</li>
+            <li>Growing remote-work community</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Home prices rising fast</li>
+            <li>Ski is ~2 hr away</li>
+            <li>Limited corporate tech jobs</li>
+            <li>Flooding risk (Helene 2024)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROANOKE -->
+    <div class="city-card">
+      <div class="city-card-header">
+        <div>
+          <h3>Roanoke, VA</h3>
+          <div class="state">Independent City / Roanoke Valley</div>
+        </div>
+        <span class="chip chip-yellow">Moderate Tech</span>
+      </div>
+
+      <div class="city-stats-grid">
+        <div class="city-stat">
+          <div class="stat-label">Drive from Raleigh</div>
+          <div class="stat-val">~3 hr 03 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Ski (Snowshoe WV)</div>
+          <div class="stat-val">~2.5 hr</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Metro Population</div>
+          <div class="stat-val">~315,000</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Median Home Price</div>
+          <div class="stat-val">~$290–$300K</div>
+        </div>
+      </div>
+
+      <div>
+        <h4>Major Employers / Tech Scene</h4>
+        <ul>
+          <li>Carilion Clinic — 13,200+ employees, regional medical center</li>
+          <li>Roanoke Blacksburg Technology Council (RBTC) — 4,000+ IT professionals within 1 hr</li>
+          <li>3x national average in patent filings per capita (last 5 years)</li>
+          <li>Norfolk Southern railroad corporate operations</li>
+          <li>Cox Communications, General Electric</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>What It's Known For</h4>
+        <p>The Star City of the South — known for the iconic Roanoke Star landmark and surrounding mountain ridges. Gateway city to the Blue Ridge Parkway. Active outdoor scene: mountain biking, hiking, greenway trails. Revitalized downtown Market District.</p>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Most affordable on the list</li>
+            <li>Strong outdoor access</li>
+            <li>Growing tech ecosystem</li>
+            <li>Roanoke Airport (ROA)</li>
+            <li>8% below national CoL</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Ski is 2.5–3 hr away</li>
+            <li>Smaller job market overall</li>
+            <li>Fewer large tech firms</li>
+            <li>Limited nightlife/culture</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- GREENVILLE SC -->
+    <div class="city-card">
+      <div class="city-card-header">
+        <div>
+          <h3>Greenville, SC</h3>
+          <div class="state">Greenville County · Upstate SC</div>
+        </div>
+        <span class="chip chip-green">Strong Tech</span>
+      </div>
+
+      <div class="city-stats-grid">
+        <div class="city-stat">
+          <div class="stat-label">Drive from Raleigh</div>
+          <div class="stat-val">~4 hr 01 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Ski (Cataloochee NC)</div>
+          <div class="stat-val">~2 hr</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Metro Population</div>
+          <div class="stat-val">1,014,000</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Median Home Price</div>
+          <div class="stat-val">~$355–$475K</div>
+        </div>
+      </div>
+
+      <div>
+        <h4>Major Employers / Tech Scene</h4>
+        <ul>
+          <li>BMW Manufacturing — US headquarters in Spartanburg, 13K+ employees</li>
+          <li>Michelin North America HQ — Greenville area</li>
+          <li>GE Power / Renewable Energy — major engineering hub</li>
+          <li>Information sector leads in wages ($2,586/week average)</li>
+          <li>Booming tech startup scene in downtown Main Street district</li>
+          <li>Projected 39.8% job growth over next decade</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>What It's Known For</h4>
+        <p>One of the fastest-growing metros in the Southeast. The revitalized downtown Falls Park area has been called one of America's best Main Streets. Strong manufacturing base combined with a booming professional services and tech startup scene. No state income tax on Social Security.</p>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Largest metro on list (1M+)</li>
+            <li>Exceptional job growth</li>
+            <li>BMW/Michelin engineering jobs</li>
+            <li>Outstanding downtown</li>
+            <li>Cataloochee ski 2 hr away</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>4 hr from Raleigh</li>
+            <li>Home prices rising fast</li>
+            <li>Traffic getting worse</li>
+            <li>Limited public transit</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOHNSON CITY / TRI-CITIES -->
+    <div class="city-card">
+      <div class="city-card-header">
+        <div>
+          <h3>Johnson City / Tri-Cities, TN</h3>
+          <div class="state">Carter / Washington / Sullivan Counties</div>
+        </div>
+        <span class="chip chip-yellow">Moderate Tech</span>
+      </div>
+
+      <div class="city-stats-grid">
+        <div class="city-stat">
+          <div class="stat-label">Drive from Raleigh</div>
+          <div class="stat-val">~4 hr 23 min</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Ski (Beech Mountain)</div>
+          <div class="stat-val">~1.5 hr</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Metro Population</div>
+          <div class="stat-val">~520,000</div>
+        </div>
+        <div class="city-stat">
+          <div class="stat-label">Median Home Price</div>
+          <div class="stat-val">~$290–$365K</div>
+        </div>
+      </div>
+
+      <div>
+        <h4>Major Employers / Tech Scene</h4>
+        <ul>
+          <li>Eastman Chemical — global HQ in Kingsport, 14,000+ worldwide employees, ~$9.4B revenue</li>
+          <li>Mountain States Health Alliance / Ballad Health</li>
+          <li>East Tennessee State University — R&amp;D and healthcare training</li>
+          <li>No state income tax (Tennessee) — major financial benefit</li>
+          <li>Emerging advanced manufacturing corridor</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>What It's Known For</h4>
+        <p>The Tri-Cities region (Johnson City, Kingsport, Bristol) sits at the junction of three Appalachian states. Gateway to the Blue Ridge Parkway and Cherokee National Forest. Very low cost of living relative to quality of life. Bristol Motor Speedway. Tennessee's no-income-tax advantage.</p>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>No TN state income tax</li>
+            <li>Beech Mtn ski 1.5 hr away</li>
+            <li>Very affordable housing</li>
+            <li>Eastman Chemical anchor</li>
+            <li>Outstanding outdoor access</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>4.5 hr from Raleigh</li>
+            <li>Limited tech sector depth</li>
+            <li>Fewer big-city amenities</li>
+            <li>Manufacturing-heavy economy</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /city-cards -->
+
+  <!-- ── EXCLUDED CITIES ── -->
+  <div class="section-label">Cities Considered but Excluded</div>
+
+  <div class="excluded-table">
+    <h4>Why These Cities Didn't Qualify</h4>
+    <div class="excluded-row">
+      <div class="excl-city">Knoxville, TN</div>
+      <div class="excl-reason">~5 hr 32 min from Raleigh — exceeds the 5-hour driving threshold. Otherwise strong candidate (195K city pop, UT anchor, low home prices ~$290K).</div>
+    </div>
+    <div class="excluded-row">
+      <div class="excl-city">Charlotte, NC</div>
+      <div class="excl-reason">Only ~2.5 hr from Raleigh and has excellent tech jobs, but nearest ski (Beech Mountain) is ~3.5 hr away — slightly exceeds the 3-hour ski threshold.</div>
+    </div>
+    <div class="excluded-row">
+      <div class="excl-city">Greensboro, NC</div>
+      <div class="excl-reason">Only ~1.5 hr from Raleigh and above pop threshold, but nearest ski (Beech Mountain) is ~3 hr away — borderline on ski criterion; too close to Raleigh for relocation value.</div>
+    </div>
+    <div class="excluded-row">
+      <div class="excl-city">Spartanburg, SC</div>
+      <div class="excl-reason">Closely linked with Greenville MSA; included under the Greenville metro figure. Standalone metro ~350K.</div>
+    </div>
+    <div class="excluded-row">
+      <div class="excl-city">Atlanta, GA (metro)</div>
+      <div class="excl-reason">~7+ hours from Raleigh — well outside the 5-hour drive radius.</div>
+    </div>
+    <div class="excluded-row">
+      <div class="excl-city">Boone / Watauga County</div>
+      <div class="excl-reason">Included in table for completeness; population only ~58K (Watauga County), below the meaningful metro threshold. Exceptional ski proximity (15 min to App Ski Mtn).</div>
+    </div>
+  </div>
+
+  <!-- ── METHODOLOGY ── -->
+  <div class="section-label">Methodology</div>
+
+  <div class="method-grid">
+    <div class="method-card">
+      <h4>Drive Time Estimation</h4>
+      <p>All drive times sourced from TravelMath.com and cross-referenced with Trippy.com — both based on fastest highway routes in normal (non-peak) traffic. Real-world times may vary ±15–30 min with traffic. Times represent city-center to city-center from Raleigh, NC.</p>
+    </div>
+    <div class="method-card">
+      <h4>Ski Area Criteria</h4>
+      <p>Ski areas considered: Beech Mountain NC, Sugar Mountain NC, Appalachian Ski Mtn (Blowing Rock NC), Cataloochee NC, Ski Sapphire Valley NC, Winterplace WV, Snowshoe Mountain WV, Wintergreen VA, Massanutten VA, The Homestead VA. Threshold: ≤3 hours from candidate city.</p>
+    </div>
+    <div class="method-card">
+      <h4>Population Data</h4>
+      <p>Metro population figures use Metropolitan Statistical Area (MSA) boundaries where available, sourced from US Census Bureau 2024 estimates and FRED economic data. City proper population is not used — MSA is the relevant unit for economic analysis.</p>
+    </div>
+    <div class="method-card">
+      <h4>Home Price Data</h4>
+      <p>Median home prices sourced from Redfin, Zillow, and Norada Real Estate, reflecting 2025 market data. Ranges account for variation between sources and measurement periods (listing price vs. sale price). Treat as approximate ±10%.</p>
+    </div>
+    <div class="method-card">
+      <h4>Tech Job Scoring</h4>
+      <p>Tech market rating (★ = 1–4) based on: presence of major tech/engineering employers, size of professional/scientific services sector, university R&amp;D ecosystem, startup activity, and defense contractor presence. "Strong" = multiple Fortune 500 tech/eng employers or major university R&amp;D anchor.</p>
+    </div>
+    <div class="method-card">
+      <h4>Map Radius Note</h4>
+      <p>The dashed circle on the map represents an approximate 330-mile radius (~5 hours at highway speed). Actual drivable 5-hour isochrone is irregular due to mountain terrain, especially to the west and southwest of Raleigh where I-40 and US-74 limit speed.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <p>Raleigh Relocation Research · Compiled April 2026 · Data sources: US Census Bureau, TravelMath, Redfin, Zillow, FRED Economic Data, OnTheSnow, city economic development offices.</p>
+  <p style="margin-top:6px;">This is a research snapshot — always verify current drive times, prices, and job market conditions before making relocation decisions.</p>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════ MAP SCRIPT -->
+<script>
+  // Initialize the map centered on Raleigh
+  var map = L.map('map', {
+    center: [35.7796, -78.6382],
+    zoom: 7,
+    zoomControl: true
+  });
+
+  // Dark tile layer (CartoDB Dark Matter — no API key required)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Color helpers
+  function makeIcon(color, size) {
+    size = size || 14;
+    return L.divIcon({
+      className: '',
+      html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2px solid rgba(0,0,0,0.5);box-shadow:0 2px 8px rgba(0,0,0,0.7);"></div>',
+      iconSize: [size, size],
+      iconAnchor: [size/2, size/2],
+      popupAnchor: [0, -(size/2 + 4)]
+    });
+  }
+
+  function makeSkiIcon() {
+    return L.divIcon({
+      className: '',
+      html: '<div style="width:20px;height:20px;border-radius:4px;background:#0d2045;border:2px solid #58a6ff;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,0.7);">&#10052;</div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, -12]
+    });
+  }
+
+  // Raleigh origin marker
+  L.marker([35.7796, -78.6382], { icon: makeIcon('#f85149', 18) })
+    .addTo(map)
+    .bindPopup('<div class="popup-city">&#9733; Raleigh, NC — Origin</div><div class="popup-stat">This is your starting point.<br>All drive times measured from here.</div>');
+
+  // Qualifying cities data
+  var cities = [
+    {
+      name: 'Charlottesville, VA',
+      lat: 38.0293,
+      lng: -78.4767,
+      color: '#3fb950',
+      tier: 'green',
+      driveFromRaleigh: '3 hr 33 min',
+      nearestSki: 'Wintergreen Resort',
+      driveToSki: '~45 min',
+      pop: '228,600',
+      homePrice: '$440–$465K',
+      techRating: '★★★★',
+      note: 'UVA, Northrop Grumman, WillowTree. Wintergreen ski 45 min away.'
+    },
+    {
+      name: 'Blacksburg, VA',
+      lat: 37.2296,
+      lng: -80.4139,
+      color: '#3fb950',
+      tier: 'green',
+      driveFromRaleigh: '3 hr 35 min',
+      nearestSki: 'Winterplace WV',
+      driveToSki: '~1.5 hr',
+      pop: '182,000',
+      homePrice: '~$350–$446K',
+      techRating: '★★★★',
+      note: 'Virginia Tech, Honeywell, MOOG, Rackspace. Dense engineering ecosystem.'
+    },
+    {
+      name: 'Asheville, NC',
+      lat: 35.5951,
+      lng: -82.5515,
+      color: '#d29922',
+      tier: 'yellow',
+      driveFromRaleigh: '3 hr 45 min',
+      nearestSki: 'Beech Mountain / Sugar Mtn',
+      driveToSki: '~2 hr',
+      pop: '~475,000',
+      homePrice: '~$440K',
+      techRating: '★★★',
+      note: 'Mountain culture, arts, Mission Health. Growing remote-tech community.'
+    },
+    {
+      name: 'Roanoke, VA',
+      lat: 37.2710,
+      lng: -79.9414,
+      color: '#d29922',
+      tier: 'yellow',
+      driveFromRaleigh: '3 hr 03 min',
+      nearestSki: 'Snowshoe WV / Winterplace WV',
+      driveToSki: '~2.5 hr',
+      pop: '~315,000',
+      homePrice: '~$290–$300K',
+      techRating: '★★★',
+      note: 'Carilion Clinic, RBTC tech corridor, Blue Ridge access. Most affordable pick.'
+    },
+    {
+      name: 'Greenville, SC',
+      lat: 34.8526,
+      lng: -82.3940,
+      color: '#3fb950',
+      tier: 'green',
+      driveFromRaleigh: '4 hr 01 min',
+      nearestSki: 'Cataloochee NC',
+      driveToSki: '~2 hr',
+      pop: '1,014,000',
+      homePrice: '~$355–$475K',
+      techRating: '★★★★',
+      note: 'BMW, Michelin, GE Power. Booming metro. Best growth outlook on list.'
+    },
+    {
+      name: 'Johnson City / Tri-Cities, TN',
+      lat: 36.3134,
+      lng: -82.3535,
+      color: '#d29922',
+      tier: 'yellow',
+      driveFromRaleigh: '4 hr 23 min',
+      nearestSki: 'Beech Mountain NC',
+      driveToSki: '~1.5 hr',
+      pop: '~520,000',
+      homePrice: '~$290–$365K',
+      techRating: '★★',
+      note: 'Eastman Chemical HQ, no TN income tax. Very affordable, outdoor access.'
+    },
+    {
+      name: 'Winston-Salem, NC',
+      lat: 36.0999,
+      lng: -80.2442,
+      color: '#d29922',
+      tier: 'yellow',
+      driveFromRaleigh: '2 hr 00 min',
+      nearestSki: 'Beech Mountain NC',
+      driveToSki: '~1.5 hr',
+      pop: '~552,000',
+      homePrice: '~$275–$320K',
+      techRating: '★★★',
+      note: 'Wake Forest Baptist Health, biotech/nanotech hub. Affordable and growing.'
+    },
+    {
+      name: 'Boone / High Country, NC',
+      lat: 36.2168,
+      lng: -81.6746,
+      color: '#58a6ff',
+      tier: 'blue',
+      driveFromRaleigh: '3 hr 15 min',
+      nearestSki: 'App Ski Mtn / Beech Mountain',
+      driveToSki: '~15 min',
+      pop: '~58,000',
+      homePrice: '~$380K',
+      techRating: '★',
+      note: 'Appalachian State University. Closest to NC ski resorts. Mountain lifestyle.'
+    }
+  ];
+
+  // Add city markers
+  cities.forEach(function(c) {
+    var chipClass = 'popup-' + c.tier;
+    var chipLabel = c.tier === 'green' ? 'Strong Tech' : (c.tier === 'yellow' ? 'Moderate Tech' : 'Lifestyle/Scenic');
+    var popupHtml =
+      '<div class="popup-city">' + c.name + '</div>' +
+      '<div class="popup-stat">' +
+        '<strong>Drive from Raleigh:</strong> ' + c.driveFromRaleigh + '<br>' +
+        '<strong>Nearest Ski:</strong> ' + c.nearestSki + '<br>' +
+        '<strong>Drive to Ski:</strong> ' + c.driveToSki + '<br>' +
+        '<strong>Metro Pop:</strong> ' + c.pop + '<br>' +
+        '<strong>Median Home:</strong> ' + c.homePrice + '<br>' +
+        '<strong>Tech:</strong> ' + c.techRating + '<br>' +
+        '<em style="font-size:0.78rem;">' + c.note + '</em>' +
+      '</div>' +
+      '<span class="popup-chip ' + chipClass + '">' + chipLabel + '</span>';
+
+    L.marker([c.lat, c.lng], { icon: makeIcon(c.color, 16) })
+      .addTo(map)
+      .bindPopup(popupHtml, { maxWidth: 260 });
+  });
+
+  // Ski area markers
+  var skiAreas = [
+    { name: 'Beech Mountain Resort, NC', lat: 36.1918, lng: -81.8862 },
+    { name: 'Sugar Mountain Resort, NC', lat: 36.1382, lng: -81.8687 },
+    { name: 'App Ski Mountain (Blowing Rock), NC', lat: 36.1349, lng: -81.7018 },
+    { name: 'Cataloochee Ski Area, NC', lat: 35.5690, lng: -83.0899 },
+    { name: 'Winterplace Ski Resort, WV', lat: 37.6165, lng: -81.1112 },
+    { name: 'Snowshoe Mountain Resort, WV', lat: 38.4043, lng: -79.9946 },
+    { name: 'Wintergreen Resort, VA', lat: 37.9416, lng: -79.0794 },
+    { name: 'Massanutten Resort, VA', lat: 38.4101, lng: -78.7415 }
+  ];
+
+  skiAreas.forEach(function(s) {
+    L.marker([s.lat, s.lng], { icon: makeSkiIcon() })
+      .addTo(map)
+      .bindPopup('<div class="popup-city">&#10052; ' + s.name + '</div><div class="popup-stat" style="font-size:0.78rem;color:#9ba3bc;">Ski Area</div>');
+  });
+
+  // Approximate 5-hour radius circle (~330 miles from Raleigh)
+  // Note: this is a straight-line approximation in degrees (~330 miles ≈ 4.75 degrees lat)
+  L.circle([35.7796, -78.6382], {
+    radius: 530000, // ~330 miles in meters
+    color: '#58a6ff',
+    weight: 1.5,
+    opacity: 0.5,
+    dashArray: '8 6',
+    fillColor: '#58a6ff',
+    fillOpacity: 0.03
+  }).addTo(map);
+
+</script>
+
+</body>
+</html>
