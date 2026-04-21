@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Air Purifier Research: Musty Smell &amp; Small Room Focus</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #16181f;
+      --border: #252830;
+      --text: #dde1ee;
+      --muted: #6b7080;
+      --accent: #6c8ef5;
+      --accent-soft: #1e2340;
+      --green: #3ecf8e;
+      --red: #f2545b;
+      --yellow: #f0b429;
+      --orange: #f97316;
+      --teal: #22d3ee;
+      --teal-soft: #0d2730;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 24px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); text-decoration: none; margin-bottom: 18px; }
+    .back:hover { color: var(--accent); }
+    .meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    header h1 { font-size: 1.65rem; font-weight: 700; line-height: 1.3; margin-bottom: 12px; }
+    .lede { font-size: 1rem; color: #9ba3bc; max-width: 680px; }
+
+    main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    h2 { font-size: 1.15rem; font-weight: 700; margin: 52px 0 14px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    h3 { font-size: 0.97rem; font-weight: 600; color: var(--accent); margin: 26px 0 8px; }
+    p { font-size: 0.93rem; color: #9ba3bc; margin-bottom: 14px; }
+    p strong { color: var(--text); }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { font-size: 0.91rem; color: #9ba3bc; margin-bottom: 6px; }
+    li strong { color: var(--text); }
+
+    /* Callouts */
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 16px 20px;
+      margin: 22px 0;
+      font-size: 0.91rem;
+      color: #9ba3bc;
+    }
+    .callout.warn { border-left-color: var(--yellow); }
+    .callout.good { border-left-color: var(--green); }
+    .callout.bad  { border-left-color: var(--red); }
+    .callout.teal { border-left-color: var(--teal); }
+    .callout strong { color: var(--text); }
+
+    /* Winner box */
+    .winner-box {
+      background: linear-gradient(135deg, #0a1f2e 0%, #0d2730 100%);
+      border: 1px solid var(--teal);
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+      margin: 24px 0;
+    }
+    .winner-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--teal);
+      margin-bottom: 8px;
+    }
+    .winner-title { font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .winner-sub { font-size: 0.88rem; color: #22d3ee99; margin-bottom: 16px; }
+    .winner-reasoning { font-size: 0.9rem; color: #9ba3bc; line-height: 1.7; }
+    .winner-reasoning strong { color: var(--text); }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .badge-green  { background: #0d2e1e; color: var(--green); }
+    .badge-yellow { background: #2e2200; color: var(--yellow); }
+    .badge-red    { background: #2e0d0d; color: var(--red); }
+    .badge-blue   { background: #0d1a2e; color: var(--accent); }
+    .badge-teal   { background: var(--teal-soft); color: var(--teal); }
+    .badge-gray   { background: #1a1d27; color: var(--muted); }
+
+    /* Head-to-head comparison */
+    .h2h-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    @media (max-width: 600px) { .h2h-grid { grid-template-columns: 1fr; } }
+    .h2h-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 22px 18px;
+    }
+    .h2h-card.winner-card { border-color: var(--teal); }
+    .h2h-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 4px; }
+    .h2h-card.winner-card .h2h-label { color: var(--teal); }
+    .h2h-name { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    .spec-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-label { color: var(--muted); flex-shrink: 0; }
+    .spec-val { color: var(--text); font-weight: 600; text-align: right; }
+    .spec-val.good { color: var(--green); }
+    .spec-val.warn { color: var(--yellow); }
+    .spec-val.bad  { color: var(--red); }
+
+    /* Data table */
+    .table-wrap { overflow-x: auto; margin: 20px 0; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 700px; }
+    .data-table th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 13px;
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .data-table td {
+      border: 1px solid var(--border);
+      padding: 9px 13px;
+      color: #9ba3bc;
+      vertical-align: middle;
+    }
+    .data-table tr:nth-child(even) td { background: #111317; }
+    .data-table td:first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
+    .good-val { color: var(--green); font-weight: 600; }
+    .bad-val  { color: var(--red); }
+    .ok-val   { color: var(--yellow); }
+    .top-pick-row td:first-child { color: var(--teal) !important; }
+
+    /* Product deep-dive cards */
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    .product-card.pick1 { border-left: 3px solid var(--teal); }
+    .product-card.pick2 { border-left: 3px solid var(--accent); }
+    .product-card.pick3 { border-left: 3px solid var(--green); }
+    .product-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .product-name { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .product-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .product-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pro-con-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    @media (max-width: 560px) { .pro-con-grid { grid-template-columns: 1fr; } }
+    .pro-con-box { background: #0f1117; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+    .pro-con-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .pro-con-title.pros { color: var(--green); }
+    .pro-con-title.cons { color: var(--red); }
+    .pro-con-box ul { padding-left: 16px; }
+    .pro-con-box li { font-size: 0.85rem; color: #9ba3bc; margin-bottom: 5px; }
+
+    /* Cost calculator */
+    .cost-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.85rem; }
+    .cost-table th {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 9px 14px;
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .cost-table td {
+      border: 1px solid var(--border);
+      padding: 9px 14px;
+      color: #9ba3bc;
+    }
+    .cost-table tr:nth-child(even) td { background: #111317; }
+    .cost-table td:first-child { color: var(--text); font-weight: 600; }
+    .cost-table td:last-child { color: var(--teal); font-weight: 700; }
+
+    /* Avoid cards */
+    .avoid-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 20px 0; }
+    .avoid-card {
+      background: var(--surface);
+      border: 1px solid #2e1515;
+      border-left: 3px solid var(--red);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .avoid-title { font-size: 0.92rem; font-weight: 700; color: var(--red); margin-bottom: 6px; }
+    .avoid-desc { font-size: 0.84rem; color: var(--muted); }
+
+    /* Sources */
+    .sources-list { list-style: none; padding: 0; }
+    .sources-list li { padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
+    .sources-list li:last-child { border-bottom: none; }
+    .sources-list a { color: var(--accent); text-decoration: none; }
+    .sources-list a:hover { text-decoration: underline; }
+
+    /* Score pill */
+    .score-pill {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 0.82rem;
+      font-weight: 800;
+      line-height: 36px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .score-a  { background: #0d2e1e; color: var(--green); }
+    .score-b  { background: #0d1a2e; color: var(--accent); }
+    .score-c  { background: #2e2200; color: var(--yellow); }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.78rem;
+      color: #3a3e50;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">&#8592; All Research</a>
+  <div class="meta">Open Research &nbsp;·&nbsp; Apr 2026 &nbsp;·&nbsp; Home &amp; Air Quality</div>
+  <h1>Air Purifier Research: Musty Smell &amp; Small Room Focus</h1>
+  <p class="lede">One unit for a 140 sq ft room in an older house. Main concern: musty odors, mold spores, and VOCs from aging materials. HEPA alone is not enough — activated carbon quantity and type matter as much as filtration efficiency.</p>
+</header>
+
+<main>
+
+  <!-- 1. THE PROBLEM -->
+  <h2>The Problem: Why Musty Smells Need More Than HEPA</h2>
+
+  <p>Old houses produce three overlapping air quality threats. <strong>Mold spores</strong> are biological particles in the 1–20 micron range — a True HEPA filter handles these well. <strong>Musty odor compounds</strong> (geosmin, 2-methylisoborneol) and <strong>VOCs</strong> (volatile organic compounds from old wood, glue, damp materials, off-gassing insulation) are gases, not particles. HEPA does nothing for gases.</p>
+
+  <p>Activated carbon works through adsorption — the gas molecules bind to the carbon's enormous surface area. The two critical variables are: <strong>how much carbon</strong> (mass in grams) and <strong>what form</strong> (pellets vs. carbon-coated fiber mesh). Pellet-based carbon has far more surface area and doesn't saturate as quickly as thin fibrous sheets.</p>
+
+  <div class="callout warn">
+    <strong>The carbon trap:</strong> Many budget purifiers advertise "activated carbon filter" but contain a thin mesh sheet coated with carbon dust — sometimes under 50g total. This saturates within weeks under continuous VOC load. For musty smells specifically, look for units with <strong>true pellet or granular carbon, ideally 150g+</strong>.
+  </div>
+
+  <p>For a 140 sq ft room, you also want sufficient CADR (Clean Air Delivery Rate) to achieve 4–5 air changes per hour (ACH). At 140 sq ft with 8 ft ceilings, that's about 1,120 cubic feet of room volume. To get 4 ACH you need roughly 75 CFM — most mid-range units vastly exceed this, meaning you can often run them on low speed (quieter) and still clean effectively.</p>
+
+
+  <!-- 2. HEAD-TO-HEAD COMPARISON -->
+  <h2>Head-to-Head: The Two Wirecutter Candidates</h2>
+
+  <p>Both Wirecutter affiliate links resolve to these two models, which have been Wirecutter's top picks for years. Both are in the $100–$180 range and cover rooms up to ~360 sq ft — overkill for 140 sq ft, which means you can run them on low speed for quiet, continuous cleaning.</p>
+
+  <div class="h2h-grid">
+
+    <div class="h2h-card">
+      <div class="h2h-label">Wirecutter Top Pick</div>
+      <div class="h2h-name">Coway Airmega AP-1512HH</div>
+      <div class="spec-row"><span class="spec-label">HEPA Type</span><span class="spec-val">True HEPA (99.97% @ 0.3µm)</span></div>
+      <div class="spec-row"><span class="spec-label">Carbon Filter</span><span class="spec-val warn">Thin fibrous sheet, ~60–80g</span></div>
+      <div class="spec-row"><span class="spec-label">Carbon Type</span><span class="spec-val warn">Carbon-coated mesh</span></div>
+      <div class="spec-row"><span class="spec-label">CADR (Smoke/Dust/Pollen)</span><span class="spec-val">233 / 246 / 240 CFM</span></div>
+      <div class="spec-row"><span class="spec-label">Coverage Area</span><span class="spec-val">361 sq ft</span></div>
+      <div class="spec-row"><span class="spec-label">Noise (Low / High)</span><span class="spec-val">24 dB / 54 dB</span></div>
+      <div class="spec-row"><span class="spec-label">Filter Cost / Year</span><span class="spec-val warn">~$50–70 (OEM)</span></div>
+      <div class="spec-row"><span class="spec-label">Energy Use (Max)</span><span class="spec-val">77W</span></div>
+      <div class="spec-row"><span class="spec-label">Smart Features</span><span class="spec-val">Air quality indicator, Eco mode, no WiFi</span></div>
+      <div class="spec-row"><span class="spec-label">PlasmaWave Ionizer</span><span class="spec-val">Yes (optional, can disable)</span></div>
+      <div class="spec-row"><span class="spec-label">Price</span><span class="spec-val good">~$100–130</span></div>
+      <div class="spec-row"><span class="spec-label">Odor / VOC Score</span><span class="spec-val warn">Moderate — carbon saturates faster</span></div>
+    </div>
+
+    <div class="h2h-card winner-card">
+      <div class="h2h-label">Wirecutter Upgrade Pick / Winner for Odors</div>
+      <div class="h2h-name">Winix 5510 <span style="font-size:0.78rem;color:var(--muted)">(successor to 5500-2)</span></div>
+      <div class="spec-row"><span class="spec-label">HEPA Type</span><span class="spec-val">True HEPA (99.97% @ 0.3µm)</span></div>
+      <div class="spec-row"><span class="spec-label">Carbon Filter</span><span class="spec-val good">226g pellet-based AOC carbon</span></div>
+      <div class="spec-row"><span class="spec-label">Carbon Type</span><span class="spec-val good">Granular activated carbon pellets</span></div>
+      <div class="spec-row"><span class="spec-label">CADR (Smoke/Dust/Pollen)</span><span class="spec-val">232 / 232 / 243 CFM</span></div>
+      <div class="spec-row"><span class="spec-label">Coverage Area</span><span class="spec-val">360 sq ft</span></div>
+      <div class="spec-row"><span class="spec-label">Noise (Low / High)</span><span class="spec-val">27 dB / 67 dB</span></div>
+      <div class="spec-row"><span class="spec-label">Filter Cost / Year</span><span class="spec-val good">~$75–80 (HEPA only; carbon washable)</span></div>
+      <div class="spec-row"><span class="spec-label">Energy Use (Max)</span><span class="spec-val">65W</span></div>
+      <div class="spec-row"><span class="spec-label">Smart Features</span><span class="spec-val good">WiFi, Winix app, auto mode, air sensor</span></div>
+      <div class="spec-row"><span class="spec-label">PlasmaWave</span><span class="spec-val">Yes (optional, can disable)</span></div>
+      <div class="spec-row"><span class="spec-label">Price</span><span class="spec-val">~$160–180</span></div>
+      <div class="spec-row"><span class="spec-label">Odor / VOC Score</span><span class="spec-val good">Excellent — pellet carbon handles sustained load</span></div>
+    </div>
+
+  </div>
+
+  <div class="callout teal">
+    <strong>Key differentiator:</strong> The Winix 5510 uses 226g of genuine activated carbon pellets vs. the Coway's thin carbon-coated mesh. For musty smells and VOCs, this is the single most important hardware difference between the two units. The carbon filter in the 5510 is also partially washable, extending effective life. In direct comparisons, the Winix 5510's odor sensor detects cigarette smoke and VOCs within 60–90 seconds, faster than the Coway's response.
+  </div>
+
+  <p><strong>Note on the Winix 5500-2:</strong> The 5500-2 has been discontinued as of mid-2025. The 5510 is its direct replacement with identical carbon filter (226g pellets), slightly higher CADR, updated exterior, and added WiFi connectivity. If you see the 5500-2 on clearance, the filtration is equivalent.</p>
+
+
+  <!-- 3. FULL COMPARISON TABLE -->
+  <h2>Full Comparison Table — Top Contenders</h2>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>CADR (Smoke)</th>
+          <th>Coverage</th>
+          <th>Carbon Amount</th>
+          <th>Carbon Type</th>
+          <th>Noise (Low)</th>
+          <th>Filter $/yr</th>
+          <th>Price</th>
+          <th>Odor Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="top-pick-row">
+          <td>Winix 5510</td>
+          <td>232 CFM</td>
+          <td>360 sq ft</td>
+          <td class="good-val">226g pellets</td>
+          <td class="good-val">Granular AOC</td>
+          <td>27 dB</td>
+          <td>~$75–80</td>
+          <td>~$165</td>
+          <td class="good-val">Excellent</td>
+        </tr>
+        <tr>
+          <td>Coway AP-1512HH</td>
+          <td>233 CFM</td>
+          <td>361 sq ft</td>
+          <td class="ok-val">~60–80g mesh</td>
+          <td class="ok-val">Carbon-coated fiber</td>
+          <td class="good-val">24 dB</td>
+          <td>~$50–70</td>
+          <td class="good-val">~$110</td>
+          <td class="ok-val">Moderate</td>
+        </tr>
+        <tr>
+          <td>Levoit Core 300</td>
+          <td>140 CFM</td>
+          <td>219 sq ft</td>
+          <td class="bad-val">~45g</td>
+          <td class="bad-val">Thin activated layer</td>
+          <td class="good-val">24 dB</td>
+          <td>~$20–25</td>
+          <td class="good-val">~$80–100</td>
+          <td class="bad-val">Poor for odors</td>
+        </tr>
+        <tr>
+          <td>Blueair 311i Max</td>
+          <td>250 CFM</td>
+          <td>465 sq ft</td>
+          <td class="ok-val">Fibrous layer</td>
+          <td class="ok-val">Carbon-coated cloth</td>
+          <td class="good-val">23 dB</td>
+          <td>~$50–70</td>
+          <td>~$150–180</td>
+          <td class="ok-val">Light odors only</td>
+        </tr>
+        <tr>
+          <td>Winix 5500-2 (discontinued)</td>
+          <td>232 CFM</td>
+          <td>360 sq ft</td>
+          <td class="good-val">226g pellets</td>
+          <td class="good-val">Granular AOC</td>
+          <td>35 dB</td>
+          <td>~$70–80</td>
+          <td>Clearance ~$130</td>
+          <td class="good-val">Excellent</td>
+        </tr>
+        <tr>
+          <td>Austin Air HealthMate</td>
+          <td>~250 CFM est.</td>
+          <td>700 sq ft</td>
+          <td class="good-val">6,800g (15 lb!)</td>
+          <td class="good-val">Granular carbon + zeolite</td>
+          <td>~35 dB</td>
+          <td class="good-val">~$30–40 (5-yr filter)</td>
+          <td class="bad-val">~$700</td>
+          <td class="good-val">Best in class</td>
+        </tr>
+        <tr>
+          <td>IQAir HealthPro Plus</td>
+          <td>300 CFM</td>
+          <td>900 sq ft</td>
+          <td class="good-val">5,000g pellets</td>
+          <td class="good-val">V5-Cell carbon + alumina</td>
+          <td>~25 dB</td>
+          <td class="bad-val">~$200+</td>
+          <td class="bad-val">~$900</td>
+          <td class="good-val">Best in class</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size:0.78rem;color:var(--muted);margin-top:-8px;">CFM = Cubic Feet per Minute. Carbon amounts are approximate based on manufacturer specs and third-party teardowns. "Excellent" odor rating = effective against sustained musty/VOC loads. "Moderate" = handles mild odors, may saturate faster under persistent old-house VOC conditions.</p>
+
+
+  <!-- 4. DEEP DIVE CARDS -->
+  <h2>Deep Dives — Top 3 Picks for This Use Case</h2>
+
+  <!-- Pick 1: Winix 5510 -->
+  <div class="product-card pick1">
+    <div class="product-header">
+      <div>
+        <div class="product-name">Winix 5510</div>
+        <div class="product-meta">~$165 &nbsp;·&nbsp; 360 sq ft &nbsp;·&nbsp; CADR 232 CFM Smoke &nbsp;·&nbsp; 226g carbon pellets</div>
+      </div>
+      <div class="product-badges">
+        <span class="badge badge-teal">Top Pick</span>
+        <span class="badge badge-green">Best for Odors</span>
+        <span class="badge badge-blue">WiFi</span>
+      </div>
+    </div>
+    <p>The 5510 is the updated Winix 5500-2, now with WiFi and app control. Its defining feature for musty-smell use cases is the 226g washable AOC (Activated Odor Control) carbon pellet filter — the same granular technology used in commercial air scrubbers. At 140 sq ft, you can run it on speed 1 (27 dB — near silent) and still get 10+ air changes per hour. The auto mode uses a real particle + odor sensor and responds within 60–90 seconds to VOC spikes, which is ideal for an older house with variable off-gassing.</p>
+    <p>PlasmaWave technology is optional and can be disabled — when off, the unit produces zero measurable ozone. The washable pre-filter means only the HEPA needs annual replacement (~$75–80), making long-term costs reasonable.</p>
+    <div class="pro-con-grid">
+      <div class="pro-con-box">
+        <div class="pro-con-title pros">Pros</div>
+        <ul>
+          <li>226g pellet carbon — best for sustained odor/VOC load</li>
+          <li>AOC carbon filter is washable, extending life</li>
+          <li>WiFi + app control (new on 5510 vs. 5500-2)</li>
+          <li>Auto mode with air quality sensor</li>
+          <li>Very quiet at low speed (27 dB)</li>
+          <li>Lower energy use than Coway (65W max)</li>
+          <li>Annual filter cost is reasonable</li>
+        </ul>
+      </div>
+      <div class="pro-con-box">
+        <div class="pro-con-title cons">Cons</div>
+        <ul>
+          <li>Louder at max speed (67 dB vs. 54 dB for Coway)</li>
+          <li>~$50 more than the Coway upfront</li>
+          <li>Larger footprint than Coway</li>
+          <li>App has limited advanced features</li>
+          <li>PlasmaWave should be confirmed off for sensitive users</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pick 2: Coway AP-1512HH -->
+  <div class="product-card pick2">
+    <div class="product-header">
+      <div>
+        <div class="product-name">Coway Airmega AP-1512HH</div>
+        <div class="product-meta">~$110 &nbsp;·&nbsp; 361 sq ft &nbsp;·&nbsp; CADR 233 CFM Smoke &nbsp;·&nbsp; ~60–80g carbon mesh</div>
+      </div>
+      <div class="product-badges">
+        <span class="badge badge-blue">Runner-Up</span>
+        <span class="badge badge-green">Best Value</span>
+      </div>
+    </div>
+    <p>Wirecutter's long-standing #1 pick for good reason: it's exceptionally quiet at low speed (24 dB — barely audible), handles particles and allergens extremely well, and costs ~$50 less than the Winix. For someone whose primary concern is allergens, dust, and mold spores (particle filtration), the Coway is arguably the better deal. Where it falls short for this specific use case is the carbon filter — a thin fibrous sheet rather than granular pellets. Under continuous musty odor load from an old house, it will saturate faster. The Coway is the better choice if odors are occasional; the Winix if they're persistent.</p>
+    <div class="pro-con-grid">
+      <div class="pro-con-box">
+        <div class="pro-con-title pros">Pros</div>
+        <ul>
+          <li>Lowest noise floor at low speed (24 dB)</li>
+          <li>~$50 cheaper upfront than Winix 5510</li>
+          <li>Excellent particle/mold spore capture (True HEPA)</li>
+          <li>Eco mode reduces energy use to ~5W</li>
+          <li>Air quality indicator (color LED)</li>
+          <li>Very compact, easy to place</li>
+          <li>Over 10 years of proven reliability</li>
+        </ul>
+      </div>
+      <div class="pro-con-box">
+        <div class="pro-con-title cons">Cons</div>
+        <ul>
+          <li>Thin fibrous carbon filter (~60–80g) — not ideal for persistent VOC load</li>
+          <li>Carbon filter saturates faster than pellet-based units</li>
+          <li>No WiFi or app control</li>
+          <li>Ionizer should be kept disabled for best air quality</li>
+          <li>Filter replacement requires carbon + HEPA combo ($50–70/yr OEM)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pick 3: Austin Air HealthMate -->
+  <div class="product-card pick3">
+    <div class="product-header">
+      <div>
+        <div class="product-name">Austin Air HealthMate</div>
+        <div class="product-meta">~$700 &nbsp;·&nbsp; 700 sq ft &nbsp;·&nbsp; 15 lb activated carbon + zeolite &nbsp;·&nbsp; 5-year filter life</div>
+      </div>
+      <div class="product-badges">
+        <span class="badge badge-green">Best Carbon</span>
+        <span class="badge badge-yellow">High Cost</span>
+      </div>
+    </div>
+    <p>The Austin Air HealthMate is in a different category: 15 lb (6,800g) of granular activated carbon mixed with zeolite, rated to remove over 3,000 types of VOCs and odors. The filter lasts 5 years, making the per-year filter cost surprisingly low (~$30–40/yr). If musty odors are severe and persistent — structural dampness, old building materials, or significant mold behind walls — this is the professional-grade solution. For a 140 sq ft room it's massive overkill on filtration capacity, but it's the right tool if nothing else works. No smart features, no WiFi, just a 3-speed dial and an all-steel chassis designed to run for decades.</p>
+    <div class="pro-con-grid">
+      <div class="pro-con-box">
+        <div class="pro-con-title pros">Pros</div>
+        <ul>
+          <li>15 lb of carbon + zeolite — unmatched odor capacity</li>
+          <li>5-year filter life, low annual cost (~$30–40/yr)</li>
+          <li>Removes 3,000+ VOC types including formaldehyde</li>
+          <li>All-steel construction, runs forever</li>
+          <li>No off-gassing from the unit itself</li>
+          <li>Medical-grade HEPA (99.97% @ 0.3µm)</li>
+        </ul>
+      </div>
+      <div class="pro-con-box">
+        <div class="pro-con-title cons">Cons</div>
+        <ul>
+          <li>$700 upfront — very expensive</li>
+          <li>Heavy and bulky</li>
+          <li>No smart features, no air quality sensor</li>
+          <li>Manual 3-speed only</li>
+          <li>Overkill for 140 sq ft if odors are moderate</li>
+          <li>Not widely available in retail stores</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 5. RECOMMENDATION -->
+  <h2>Our Recommendation</h2>
+
+  <div class="winner-box">
+    <div class="winner-label">Winner for This Use Case</div>
+    <div class="winner-title">Winix 5510</div>
+    <div class="winner-sub">Small room &nbsp;·&nbsp; Old house musty smell &nbsp;·&nbsp; Best value for persistent odors</div>
+    <div class="winner-reasoning">
+      <p>For a 140 sq ft room in an older house where <strong>musty smell and VOC off-gassing are the primary concern</strong>, the Winix 5510 is the clear winner. The 226g pellet-based activated carbon filter is the single most important differentiator — it handles the sustained, low-level VOC load typical of old wood, damp materials, and mold spores far better than the Coway's thin carbon-coated mesh filter, which will saturate faster and require more frequent replacement.</p>
+      <p>The room is 140 sq ft. Both units are rated for 360+ sq ft. At that room-to-unit ratio, <strong>you'll run the Winix on speed 1 nearly all the time</strong> (27 dB — almost silent). Speed 3 and above (where the 67 dB noise becomes relevant) would almost never be needed. The WiFi app lets you confirm air quality remotely and schedule runs without physically touching the unit.</p>
+      <strong>If budget is the constraint:</strong> The Coway AP-1512HH at ~$110 is an excellent runner-up and the right choice if odors are mild or intermittent. Its 24 dB low speed is marginally quieter and it costs ~$50 less upfront. For severe or persistent musty smells, however, invest the extra $50 in the Winix.
+    </div>
+  </div>
+
+  <div class="callout good">
+    <strong>Pro tip for old houses:</strong> An air purifier addresses airborne particles and some gases — it does not fix the source. If musty smell is strong, also check for moisture issues (crawlspace vapor barrier, bathroom exhaust, HVAC drip pans) and consider a dehumidifier to keep indoor humidity below 50%, which inhibits mold growth at the source.
+  </div>
+
+
+  <!-- 6. FILTER COST CALCULATOR -->
+  <h2>Annual Running Cost Calculator</h2>
+
+  <p>Assumptions: 24/7 operation, mostly low speed. Energy cost at $0.13/kWh (US average). Filter costs are OEM; third-party filters can cut costs 30–50%.</p>
+
+  <table class="cost-table">
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Avg Power (Low)</th>
+        <th>Energy / Year</th>
+        <th>Filter / Year</th>
+        <th>Total / Year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Winix 5510</td>
+        <td>~12W avg (low/auto)</td>
+        <td>~$14</td>
+        <td>~$75 (HEPA only; carbon washable)</td>
+        <td>~$89</td>
+      </tr>
+      <tr>
+        <td>Coway AP-1512HH</td>
+        <td>~10W avg (eco/low)</td>
+        <td>~$11</td>
+        <td>~$60 (HEPA + carbon combo)</td>
+        <td>~$71</td>
+      </tr>
+      <tr>
+        <td>Levoit Core 300</td>
+        <td>~8W avg</td>
+        <td>~$9</td>
+        <td>~$22 (filter)</td>
+        <td>~$31</td>
+      </tr>
+      <tr>
+        <td>Blueair 311i Max</td>
+        <td>~8W avg</td>
+        <td>~$9</td>
+        <td>~$60 (filter)</td>
+        <td>~$69</td>
+      </tr>
+      <tr>
+        <td>Austin Air HealthMate</td>
+        <td>~50W avg</td>
+        <td>~$57</td>
+        <td>~$35 (5-yr filter amortized)</td>
+        <td>~$92</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Note:</strong> The Coway's annual total looks lower, but in an old house with persistent VOC load you may need to replace its carbon pre-filter every 3–4 months rather than 6 — effectively doubling that filter line item. The Winix 5510's carbon filter is washable and extends much longer under the same conditions.
+  </div>
+
+
+  <!-- 7. WHAT TO AVOID -->
+  <h2>What to Avoid</h2>
+
+  <div class="avoid-grid">
+    <div class="avoid-card">
+      <div class="avoid-title">Ozone Generators</div>
+      <div class="avoid-desc">Marketed as "air purifiers" and "odor eliminators." Ozone at concentrations that affect odors is harmful to lungs — human and pet. Never use in an occupied space. True air purifiers operate at ozone levels of 0.000 ppm.</div>
+    </div>
+    <div class="avoid-card">
+      <div class="avoid-title">Ionizers (standalone)</div>
+      <div class="avoid-desc">Ionic air purifiers produce no CADR — they have no fan and no filter. Ions may cause particles to settle on surfaces rather than capturing them. Most studies show little real-world air quality improvement.</div>
+    </div>
+    <div class="avoid-card">
+      <div class="avoid-title">HEPA-Only Units for Odors</div>
+      <div class="avoid-desc">HEPA captures particles (mold spores, dust, allergens). It does nothing for gases, VOCs, or odor compounds. For musty smells, HEPA is necessary but not sufficient. Always pair with activated carbon.</div>
+    </div>
+    <div class="avoid-card">
+      <div class="avoid-title">Thin Carbon Mesh Filters</div>
+      <div class="avoid-desc">Many budget units use carbon-coated fiber mats with under 50g of actual carbon. These saturate within weeks under sustained VOC load from an old house and provide minimal ongoing benefit afterward.</div>
+    </div>
+    <div class="avoid-card">
+      <div class="avoid-title">Undersized Units</div>
+      <div class="avoid-desc">A unit rated for 100 sq ft in a 140 sq ft room will struggle and run at max speed (loud) continuously. Aim for a unit rated 2–3x your room size so it can handle the room comfortably at low speed.</div>
+    </div>
+    <div class="avoid-card">
+      <div class="avoid-title">"UV" or Photocatalytic Units</div>
+      <div class="avoid-desc">PCO (photocatalytic oxidation) technology, while promising, has been shown in independent testing to sometimes produce harmful byproducts including formaldehyde at low concentrations. Avoid unless you see rigorous third-party validation.</div>
+    </div>
+  </div>
+
+
+  <!-- 8. SOURCES -->
+  <h2>Sources</h2>
+
+  <ul class="sources-list">
+    <li><a href="https://www.nytimes.com/wirecutter/reviews/best-air-purifier/" target="_blank">Wirecutter — The Best Air Purifier (NYT)</a> — Long-term top pick and upgrade pick evaluation</li>
+    <li><a href="https://vacuumwars.com/coway-airmega-ap-1512hh-vs-winix-5500-2/" target="_blank">Vacuum Wars — Coway AP-1512HH vs Winix 5500-2</a> — Head-to-head testing with airflow and smoke measurements</li>
+    <li><a href="https://www.airpurifierfirst.com/comparison/coway-ap-1512hh-vs-winix-5500-2/" target="_blank">Air Purifier First — Coway vs Winix 5500-2 Comparison</a> — Carbon filter type and odor performance analysis</li>
+    <li><a href="https://www.airpurifierfirst.com/review/winix-5510/" target="_blank">Air Purifier First — Winix 5510 Review</a> — Carbon weight (226g), odor sensor testing, VOC performance</li>
+    <li><a href="https://airpurifiershub.com/winix-5510-review/" target="_blank">Air Purifiers Hub — Winix 5510 Review 2026</a> — Complete specs, noise levels, filter costs</li>
+    <li><a href="https://housefresh.com/winix-5500-2-review/" target="_blank">HouseFresh — Winix 5500-2 Review</a> — Independent testing, carbon pellet analysis</li>
+    <li><a href="https://housefresh.com/coway-airmega-ap-1512hh-review/" target="_blank">HouseFresh — Coway AP-1512HH Review</a> — CADR testing, noise measurement, filter cost breakdown</li>
+    <li><a href="https://housefresh.com/levoit-core-300-review/" target="_blank">HouseFresh — Levoit Core 300 Review</a> — 45g carbon limitation for odors documented</li>
+    <li><a href="https://www.consumeranalysis.com/guides/air-purifiers/austin-air-health-mate-review/" target="_blank">Consumer Analysis — Austin Air HealthMate Review</a> — 15 lb carbon analysis, VOC removal breadth</li>
+    <li><a href="https://homefitouts.com/austin-air-purifier-review-2025/" target="_blank">Home Fitouts — Austin Air Review 2025</a> — Cult following, real-world chemical/odor removal</li>
+    <li><a href="https://housefresh.com/blueair-311i-max-review/" target="_blank">HouseFresh — Blueair 311i Max Review</a> — CADR 250 CFM, fibrous carbon limitations</li>
+    <li><a href="https://www.winixamerica.com/product/5510/" target="_blank">Winix America — 5510 Official Specs</a> — Manufacturer specifications</li>
+    <li><a href="https://cowaymega.com/products/mighty-ap-1512hh" target="_blank">Coway Mega — AP-1512HH Official Page</a> — Official product specifications</li>
+    <li><a href="https://airpurificationeducation.com/cost-of-ownership-rankings/" target="_blank">Air Purification Education — Cost of Ownership Rankings</a> — Annual cost methodology</li>
+    <li><a href="https://www.airpurifierfirst.com/comparison/coway-ap-1512hh-vs-winix-5510/" target="_blank">Air Purifier First — Coway vs Winix 5510</a> — Updated comparison with 5510 specs</li>
+  </ul>
+
+</main>
+
+<footer>
+  Open Research &nbsp;·&nbsp; garysclaw.github.io/general-research &nbsp;·&nbsp; Apr 2026
+</footer>
+
+</body>
+</html>
