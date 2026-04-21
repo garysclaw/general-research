@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Workflow: Nanoclaw vs Remote Claude vs Local Model</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --teal: #2dd4bf;
+      --teal-dim: #134e4a;
+      --teal-glow: rgba(45, 212, 191, 0.15);
+      --cyan: #38bdf8;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #a371f7;
+      --orange: #f0883e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d2e2a 100%);
+      border-bottom: 1px solid var(--teal-dim);
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--teal-glow), transparent);
+      pointer-events: none;
+    }
+    .header-badge {
+      display: inline-block;
+      background: var(--teal-dim);
+      color: var(--teal);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.9rem;
+      border-radius: 99px;
+      border: 1px solid var(--teal);
+      margin-bottom: 1rem;
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+    header h1 span { color: var(--teal); }
+    header p.subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 620px;
+      margin: 0 auto;
+    }
+    .meta-row {
+      margin-top: 1.25rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .meta-pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── Layout ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    section { margin-bottom: 3.5rem; }
+
+    h2.section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--teal);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.6rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      border-color: var(--teal);
+      box-shadow: 0 0 20px var(--teal-glow);
+    }
+    .card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.4rem;
+    }
+    .card .tagline {
+      font-size: 0.82rem;
+      color: var(--teal);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+    .card p { font-size: 0.92rem; color: var(--muted); margin-bottom: 0.6rem; }
+
+    .pill-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+    .pill {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 99px;
+      border: 1px solid;
+    }
+    .pill-green  { color: var(--green);  border-color: var(--green);  background: rgba(63,185,80,.08); }
+    .pill-red    { color: var(--red);    border-color: var(--red);    background: rgba(248,81,73,.08); }
+    .pill-yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(210,153,34,.08); }
+    .pill-cyan   { color: var(--cyan);   border-color: var(--cyan);   background: rgba(56,189,248,.08); }
+    .pill-purple { color: var(--purple); border-color: var(--purple); background: rgba(163,113,247,.08); }
+    .pill-teal   { color: var(--teal);   border-color: var(--teal);   background: rgba(45,212,191,.08); }
+
+    /* ── Comparison Table ── */
+    .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 640px;
+    }
+    thead th {
+      background: #1c2128;
+      color: var(--teal);
+      font-weight: 700;
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    thead th:first-child { color: var(--muted); }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    tbody tr:hover { background: var(--teal-glow); }
+    tbody td { padding: 0.8rem 1rem; color: var(--text); vertical-align: top; }
+    tbody td:first-child { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .good  { color: var(--green); }
+    .mid   { color: var(--yellow); }
+    .bad   { color: var(--red); }
+    .na    { color: var(--muted); opacity: 0.6; }
+
+    /* ── Use Case Guide ── */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .usecase-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+    }
+    .usecase-scenario {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+    }
+    .usecase-arrow {
+      color: var(--teal);
+      font-weight: 700;
+      margin: 0 0.4rem;
+    }
+    .usecase-answer {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .usecase-why {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    /* ── Cost Analysis ── */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .cost-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem;
+    }
+    .cost-card h3 { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 1rem; }
+    .cost-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .cost-row:last-child { border-bottom: none; }
+    .cost-label { color: var(--muted); }
+    .cost-value { font-weight: 700; }
+    .cost-free { color: var(--green); }
+    .cost-low  { color: var(--teal); }
+    .cost-mid  { color: var(--yellow); }
+    .cost-high { color: var(--red); }
+    .cost-note { font-size: 0.78rem; color: var(--muted); margin-top: 0.75rem; font-style: italic; }
+
+    /* ── Local Model Deep Dive ── */
+    .model-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .steps-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .steps-card h3 { font-size: 1rem; font-weight: 700; color: var(--teal); margin-bottom: 1rem; }
+    ol.steps { padding-left: 1.4rem; }
+    ol.steps li { font-size: 0.9rem; color: var(--muted); padding: 0.3rem 0; }
+    ol.steps li strong { color: var(--text); }
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      background: rgba(255,255,255,0.07);
+      padding: 0.15em 0.45em;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: var(--cyan);
+    }
+    pre {
+      background: #0a0d12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      color: var(--cyan);
+      margin: 0.75rem 0;
+      line-height: 1.7;
+    }
+
+    /* ── Hybrid Architecture ── */
+    .hybrid-diagram {
+      background: var(--card);
+      border: 1px solid var(--teal-dim);
+      border-radius: 10px;
+      padding: 1.75rem;
+    }
+    .hybrid-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 700px) {
+      .hybrid-row { grid-template-columns: 1fr; }
+      .hybrid-arrow { display: none; }
+    }
+    .hybrid-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .hybrid-box .icon { font-size: 1.8rem; margin-bottom: 0.4rem; display: block; }
+    .hybrid-box h4 { font-size: 0.92rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem; }
+    .hybrid-box p  { font-size: 0.78rem; color: var(--muted); }
+    .hybrid-arrow  { text-align: center; color: var(--teal); font-size: 1.4rem; font-weight: 700; }
+    .hybrid-tasks  {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .hybrid-task {
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid var(--teal);
+      padding: 0.6rem 0.9rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.85rem;
+    }
+    .hybrid-task strong { display: block; color: var(--teal); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+
+    /* ── Claude Code Situation ── */
+    .alert-card {
+      background: rgba(248,81,73,0.07);
+      border: 1px solid rgba(248,81,73,0.3);
+      border-radius: 10px;
+      padding: 1.4rem;
+    }
+    .alert-card h3 { color: var(--red); font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .alert-card p  { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.6rem; }
+    .alert-card p:last-child { margin-bottom: 0; }
+    .timeline {
+      margin-top: 1rem;
+      border-left: 2px solid var(--border);
+      padding-left: 1.25rem;
+    }
+    .timeline-item { margin-bottom: 0.75rem; position: relative; }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -1.45rem;
+      top: 0.45rem;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+      border: 2px solid var(--bg);
+    }
+    .timeline-date { font-size: 0.78rem; color: var(--red); font-weight: 600; }
+    .timeline-desc { font-size: 0.88rem; color: var(--muted); }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.6rem;
+    }
+    .check-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .check-item .chk {
+      width: 20px; height: 20px;
+      border: 2px solid var(--teal);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; color: var(--teal);
+    }
+
+    /* ── Sources ── */
+    .sources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.6rem;
+    }
+    .source-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.83rem;
+    }
+    .source-item a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+    .source-item a:hover { text-decoration: underline; color: var(--teal); }
+    .source-item .src-label { color: var(--muted); font-size: 0.75rem; display: block; margin-bottom: 0.15rem; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--teal); text-decoration: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      main { padding: 1.5rem 1rem 3rem; }
+      .hybrid-row { display: flex; flex-direction: column; }
+    }
+
+    /* ── Emphasis ── */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(45,212,191,0.08), rgba(56,189,248,0.05));
+      border: 1px solid var(--teal-dim);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1rem;
+    }
+    .highlight-box p { font-size: 0.92rem; color: var(--text); }
+    .highlight-box strong { color: var(--teal); }
+  </style>
+</head>
+<body>
+
+<!-- ─────────────── HEADER ─────────────── -->
+<header>
+  <div class="header-badge">Personal Decision Guide · David's Setup</div>
+  <h1>AI Workflow: <span>Nanoclaw</span> vs Remote Claude vs Local Model</h1>
+  <p class="subtitle">Which AI assistant should you reach for — and when? A practical breakdown for your RTX 2070 + Telegram + Claude stack.</p>
+  <div class="meta-row">
+    <span class="meta-pill">Updated April 2026</span>
+    <span class="meta-pill">RTX 2070 · 8GB VRAM</span>
+    <span class="meta-pill">Windows + WSL2</span>
+    <span class="meta-pill">Claude Sonnet 4.6 / Ollama</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ─────────────── SECTION 1: THREE APPROACHES ─────────────── -->
+<section>
+  <h2 class="section-title">⚡ The Three Approaches</h2>
+  <div class="card-grid">
+
+    <div class="card">
+      <span class="card-icon">📡</span>
+      <h3>Nanoclaw</h3>
+      <div class="tagline">Always-On Messaging Agent</div>
+      <p>Your custom Claude agent accessible via Telegram and other messaging platforms. Runs on Anthropic's API, maintains persistent conversation memory, can schedule tasks and push to GitHub — all while you're away from the keyboard.</p>
+      <div class="pill-list">
+        <span class="pill pill-green">Always-On</span>
+        <span class="pill pill-green">Persistent Memory</span>
+        <span class="pill pill-teal">GitHub Integration</span>
+        <span class="pill pill-teal">Scheduled Tasks</span>
+        <span class="pill pill-yellow">API Cost</span>
+        <span class="pill pill-red">No File System</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="card-icon">☁️</span>
+      <h3>Remote Claude</h3>
+      <div class="tagline">Claude.ai / Claude Code / API</div>
+      <p>Anthropic's flagship models accessed directly — via the web UI, the Claude Code CLI (now increasingly restricted), or raw API. Best raw intelligence, strongest coding ability, but session-based and tightening restrictions on agentic use.</p>
+      <div class="pill-list">
+        <span class="pill pill-green">Highest Quality</span>
+        <span class="pill pill-green">File System Access</span>
+        <span class="pill pill-cyan">Claude Sonnet/Opus</span>
+        <span class="pill pill-yellow">Session-Based</span>
+        <span class="pill pill-yellow">Subscription or API</span>
+        <span class="pill pill-red">Restrictions Tightening</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="card-icon">🖥️</span>
+      <h3>Local Model</h3>
+      <div class="tagline">Ollama + RTX 2070</div>
+      <p>Run Llama, Qwen, or Mistral locally via Ollama. Your RTX 2070 with 8GB VRAM handles 7–9B parameter models at Q4_K_M quantization comfortably — ~40+ tok/s. Zero ongoing cost, 100% private, works offline.</p>
+      <div class="pill-list">
+        <span class="pill pill-green">100% Private</span>
+        <span class="pill pill-green">$0 Ongoing</span>
+        <span class="pill pill-green">Offline</span>
+        <span class="pill pill-cyan">VS Code / Continue.dev</span>
+        <span class="pill pill-red">Lower Quality</span>
+        <span class="pill pill-yellow">Setup Required</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 2: DECISION MATRIX ─────────────── -->
+<section>
+  <h2 class="section-title">📊 Decision Matrix</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>📡 Nanoclaw</th>
+          <th>☁️ Remote Claude</th>
+          <th>🖥️ Local Model</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cost (monthly)</td>
+          <td class="mid">~$5–20 API usage</td>
+          <td class="mid">$20/mo Pro or API</td>
+          <td class="good">~$3/mo electricity</td>
+        </tr>
+        <tr>
+          <td>Privacy</td>
+          <td class="mid">Anthropic API</td>
+          <td class="mid">Anthropic servers</td>
+          <td class="good">100% local</td>
+        </tr>
+        <tr>
+          <td>Always-On</td>
+          <td class="good">✓ Yes (Telegram)</td>
+          <td class="bad">✗ Session-based</td>
+          <td class="mid">When machine is on</td>
+        </tr>
+        <tr>
+          <td>File System / Terminal</td>
+          <td class="bad">✗ No</td>
+          <td class="good">✓ Claude Code (restricted)</td>
+          <td class="good">✓ Via Continue.dev/IDE</td>
+        </tr>
+        <tr>
+          <td>Model Quality</td>
+          <td class="good">Claude Sonnet 4.6</td>
+          <td class="good">Sonnet / Opus (best)</td>
+          <td class="bad">7–9B local models</td>
+        </tr>
+        <tr>
+          <td>Scheduled Tasks</td>
+          <td class="good">✓ Built-in</td>
+          <td class="bad">✗ No</td>
+          <td class="bad">✗ No</td>
+        </tr>
+        <tr>
+          <td>Push Notifications</td>
+          <td class="good">✓ Telegram</td>
+          <td class="bad">✗ No</td>
+          <td class="bad">✗ No</td>
+        </tr>
+        <tr>
+          <td>GitHub Integration</td>
+          <td class="good">✓ Via API</td>
+          <td class="good">✓ Via Claude Code</td>
+          <td class="mid">Manual / script</td>
+        </tr>
+        <tr>
+          <td>Persistent Memory</td>
+          <td class="good">✓ Conversation history</td>
+          <td class="bad">✗ Per-session only</td>
+          <td class="bad">✗ Per-session only</td>
+        </tr>
+        <tr>
+          <td>Internet Access</td>
+          <td class="good">✓ Yes</td>
+          <td class="good">✓ Yes</td>
+          <td class="bad">✗ No (by default)</td>
+        </tr>
+        <tr>
+          <td>Setup Complexity</td>
+          <td class="good">None (already running)</td>
+          <td class="good">Minimal</td>
+          <td class="mid">Moderate (Ollama + model)</td>
+        </tr>
+        <tr>
+          <td>Works While AFK</td>
+          <td class="good">✓ Yes</td>
+          <td class="bad">✗ Need to be at desk</td>
+          <td class="bad">✗ Passive only</td>
+        </tr>
+        <tr>
+          <td>Restrictions Risk</td>
+          <td class="good">Low (API direct)</td>
+          <td class="bad">High (tightening policies)</td>
+          <td class="good">None (fully local)</td>
+        </tr>
+        <tr>
+          <td>Best Use Case</td>
+          <td>Async research, scheduling, notifications</td>
+          <td>Deep coding sessions, complex edits</td>
+          <td>Private data, offline, code completion</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 3: USE CASE GUIDE ─────────────── -->
+<section>
+  <h2 class="section-title">🗺️ Use Case Guide — When to Use Which</h2>
+  <div class="usecase-grid">
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I want to research something while I'm away from my desk"</div>
+      <div class="usecase-answer">📡 <span class="usecase-arrow">→</span> Nanoclaw</div>
+      <div class="usecase-why">Message it from Telegram, let it search and summarize, push results to GitHub. You don't need to be at your machine.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I'm actively coding and need file edits and terminal access"</div>
+      <div class="usecase-answer">☁️ <span class="usecase-arrow">→</span> Remote Claude / Claude Code</div>
+      <div class="usecase-why">Best intelligence for complex refactors. Claude Code can read/write files and run bash — just watch for the tightening restrictions.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I'm working with sensitive or private data"</div>
+      <div class="usecase-answer">🖥️ <span class="usecase-arrow">→</span> Local Model</div>
+      <div class="usecase-why">Nothing leaves your machine. Ollama + Qwen3/Llama for private documents, internal code, or anything you can't send to Anthropic.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I want to ask questions all day without paying per token"</div>
+      <div class="usecase-answer">🖥️ <span class="usecase-arrow">→</span> Local Model</div>
+      <div class="usecase-why">Your RTX 2070 at ~$0.10/day electricity handles unlimited queries. Great for repetitive tasks, code completion, drafting.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I need the smartest possible answer to a hard problem"</div>
+      <div class="usecase-answer">☁️ <span class="usecase-arrow">→</span> Remote Claude (Opus)</div>
+      <div class="usecase-why">Claude Opus 4.7 is still the strongest reasoning model available. Use it for architecture decisions, complex debugging, writing.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I want scheduled tasks and push notifications"</div>
+      <div class="usecase-answer">📡 <span class="usecase-arrow">→</span> Nanoclaw</div>
+      <div class="usecase-why">Only option with native scheduling and Telegram delivery. Set it and forget it — get a message when the work is done.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I want AI code completion while I type in VS Code"</div>
+      <div class="usecase-answer">🖥️ <span class="usecase-arrow">→</span> Local Model + Continue.dev</div>
+      <div class="usecase-why">Install Continue.dev extension, point it at Ollama on localhost:11434. Free, fast, private autocomplete with Qwen2.5-Coder.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"I want to document and push research while I sleep"</div>
+      <div class="usecase-answer">📡 <span class="usecase-arrow">→</span> Nanoclaw</div>
+      <div class="usecase-why">Schedule tasks overnight. By morning, the HTML page is built and pushed to GitHub. You wake up to a Telegram notification.</div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-scenario">"Claude Code keeps getting blocked / restricted"</div>
+      <div class="usecase-answer">🖥️ + 📡 <span class="usecase-arrow">→</span> Local + Nanoclaw</div>
+      <div class="usecase-why">Local model handles file-level work via Continue.dev. Nanoclaw handles research and orchestration. Less dependency on Claude Code CLI.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 4: COST ANALYSIS ─────────────── -->
+<section>
+  <h2 class="section-title">💰 Cost Analysis — Monthly Breakdown</h2>
+  <div class="cost-grid">
+
+    <div class="cost-card">
+      <h3>📡 Nanoclaw (Claude API)</h3>
+      <div class="cost-row">
+        <span class="cost-label">Light use (few queries/day)</span>
+        <span class="cost-value cost-low">~$2–5/mo</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Medium (research + scheduling)</span>
+        <span class="cost-value cost-mid">~$10–20/mo</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Heavy (constant queries)</span>
+        <span class="cost-value cost-high">~$30–60/mo</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Sonnet 4.6 rate</span>
+        <span class="cost-value">$3 in / $15 out per MTok</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Batch API discount</span>
+        <span class="cost-value cost-low">50% off</span>
+      </div>
+      <p class="cost-note">Prompt caching can cut costs further — repeated context is billed at ~10% of input rate.</p>
+    </div>
+
+    <div class="cost-card">
+      <h3>☁️ Remote Claude (Subscription)</h3>
+      <div class="cost-row">
+        <span class="cost-label">Claude.ai Pro</span>
+        <span class="cost-value cost-mid">$20/mo flat</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Claude.ai Max</span>
+        <span class="cost-value cost-high">$100/mo flat</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">API (Opus 4.7)</span>
+        <span class="cost-value cost-high">$5 in / $25 out per MTok</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">API (Sonnet 4.6)</span>
+        <span class="cost-value cost-mid">$3 in / $15 out per MTok</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">API (Haiku 4.5)</span>
+        <span class="cost-value cost-low">$1 in / $5 out per MTok</span>
+      </div>
+      <p class="cost-note">Pro subscription no longer covers third-party tools (OpenClaw, etc.) as of April 4, 2026.</p>
+    </div>
+
+    <div class="cost-card">
+      <h3>🖥️ Local Model (Ollama)</h3>
+      <div class="cost-row">
+        <span class="cost-label">Hardware (RTX 2070)</span>
+        <span class="cost-value cost-free">Already owned</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Ollama software</span>
+        <span class="cost-value cost-free">Free / open source</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Model download (7–9B)</span>
+        <span class="cost-value cost-free">Free (one-time ~5GB)</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Light use electricity</span>
+        <span class="cost-value cost-low">~$1–2/mo</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Heavy use electricity</span>
+        <span class="cost-value cost-low">~$3–5/mo</span>
+      </div>
+      <p class="cost-note">RTX 2070 TDP ~185W. At $0.12/kWh, 8 hours/day of active inference = ~$0.18/day = ~$5.30/mo max.</p>
+    </div>
+
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>Optimal strategy:</strong> Use local model for high-volume repetitive queries (code completion, quick questions). Use Nanoclaw for research and async tasks. Reserve Remote Claude API for the hardest problems where quality matters most. This dramatically reduces monthly API spend.</p>
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 5: LOCAL MODEL DEEP DIVE ─────────────── -->
+<section>
+  <h2 class="section-title">🖥️ Local Model Deep Dive — RTX 2070 (8GB VRAM)</h2>
+
+  <div class="model-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Size</th>
+          <th>Quant</th>
+          <th>VRAM</th>
+          <th>Speed</th>
+          <th>Best For</th>
+          <th>Ollama Pull</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Qwen3-8B</strong></td>
+          <td>8B</td>
+          <td>Q4_K_M</td>
+          <td class="good">~5.2GB</td>
+          <td>40+ tok/s</td>
+          <td>General + coding (HumanEval top scorer &lt;8B)</td>
+          <td><code>ollama pull qwen3:8b</code></td>
+        </tr>
+        <tr>
+          <td><strong>Llama-3.1-8B-Instruct</strong></td>
+          <td>8B</td>
+          <td>Q4_K_M</td>
+          <td class="good">~5.0GB</td>
+          <td>45 tok/s</td>
+          <td>Instruction following, general use</td>
+          <td><code>ollama pull llama3.1:8b</code></td>
+        </tr>
+        <tr>
+          <td><strong>Qwen2.5-Coder-7B</strong></td>
+          <td>7B</td>
+          <td>Q4_K_M</td>
+          <td class="good">~4.5GB</td>
+          <td>50+ tok/s</td>
+          <td>Code completion (recommended for Continue.dev)</td>
+          <td><code>ollama pull qwen2.5-coder:7b</code></td>
+        </tr>
+        <tr>
+          <td><strong>Mistral-7B-Instruct</strong></td>
+          <td>7B</td>
+          <td>Q4_K_M</td>
+          <td class="good">~4.4GB</td>
+          <td>50 tok/s</td>
+          <td>Instruction, chat, reliable baseline</td>
+          <td><code>ollama pull mistral:7b-instruct</code></td>
+        </tr>
+        <tr>
+          <td><strong>Phi-4-Mini</strong></td>
+          <td>3.8B</td>
+          <td>Q4</td>
+          <td class="good">~2.8GB</td>
+          <td>65+ tok/s</td>
+          <td>Fastest option, lightweight tasks, code assist</td>
+          <td><code>ollama pull phi4-mini</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="steps-card">
+    <h3>Step 1 — Install Ollama on Windows (outside WSL2)</h3>
+    <ol class="steps">
+      <li>Download <code>OllamaSetup.exe</code> from <strong>https://ollama.com/download/windows</strong></li>
+      <li>Run installer as Administrator — Ollama starts automatically in system tray</li>
+      <li>Open PowerShell or Command Prompt and verify: <code>ollama --version</code></li>
+      <li>Pull your first model: <code>ollama pull qwen3:8b</code></li>
+      <li>Test it: <code>ollama run qwen3:8b "Hello, are you running on GPU?"</code></li>
+      <li>Check GPU usage in Task Manager → Performance → GPU while running</li>
+    </ol>
+    <pre>
+# Quick start commands
+ollama pull qwen3:8b
+ollama pull qwen2.5-coder:7b
+ollama pull llama3.1:8b
+
+# List installed models
+ollama list
+
+# Run interactive chat
+ollama run qwen3:8b
+
+# Check API is running
+curl http://localhost:11434/api/tags</pre>
+  </div>
+
+  <div class="steps-card">
+    <h3>Step 2 — Install Open WebUI (browser interface)</h3>
+    <ol class="steps">
+      <li>Install Docker Desktop for Windows if not already installed</li>
+      <li>Run the Open WebUI container (auto-connects to Ollama on host):</li>
+    </ol>
+    <pre>
+docker run -d -p 3000:8080 \
+  --add-host=host.docker.internal:host-gateway \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main</pre>
+    <ol class="steps" start="3">
+      <li>Open browser at <strong>http://localhost:3000</strong></li>
+      <li>Register a local account (first user = admin)</li>
+      <li>Select your Ollama model from the dropdown and start chatting</li>
+    </ol>
+  </div>
+
+  <div class="steps-card">
+    <h3>Step 3 — Connect to VS Code via Continue.dev</h3>
+    <ol class="steps">
+      <li>In VS Code, open Extensions (<code>Ctrl+Shift+X</code>) and search <strong>Continue</strong></li>
+      <li>Install <strong>Continue - Codestral, Claude, and more</strong> by Continue.dev</li>
+      <li>Open Command Palette (<code>Ctrl+Shift+P</code>) → <em>Continue: Open Config File</em></li>
+      <li>Edit <code>.continue/config.json</code> to add Ollama as provider:</li>
+    </ol>
+    <pre>
+{
+  "models": [
+    {
+      "title": "Qwen2.5-Coder (Local)",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "apiBase": "http://localhost:11434"
+    },
+    {
+      "title": "Qwen3 8B (Local)",
+      "provider": "ollama",
+      "model": "qwen3:8b",
+      "apiBase": "http://localhost:11434"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Qwen2.5-Coder Autocomplete",
+    "provider": "ollama",
+    "model": "qwen2.5-coder:7b"
+  }
+}</pre>
+    <ol class="steps" start="5">
+      <li>Press <code>Cmd+L</code> / <code>Ctrl+L</code> to open chat, or just start typing — tab autocomplete activates inline</li>
+      <li>Use <code>@codebase</code> to let Continue index your project for context-aware suggestions</li>
+    </ol>
+  </div>
+
+  <div class="steps-card">
+    <h3>Note for WSL2 Users — Reaching Windows Ollama from Linux</h3>
+    <ol class="steps">
+      <li>Ollama runs on Windows (outside WSL2) and listens on port 11434</li>
+      <li>From WSL2, reach it via the host IP: <code>http://$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}'):11434</code></li>
+      <li>Or set: <code>export OLLAMA_HOST=http://host.docker.internal:11434</code> in WSL2</li>
+      <li>You can also set <code>OLLAMA_ORIGINS=*</code> in Windows environment variables to allow cross-origin access</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 6: HYBRID ARCHITECTURE ─────────────── -->
+<section>
+  <h2 class="section-title">🔀 Hybrid Architecture — Use All Three</h2>
+  <div class="hybrid-diagram">
+    <div class="hybrid-row">
+      <div class="hybrid-box">
+        <span class="icon">📡</span>
+        <h4>Nanoclaw</h4>
+        <p>Research, scheduling, async tasks, notifications</p>
+      </div>
+      <div class="hybrid-arrow">⟷</div>
+      <div class="hybrid-box">
+        <span class="icon">☁️</span>
+        <h4>Remote Claude</h4>
+        <p>Deep coding, hard problems, architecture decisions</p>
+      </div>
+      <div class="hybrid-arrow">⟷</div>
+      <div class="hybrid-box">
+        <span class="icon">🖥️</span>
+        <h4>Local Ollama</h4>
+        <p>Private data, code completion, offline, free volume</p>
+      </div>
+    </div>
+
+    <div class="hybrid-tasks">
+      <div class="hybrid-task">
+        <strong>Nanoclaw handles</strong>
+        Wake me at 7am with a summary of overnight news in my field
+      </div>
+      <div class="hybrid-task">
+        <strong>Nanoclaw handles</strong>
+        Research a topic, build a page, push to GitHub while I sleep
+      </div>
+      <div class="hybrid-task">
+        <strong>Remote Claude handles</strong>
+        Refactor this 500-line module and update all tests
+      </div>
+      <div class="hybrid-task">
+        <strong>Remote Claude handles</strong>
+        Explain why this architecture decision is wrong and give 3 alternatives
+      </div>
+      <div class="hybrid-task">
+        <strong>Local Model handles</strong>
+        Tab-autocomplete as I type in VS Code all day
+      </div>
+      <div class="hybrid-task">
+        <strong>Local Model handles</strong>
+        Summarize this 50-page private document without sending it to Anthropic
+      </div>
+      <div class="hybrid-task">
+        <strong>Local Model handles</strong>
+        Answer 100 quick questions about my codebase — free, no API cost
+      </div>
+      <div class="hybrid-task">
+        <strong>All three together</strong>
+        Nanoclaw queues research → Remote Claude analyzes → Local model handles daily repetitive follow-up
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 7: CLAUDE CODE SITUATION ─────────────── -->
+<section>
+  <h2 class="section-title">⚠️ The Claude Code Situation</h2>
+
+  <div class="alert-card">
+    <h3>Why Claude Code / OpenClaw Is Getting Restricted</h3>
+    <p>Anthropic has been progressively tightening access to Claude via third-party tools throughout 2025–2026. The root cause: community-led autonomous coding loops ("Ralph Wiggum" phenomenon in late December 2025) generated enormous token consumption, forcing Anthropic to crack down on unlimited agentic loops and subscription abuse.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">Jan 9, 2026</div>
+        <div class="timeline-desc">Anthropic flipped a switch — third-party tools using Claude Pro/Max subscriptions stopped working overnight. Technical safeguards prevent spoofing of official Claude Code client.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Feb 2026</div>
+        <div class="timeline-desc">Official compliance docs ban consumer OAuth tokens (Free/Pro/Max) in any third-party tool — including Anthropic's own Agent SDK. OpenClaw explicitly named.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Apr 4, 2026</div>
+        <div class="timeline-desc">Claude Pro and Max subscribers can no longer use their subscription limits to power tools like OpenClaw. Cost increase of up to 50x for affected users.</div>
+      </div>
+    </div>
+
+    <p style="margin-top:1rem;"><strong style="color:#e6edf3;">What this means for David:</strong> If you've been using OpenClaw/Claude Code on a Pro subscription, that path is now blocked. Direct API access (what Nanoclaw uses) still works but is billed per token. The safest long-term stack is: <strong style="color:var(--teal)">Nanoclaw (API) + Local Ollama</strong> for daily use, with Remote Claude API reserved for complex tasks.</p>
+    <p><strong>Official Claude Code CLI</strong> (the one Anthropic ships) still functions but is subject to evolving agentic loop restrictions. The Claude Code <em>auto mode</em> (released early 2026) attempts to balance capability with safety guardrails.</p>
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 8: QUICK SETUP CHECKLIST ─────────────── -->
+<section>
+  <h2 class="section-title">✅ Quick Setup Checklist — Get Local Model Running</h2>
+  <div class="checklist">
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Download and install <strong>Ollama for Windows</strong> from ollama.com/download/windows</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Run <code>ollama pull qwen2.5-coder:7b</code> — best model for code completion on 8GB VRAM</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Run <code>ollama pull qwen3:8b</code> — best general-purpose local model for your hardware</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Verify GPU acceleration: Task Manager → GPU should spike during <code>ollama run qwen3:8b</code></div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Install <strong>Docker Desktop</strong> and spin up <strong>Open WebUI</strong> at localhost:3000</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Install <strong>Continue.dev</strong> extension in VS Code from the marketplace</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Configure Continue's <code>config.json</code> to point at <code>http://localhost:11434</code> with qwen2.5-coder:7b</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Test tab autocomplete in a code file — press <code>Tab</code> to accept inline suggestions</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Document your local setup in <code>garysclaw/local-llm-setup</code> repo (already started with llmfit results)</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Set <code>OLLAMA_ORIGINS=*</code> in Windows env vars if accessing from WSL2</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Use Nanoclaw for anything requiring research, scheduling, or async — keep API cost separate from local usage</div>
+    </div>
+    <div class="check-item">
+      <div class="chk">☐</div>
+      <div>Decide on a monthly API budget for Nanoclaw and set up usage alerts in Anthropic console</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── SECTION 9: SOURCES ─────────────── -->
+<section>
+  <h2 class="section-title">📎 Sources</h2>
+  <div class="sources-grid">
+    <div class="source-item">
+      <span class="src-label">Claude API Pricing</span>
+      <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank">platform.claude.com — Claude API Pricing Docs</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Claude Pricing Guide</span>
+      <a href="https://claude.com/pricing" target="_blank">claude.com/pricing — Plans & Pricing</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">API Pricing Analysis</span>
+      <a href="https://www.finout.io/blog/anthropic-api-pricing" target="_blank">finout.io — Anthropic API Pricing 2026 Complete Guide</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Claude Code Crackdown</span>
+      <a href="https://venturebeat.com/technology/anthropic-cracks-down-on-unauthorized-claude-usage-by-third-party-harnesses" target="_blank">VentureBeat — Anthropic Cracks Down on Third-Party Harnesses</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Walled Garden Analysis</span>
+      <a href="https://paddo.dev/blog/anthropic-walled-garden-crackdown/" target="_blank">paddo.dev — Anthropic's Walled Garden: The Claude Code Crackdown</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">OAuth Policy Feb 2026</span>
+      <a href="https://aihackers.net/posts/anthropic-claude-code-oauth-policy-feb-2026/" target="_blank">aihackers.net — Anthropic OAuth Policy Feb 2026</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">OpenClaw Ban</span>
+      <a href="https://thenextweb.com/news/anthropic-openclaw-claude-subscription-ban-cost" target="_blank">TNW — Anthropic Blocks OpenClaw from Claude Subscriptions</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Subscription Shift</span>
+      <a href="https://www.pymnts.com/artificial-intelligence-2/2026/third-party-agents-lose-access-as-anthropic-tightens-claude-usage-rules/" target="_blank">PYMNTS — Third-Party Agents Lose Access</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Local LLMs for 8GB VRAM</span>
+      <a href="https://localllm.in/blog/best-local-llms-8gb-vram-2025" target="_blank">localllm.in — Best Local LLMs for 8GB VRAM</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Ollama Models Ranked</span>
+      <a href="https://localaimaster.com/blog/best-local-ai-models-8gb-ram" target="_blank">localaimaster.com — Best Ollama Models for 8GB RAM 2026</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Continue.dev + Ollama</span>
+      <a href="https://docs.continue.dev/guides/ollama-guide" target="_blank">docs.continue.dev — Using Ollama with Continue</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">VS Code + Ollama Guide</span>
+      <a href="https://www.sitepoint.com/local-ai-coding-assistant-vscode-ollama-continue/" target="_blank">SitePoint — Local AI Coding Assistant: VS Code + Ollama + Continue</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Open WebUI Setup</span>
+      <a href="https://dev.to/jangwook_kim_e31e7291ad98/ollama-open-webui-self-hosting-guide-2026-run-your-own-ai-for-0-2781" target="_blank">dev.to — Ollama + Open WebUI Self-Hosting Guide 2026</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Claude Code Auto Mode</span>
+      <a href="https://www.anthropic.com/engineering/claude-code-auto-mode" target="_blank">anthropic.com — Claude Code Auto Mode</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Ollama GPU Support</span>
+      <a href="https://docs.ollama.com/gpu" target="_blank">docs.ollama.com — Hardware/GPU Support</a>
+    </div>
+    <div class="source-item">
+      <span class="src-label">Local LLM Models 2026</span>
+      <a href="https://www.sitepoint.com/best-local-llm-models-2026/" target="_blank">SitePoint — Best Local LLM Models 2026</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Research compiled by <a href="https://garysclaw.github.io/general-research/">garysclaw/general-research</a> · April 2026 · For David's personal AI workflow decisions</p>
+</footer>
+
+</body>
+</html>
