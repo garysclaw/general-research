@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stateless GitHub Publishing: Using the Contents API from Ephemeral Environments</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #2dd4bf;
+      --accent-dim: #0f3d38;
+      --accent2: #38bdf8;
+      --code-bg: #0d1117;
+      --code-border: #30363d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 40px 24px 32px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .breadcrumb {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+    }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .meta {
+      display: flex;
+      gap: 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .tag {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      font-size: 0.71rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 48px 24px 100px;
+    }
+
+    .tldr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 52px;
+      font-size: 0.95rem;
+      color: #c9d1d9;
+    }
+    .tldr strong { color: var(--accent); }
+
+    section { margin-bottom: 52px; }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent2);
+      margin: 28px 0 10px;
+    }
+    p { margin-bottom: 16px; color: #c9d1d9; font-size: 0.95rem; }
+    ul, ol { margin: 0 0 18px 22px; color: #c9d1d9; font-size: 0.95rem; }
+    li { margin-bottom: 6px; }
+
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      background: #1c2128;
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.88em;
+      color: var(--accent);
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      overflow-x: auto;
+      margin: 20px 0 28px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: #c9d1d9;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+    .comment { color: #6e7681; }
+    .kw { color: #ff7b72; }
+    .str { color: #a5d6ff; }
+    .fn { color: #d2a8ff; }
+    .var { color: #79c0ff; }
+    .num { color: #f2cc60; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 28px;
+      font-size: 0.875rem;
+    }
+    th {
+      background: var(--surface);
+      color: var(--accent);
+      text-align: left;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      color: #c9d1d9;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #0d1117; }
+    tr:nth-child(odd) td { background: #161b22; }
+    .good { color: #3fb950; }
+    .bad { color: #f85149; }
+    .neutral { color: #e3b341; }
+
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      color: #c9d1d9;
+    }
+    .callout .label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .step-list { counter-reset: steps; list-style: none; margin-left: 0; }
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .step-list li::before {
+      content: counter(steps);
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      min-width: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+    .fit-box, .nofit-box {
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-size: 0.88rem;
+    }
+    .fit-box {
+      background: #0d2318;
+      border: 1px solid #238636;
+    }
+    .fit-box .box-title { color: #3fb950; font-weight: 700; margin-bottom: 10px; }
+    .nofit-box {
+      background: #2d1117;
+      border: 1px solid #6e1f25;
+    }
+    .nofit-box .box-title { color: #f85149; font-weight: 700; margin-bottom: 10px; }
+    .fit-box ul, .nofit-box ul { margin-left: 18px; color: #c9d1d9; }
+
+    .sources { margin-top: 60px; padding-top: 28px; border-top: 1px solid var(--border); }
+    .sources h2 { border-bottom: none; padding-bottom: 0; }
+    .sources ul { list-style: none; margin: 12px 0 0; }
+    .sources li { margin-bottom: 8px; }
+    .sources a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    .sources a:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.78rem;
+      color: #3a3e50;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="breadcrumb"><a href="index.html">Open Research</a> / Infrastructure</div>
+  <h1>Stateless GitHub Publishing:<br>Using the Contents API from Ephemeral Environments</h1>
+  <div class="meta">
+    <span>Apr 2026</span>
+    <span class="tag">GitHub API</span>
+    <span class="tag">CI/CD</span>
+    <span class="tag">serverless</span>
+    <span class="tag">AI agents</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="tldr">
+    <strong>TL;DR:</strong> Ephemeral compute — containers, Lambda, serverless functions, AI agents — can't rely on persistent SSH keys, git credentials, or local clones. The GitHub Contents API solves this: pure HTTP calls let you read and write individual files with no git binary, no local state, and no credentials stored on disk. This is a complete walkthrough of how it works, when to use it, and what to watch out for.
+  </div>
+
+  <!-- SECTION 1 -->
+  <section>
+    <h2>1. The Problem</h2>
+    <p>
+      Modern compute is increasingly ephemeral. Container runtimes spin up for seconds, Lambda functions live for milliseconds, CI/CD workers are discarded after every build, and AI coding agents run inside sandboxed sessions with no persistent home directory.
+    </p>
+    <p>
+      The traditional git workflow assumes statefulness: you clone a repo, maintain SSH keys, manage credentials in <code>~/.gitconfig</code>, and push from a workspace that persists between sessions. None of that is available in ephemeral environments.
+    </p>
+    <p>
+      Options you might reach for — and why they fall short:
+    </p>
+    <ul>
+      <li><strong>Clone + push:</strong> Requires git binary, SSH keys or a credential helper, and a writable filesystem. Containers and Lambda often have none of these configured.</li>
+      <li><strong>Deploy keys:</strong> Better, but still require key management and a persistent SSH agent. Leaks in logs are hard to audit.</li>
+      <li><strong>GitHub Actions built-in token:</strong> Works, but only inside GitHub Actions — not useful for external agents, IoT devices, or arbitrary cloud functions.</li>
+    </ul>
+    <p>
+      The better answer, for single-file updates, is the GitHub Contents API. No git binary. No persistent disk state. Pure HTTPS with a token.
+    </p>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section>
+    <h2>2. The GitHub Contents API</h2>
+    <p>
+      GitHub exposes a REST endpoint for reading and writing individual files in a repository. It handles all the git internals server-side — you just send the content, and GitHub creates the blob, tree, and commit for you.
+    </p>
+
+    <h3>Read a file</h3>
+    <pre><code><span class="comment"># GET the current file (also returns the SHA you need to update it)</span>
+GET https://api.github.com/repos/<span class="var">owner</span>/<span class="var">my-repo</span>/contents/<span class="var">path/to/file.html</span>
+
+Authorization: token <span class="str">ghp_xxxxxxxxxxxx</span>
+Accept: application/vnd.github+json</code></pre>
+
+    <p>Response includes <code>content</code> (base64-encoded file body) and <code>sha</code> (the blob SHA, required for updates).</p>
+
+    <h3>Write or update a file</h3>
+    <pre><code><span class="comment"># PUT creates the file (if new) or updates it (if SHA provided)</span>
+PUT https://api.github.com/repos/<span class="var">owner</span>/<span class="var">my-repo</span>/contents/<span class="var">path/to/file.html</span>
+
+Authorization: token <span class="str">ghp_xxxxxxxxxxxx</span>
+Content-Type: application/json
+
+{
+  <span class="str">"message"</span>: <span class="str">"your commit message"</span>,
+  <span class="str">"content"</span>: <span class="str">"&lt;base64-encoded file content&gt;"</span>,
+  <span class="str">"sha"</span>:     <span class="str">"&lt;blob SHA from GET, required for updates&gt;"</span>
+}</code></pre>
+
+    <p>GitHub responds with 200 (updated) or 201 (created), and returns the new commit metadata.</p>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section>
+    <h2>3. How It Works — Step by Step</h2>
+    <ol class="step-list">
+      <li>
+        <div><strong>Generate content in memory.</strong> Your function, agent, or container produces whatever it wants to publish — an HTML page, a JSON report, a markdown file — as a string in memory. No disk write required.</div>
+      </li>
+      <li>
+        <div><strong>Base64-encode it.</strong> The API requires content as a base64 string. In Python: <code>base64.b64encode(content.encode()).decode()</code>. In curl: pipe through <code>base64</code>.</div>
+      </li>
+      <li>
+        <div><strong>GET the file to retrieve its SHA.</strong> If the file already exists, you must include its current blob SHA in the PUT request, or the API returns a 422 conflict error. The SHA comes from the GET response's top-level <code>sha</code> field.</div>
+      </li>
+      <li>
+        <div><strong>PUT with content + SHA.</strong> Send the base64 content, commit message, and SHA (omit SHA for new files). GitHub handles the entire git object model server-side.</div>
+      </li>
+      <li>
+        <div><strong>GitHub creates the commit.</strong> The response includes the new commit SHA, author metadata, and URLs. No local git state was modified or required.</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section>
+    <h2>4. Code Examples</h2>
+
+    <h3>Python</h3>
+    <pre><code><span class="kw">import</span> requests, base64
+
+TOKEN   = <span class="str">"ghp_xxxxxxxxxxxx"</span>
+OWNER   = <span class="str">"yourname"</span>
+REPO    = <span class="str">"my-repo"</span>
+PATH    = <span class="str">"output/report.html"</span>
+HEADERS = {
+    <span class="str">"Authorization"</span>: <span class="var">f</span><span class="str">"token {TOKEN}"</span>,
+    <span class="str">"Accept"</span>: <span class="str">"application/vnd.github+json"</span>,
+}
+
+<span class="comment"># 1. Generate content</span>
+content = <span class="str">"&lt;html&gt;&lt;body&gt;Hello from an ephemeral agent!&lt;/body&gt;&lt;/html&gt;"</span>
+
+<span class="comment"># 2. GET existing file (to retrieve SHA for update)</span>
+url = <span class="var">f</span><span class="str">"https://api.github.com/repos/{OWNER}/{REPO}/contents/{PATH}"</span>
+r = requests.get(url, headers=HEADERS)
+sha = r.json().get(<span class="str">"sha"</span>) <span class="kw">if</span> r.status_code == <span class="num">200</span> <span class="kw">else</span> <span class="kw">None</span>
+
+<span class="comment"># 3. PUT to create or update</span>
+payload = {
+    <span class="str">"message"</span>: <span class="str">"publish: update report"</span>,
+    <span class="str">"content"</span>: base64.b64encode(content.encode()).decode(),
+}
+<span class="kw">if</span> sha:
+    payload[<span class="str">"sha"</span>] = sha
+
+resp = requests.put(url, json=payload, headers=HEADERS)
+<span class="fn">print</span>(resp.status_code, resp.json()[<span class="str">"commit"</span>][<span class="str">"sha"</span>])</code></pre>
+
+    <h3>curl</h3>
+    <pre><code><span class="comment"># Step 1: get current SHA (if file exists)</span>
+SHA=$(curl -s \
+  -H <span class="str">"Authorization: token ghp_xxxxxxxxxxxx"</span> \
+  <span class="str">"https://api.github.com/repos/yourname/my-repo/contents/output/report.html"</span> \
+  | python3 -c <span class="str">"import sys,json; d=json.load(sys.stdin); print(d.get('sha',''))"</span>)
+
+<span class="comment"># Step 2: base64-encode content</span>
+ENCODED=$(base64 -w 0 report.html)
+
+<span class="comment"># Step 3: push</span>
+curl -s -X PUT \
+  -H <span class="str">"Authorization: token ghp_xxxxxxxxxxxx"</span> \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">"{\"message\":\"publish: update report\",\"content\":\"$ENCODED\",\"sha\":\"$SHA\"}"</span> \
+  <span class="str">"https://api.github.com/repos/yourname/my-repo/contents/output/report.html"</span></code></pre>
+
+    <div class="callout">
+      <div class="label">Note</div>
+      If the file does not yet exist, omit the <code>"sha"</code> field entirely. The API will create the file. If the file exists and you omit SHA, you get a 422 Unprocessable Entity error.
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section>
+    <h2>5. Comparison: Git CLI vs Contents API</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>Git CLI workflow</th>
+          <th>Contents API</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Requires git binary</td>
+          <td class="bad">Yes</td>
+          <td class="good">No</td>
+        </tr>
+        <tr>
+          <td>Requires persistent disk</td>
+          <td class="bad">Yes (local clone)</td>
+          <td class="good">No</td>
+        </tr>
+        <tr>
+          <td>Credential storage</td>
+          <td class="bad">SSH key or credential helper</td>
+          <td class="good">Bearer token in request header</td>
+        </tr>
+        <tr>
+          <td>Multi-file atomic commit</td>
+          <td class="good">Yes</td>
+          <td class="bad">No (one file per PUT)</td>
+        </tr>
+        <tr>
+          <td>Binary files</td>
+          <td class="good">Full support</td>
+          <td class="neutral">Base64 overhead; 100 MB file limit</td>
+        </tr>
+        <tr>
+          <td>Branching / merging</td>
+          <td class="good">Full git model</td>
+          <td class="bad">Single-file only</td>
+        </tr>
+        <tr>
+          <td>Works from Lambda / containers</td>
+          <td class="bad">Complex setup</td>
+          <td class="good">Works by default</td>
+        </tr>
+        <tr>
+          <td>Works from AI agents / IoT</td>
+          <td class="bad">Rarely practical</td>
+          <td class="good">Yes</td>
+        </tr>
+        <tr>
+          <td>Rate limit</td>
+          <td class="neutral">N/A (push-based)</td>
+          <td class="neutral">5,000 requests/hour (authenticated)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SECTION 6 -->
+  <section>
+    <h2>6. When to Use This Pattern</h2>
+    <div class="two-col">
+      <div class="fit-box">
+        <div class="box-title">Good fit</div>
+        <ul>
+          <li>Single-file publish from CI/CD (reports, status pages, generated HTML)</li>
+          <li>AI agents publishing research or output</li>
+          <li>Serverless functions that generate and store a file per invocation</li>
+          <li>IoT or embedded devices pushing readings to a GitHub-hosted datastore</li>
+          <li>Environments where installing git is impractical or forbidden</li>
+          <li>Quick file updates in scripts where a full git workflow would be overhead</li>
+        </ul>
+      </div>
+      <div class="nofit-box">
+        <div class="box-title">Poor fit</div>
+        <ul>
+          <li>Multi-file atomic commits (no transaction support across files)</li>
+          <li>Large binary files (base64 overhead, 100 MB API limit)</li>
+          <li>Branching, rebasing, or complex merge workflows</li>
+          <li>High-volume writes at scale (rate limits become a concern)</li>
+          <li>Repositories with branch protection requiring signed commits</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7 -->
+  <section>
+    <h2>7. Gotchas</h2>
+
+    <h3>SHA is mandatory for updates</h3>
+    <p>
+      The Contents API uses the blob SHA as an optimistic concurrency lock. If you skip the GET step and just PUT, you will get a <code>422 Unprocessable Entity</code> the moment the file already exists. Always GET first when you're not certain if the file exists.
+    </p>
+
+    <h3>No atomic multi-file commits</h3>
+    <p>
+      Each PUT is its own commit. If you need to update five files "atomically," the Contents API is the wrong tool. Use the lower-level <a href="https://docs.github.com/en/rest/git/trees" style="color:var(--accent)">Git Trees API</a> instead, which lets you build a tree object and create a single commit pointing to it.
+    </p>
+
+    <h3>Rate limits</h3>
+    <p>
+      Authenticated requests get 5,000 per hour. Each GET + PUT pair costs 2 requests. For most publishing use cases this is ample; for high-frequency automation, track the <code>X-RateLimit-Remaining</code> response header.
+    </p>
+
+    <h3>Default branch only (for simplicity)</h3>
+    <p>
+      You can specify a branch in the GET request (<code>?ref=my-branch</code>) and in the PUT body (<code>"branch": "my-branch"</code>). Without specifying, the API reads and writes to the repository's default branch. Confirm what your default branch is if it's not <code>main</code>.
+    </p>
+
+    <h3>Token scope</h3>
+    <p>
+      The token must have the <code>contents: write</code> permission (fine-grained) or <code>repo</code> scope (classic). Keep tokens scoped as narrowly as possible — a write token for one repo, not all repos.
+    </p>
+  </section>
+
+  <!-- SOURCES -->
+  <div class="sources">
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/rest/repos/contents" target="_blank" rel="noopener">GitHub REST API: Repository Contents — docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/rest/git/trees" target="_blank" rel="noopener">GitHub REST API: Git Trees (for atomic multi-file commits) — docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api" target="_blank" rel="noopener">GitHub REST API: Rate Limits — docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noopener">GitHub: Managing Personal Access Tokens — docs.github.com</a></li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>Open Research &mdash; Updated continuously</footer>
+
+</body>
+</html>
