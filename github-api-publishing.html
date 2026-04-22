@@ -263,7 +263,7 @@
 <main>
 
   <div class="tldr">
-    <strong>TL;DR:</strong> Ephemeral compute — containers, Lambda, serverless functions, AI agents — can't rely on persistent SSH keys, git credentials, or local clones. The GitHub Contents API solves this: pure HTTP calls let you read and write individual files with no git binary, no local state, and no credentials stored on disk. This is a complete walkthrough of how it works, when to use it, and what to watch out for.
+    <strong>TL;DR:</strong> Ephemeral compute &mdash; containers, Lambda, serverless functions, AI agents &mdash; can't rely on persistent SSH keys, git credentials, or local clones. The GitHub Contents API solves this: pure HTTP calls let you read and write individual files with no git binary, no local state, and no credentials stored on disk. This is a complete walkthrough of how it works, when to use it, and what to watch out for.
   </div>
 
   <!-- SECTION 1 -->
@@ -276,12 +276,12 @@
       The traditional git workflow assumes statefulness: you clone a repo, maintain SSH keys, manage credentials in <code>~/.gitconfig</code>, and push from a workspace that persists between sessions. None of that is available in ephemeral environments.
     </p>
     <p>
-      Options you might reach for — and why they fall short:
+      Options you might reach for &mdash; and why they fall short:
     </p>
     <ul>
       <li><strong>Clone + push:</strong> Requires git binary, SSH keys or a credential helper, and a writable filesystem. Containers and Lambda often have none of these configured.</li>
       <li><strong>Deploy keys:</strong> Better, but still require key management and a persistent SSH agent. Leaks in logs are hard to audit.</li>
-      <li><strong>GitHub Actions built-in token:</strong> Works, but only inside GitHub Actions — not useful for external agents, IoT devices, or arbitrary cloud functions.</li>
+      <li><strong>GitHub Actions built-in token:</strong> Works, but only inside GitHub Actions &mdash; not useful for external agents, IoT devices, or arbitrary cloud functions.</li>
     </ul>
     <p>
       The better answer, for single-file updates, is the GitHub Contents API. No git binary. No persistent disk state. Pure HTTPS with a token.
@@ -292,12 +292,12 @@
   <section>
     <h2>2. The GitHub Contents API</h2>
     <p>
-      GitHub exposes a REST endpoint for reading and writing individual files in a repository. It handles all the git internals server-side — you just send the content, and GitHub creates the blob, tree, and commit for you.
+      GitHub exposes a REST endpoint for reading and writing individual files in a repository. It handles all the git internals server-side &mdash; you just send the content, and GitHub creates the blob, tree, and commit for you.
     </p>
 
     <h3>Read a file</h3>
     <pre><code><span class="comment"># GET the current file (also returns the SHA you need to update it)</span>
-GET https://api.github.com/repos/<span class="var">owner</span>/<span class="var">my-repo</span>/contents/<span class="var">path/to/file.html</span>
+GET https://api.github.com/repos/<span class="var">owner</span>/<span class="var">repo</span>/contents/<span class="var">path/to/file.html</span>
 
 Authorization: token <span class="str">ghp_xxxxxxxxxxxx</span>
 Accept: application/vnd.github+json</code></pre>
@@ -306,7 +306,7 @@ Accept: application/vnd.github+json</code></pre>
 
     <h3>Write or update a file</h3>
     <pre><code><span class="comment"># PUT creates the file (if new) or updates it (if SHA provided)</span>
-PUT https://api.github.com/repos/<span class="var">owner</span>/<span class="var">my-repo</span>/contents/<span class="var">path/to/file.html</span>
+PUT https://api.github.com/repos/<span class="var">owner</span>/<span class="var">repo</span>/contents/<span class="var">path/to/file.html</span>
 
 Authorization: token <span class="str">ghp_xxxxxxxxxxxx</span>
 Content-Type: application/json
@@ -322,10 +322,10 @@ Content-Type: application/json
 
   <!-- SECTION 3 -->
   <section>
-    <h2>3. How It Works — Step by Step</h2>
+    <h2>3. How It Works &mdash; Step by Step</h2>
     <ol class="step-list">
       <li>
-        <div><strong>Generate content in memory.</strong> Your function, agent, or container produces whatever it wants to publish — an HTML page, a JSON report, a markdown file — as a string in memory. No disk write required.</div>
+        <div><strong>Generate content in memory.</strong> Your function, agent, or container produces whatever it wants to publish &mdash; an HTML page, a JSON report, a markdown file &mdash; as a string in memory. No disk write required.</div>
       </li>
       <li>
         <div><strong>Base64-encode it.</strong> The API requires content as a base64 string. In Python: <code>base64.b64encode(content.encode()).decode()</code>. In curl: pipe through <code>base64</code>.</div>
@@ -347,11 +347,11 @@ Content-Type: application/json
     <h2>4. Code Examples</h2>
 
     <h3>Python</h3>
-    <pre><code><span class="kw">import</span> requests, base64
+    <pre><code><span class="kw">import</span> urllib.request, base64, json
 
 TOKEN   = <span class="str">"ghp_xxxxxxxxxxxx"</span>
-OWNER   = <span class="str">"yourname"</span>
-REPO    = <span class="str">"my-repo"</span>
+OWNER   = <span class="str">"owner"</span>
+REPO    = <span class="str">"repo"</span>
 PATH    = <span class="str">"output/report.html"</span>
 HEADERS = {
     <span class="str">"Authorization"</span>: <span class="var">f</span><span class="str">"token {TOKEN}"</span>,
@@ -363,8 +363,12 @@ content = <span class="str">"&lt;html&gt;&lt;body&gt;Hello from an ephemeral age
 
 <span class="comment"># 2. GET existing file (to retrieve SHA for update)</span>
 url = <span class="var">f</span><span class="str">"https://api.github.com/repos/{OWNER}/{REPO}/contents/{PATH}"</span>
-r = requests.get(url, headers=HEADERS)
-sha = r.json().get(<span class="str">"sha"</span>) <span class="kw">if</span> r.status_code == <span class="num">200</span> <span class="kw">else</span> <span class="kw">None</span>
+req = urllib.request.Request(url, headers=HEADERS)
+<span class="kw">try</span>:
+    r = urllib.request.urlopen(req)
+    sha = json.loads(r.read()).get(<span class="str">"sha"</span>)
+<span class="kw">except</span> urllib.error.HTTPError:
+    sha = <span class="kw">None</span>
 
 <span class="comment"># 3. PUT to create or update</span>
 payload = {
@@ -374,25 +378,21 @@ payload = {
 <span class="kw">if</span> sha:
     payload[<span class="str">"sha"</span>] = sha
 
-resp = requests.put(url, json=payload, headers=HEADERS)
-<span class="fn">print</span>(resp.status_code, resp.json()[<span class="str">"commit"</span>][<span class="str">"sha"</span>])</code></pre>
+body = json.dumps(payload).encode()
+put_req = urllib.request.Request(url, data=body, headers={**HEADERS, <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>}, method=<span class="str">"PUT"</span>)
+resp = urllib.request.urlopen(put_req)
+result = json.loads(resp.read())
+<span class="fn">print</span>(resp.status, result[<span class="str">"commit"</span>][<span class="str">"sha"</span>])</code></pre>
 
     <h3>curl</h3>
     <pre><code><span class="comment"># Step 1: get current SHA (if file exists)</span>
-SHA=$(curl -s \
-  -H <span class="str">"Authorization: token ghp_xxxxxxxxxxxx"</span> \
-  <span class="str">"https://api.github.com/repos/yourname/my-repo/contents/output/report.html"</span> \
-  | python3 -c <span class="str">"import sys,json; d=json.load(sys.stdin); print(d.get('sha',''))"</span>)
+SHA=$(curl -s   -H "Authorization: token ghp_xxxxxxxxxxxx"   "https://api.github.com/repos/owner/repo/contents/output/report.html"   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('sha',''))")
 
 <span class="comment"># Step 2: base64-encode content</span>
 ENCODED=$(base64 -w 0 report.html)
 
 <span class="comment"># Step 3: push</span>
-curl -s -X PUT \
-  -H <span class="str">"Authorization: token ghp_xxxxxxxxxxxx"</span> \
-  -H <span class="str">"Content-Type: application/json"</span> \
-  -d <span class="str">"{\"message\":\"publish: update report\",\"content\":\"$ENCODED\",\"sha\":\"$SHA\"}"</span> \
-  <span class="str">"https://api.github.com/repos/yourname/my-repo/contents/output/report.html"</span></code></pre>
+curl -s -X PUT   -H "Authorization: token ghp_xxxxxxxxxxxx"   -H "Content-Type: application/json"   -d "{"message":"publish: update report","content":"$ENCODED","sha":"$SHA"}"   "https://api.github.com/repos/owner/repo/contents/output/report.html"</code></pre>
 
     <div class="callout">
       <div class="label">Note</div>
@@ -469,7 +469,7 @@ curl -s -X PUT \
         <div class="box-title">Good fit</div>
         <ul>
           <li>Single-file publish from CI/CD (reports, status pages, generated HTML)</li>
-          <li>AI agents publishing research or output</li>
+          <li>AI agents publishing research pages or documentation</li>
           <li>Serverless functions that generate and store a file per invocation</li>
           <li>IoT or embedded devices pushing readings to a GitHub-hosted datastore</li>
           <li>Environments where installing git is impractical or forbidden</li>
@@ -515,7 +515,7 @@ curl -s -X PUT \
 
     <h3>Token scope</h3>
     <p>
-      The token must have the <code>contents: write</code> permission (fine-grained) or <code>repo</code> scope (classic). Keep tokens scoped as narrowly as possible — a write token for one repo, not all repos.
+      The token must have the <code>contents: write</code> permission (fine-grained) or <code>repo</code> scope (classic). Keep tokens scoped as narrowly as possible &mdash; a write token for one repo, not all repos.
     </p>
   </section>
 
@@ -523,10 +523,10 @@ curl -s -X PUT \
   <div class="sources">
     <h2>Sources</h2>
     <ul>
-      <li><a href="https://docs.github.com/en/rest/repos/contents" target="_blank" rel="noopener">GitHub REST API: Repository Contents — docs.github.com</a></li>
-      <li><a href="https://docs.github.com/en/rest/git/trees" target="_blank" rel="noopener">GitHub REST API: Git Trees (for atomic multi-file commits) — docs.github.com</a></li>
-      <li><a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api" target="_blank" rel="noopener">GitHub REST API: Rate Limits — docs.github.com</a></li>
-      <li><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noopener">GitHub: Managing Personal Access Tokens — docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/rest/repos/contents" target="_blank" rel="noopener">GitHub REST API: Repository Contents &mdash; docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/rest/git/trees" target="_blank" rel="noopener">GitHub REST API: Git Trees (for atomic multi-file commits) &mdash; docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api" target="_blank" rel="noopener">GitHub REST API: Rate Limits &mdash; docs.github.com</a></li>
+      <li><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noopener">GitHub: Managing Personal Access Tokens &mdash; docs.github.com</a></li>
     </ul>
   </div>
 
